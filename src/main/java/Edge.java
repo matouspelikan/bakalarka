@@ -1,0 +1,72 @@
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+public class Edge {
+
+    public int leftNumber;
+    public int rightNumber;
+
+    List<Edge> leftEdges = new ArrayList<>();
+    List<Edge> rightEdges = new ArrayList<>();
+
+    public int cost;
+    public int demand;
+    public boolean required;
+
+    public Edge(){
+
+    }
+
+    public Edge(int leftNumber, int rightNumber, boolean required){
+        this.leftNumber = leftNumber;
+        this.rightNumber = rightNumber;
+        this.required = required;
+    }
+
+    public void connect(List<Edge> adjacent, boolean recursive){
+        for (int i = 0; i < adjacent.size(); i++) {
+            Edge next = adjacent.get(i);
+
+            if(this.leftNumber == next.leftNumber || this.leftNumber == next.rightNumber){
+                this.leftEdges.add(next);
+            }
+            else if(this.rightNumber == next.leftNumber || this.rightNumber == next.rightNumber){
+                this.rightEdges.add(next);
+            }
+            else{
+                throw new RuntimeException("spatne adjacent vyber");
+            }
+
+            if(recursive) next.connect(Arrays.asList(this), false);
+
+        }
+    }
+
+    public Route edgeToComponent(List<Route> routes){
+        for (int i = 0; i < routes.size(); i++) {
+            Route route = routes.get(i);
+            if(route.edges.contains(this)){
+                return route;
+            }
+        }
+        return null;
+    }
+    public List<Integer> numbers(){
+        return Arrays.asList(leftNumber, rightNumber);
+    }
+
+    public boolean hasNode(int node){
+        return node == leftNumber || node == rightNumber;
+    }
+
+    @Override
+    public String toString() {
+        return "Edge{" +
+                "leftNumber=" + leftNumber +
+                ", rightNumber=" + rightNumber +
+                ", cost=" + cost +
+                ", demand=" + demand +
+                '}';
+    }
+}
