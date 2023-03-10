@@ -17,6 +17,9 @@ public class Route {
         this.add(edge, 0, 0);
     }
 
+    public void add(Separator separator){
+        edges.add(separator);
+    }
     public void add(Edge edge, int connectingNode, int connectingNodeDestination){
         nodesInt.add(edge.leftNumber);
         nodesInt.add(edge.rightNumber);

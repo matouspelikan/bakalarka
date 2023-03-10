@@ -6,12 +6,18 @@ public class Config {
     public List<Edge> edges;
     public int depot;
 
+    public int vehicles;
+
+    public int capacity;
+
     public Map<Integer, List<Edge>> edgeMap = new HashMap<>();
 
-    public Config(List<Node> nodes, List<Edge> edges, int depot){
+    public Config(List<Node> nodes, List<Edge> edges, int depot, int vehicles, int capacity){
         this.nodes = nodes;
         this.edges = edges;
         this.depot = depot;
+        this.vehicles = vehicles;
+        this.capacity = capacity;
 
         createEdgeMap();
     }

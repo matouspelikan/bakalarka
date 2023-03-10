@@ -20,8 +20,14 @@ public class Delete {
 
         System.out.println(mapa);
 
+        int a = 1;
+        method(a);
+        System.out.println(a);
 
+    }
 
+    public static void method(int a){
+        a = a +1;
     }
 
 }

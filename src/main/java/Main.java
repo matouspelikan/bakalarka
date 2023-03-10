@@ -50,6 +50,9 @@ public class Main {
             routes.add(new Route(priority.get(i)));
         }
 
+        int currentCapacity = 0;
+        int currentVehicle = 0;
+
         for (int i = 0; i < priority.size(); i++) {
             System.out.println("Iteration " + i);
             Edge edge = priority.get(i);
@@ -60,6 +63,7 @@ public class Main {
             int left = ends.get(0);
             int right = ends.get(1);
 
+            //TODO efektivneji vybrat entries aby se nemuselo filtrovat cele pokazde, nejak to mergnout
             List<Entry> closestLeftCandidates = Arrays.stream(entries[left]).filter(node -> nodeToComponent(node.nodeNumber, routes) != route && node.distance < Double.POSITIVE_INFINITY).toList();
             List<Entry> closestRightCandidates = Arrays.stream(entries[right]).filter(node -> nodeToComponent(node.nodeNumber, routes) != route && node.distance < Double.POSITIVE_INFINITY).toList();
             List<Entry> closestLRCandidates = mergeEntryLists(closestLeftCandidates, closestRightCandidates);
@@ -71,7 +75,7 @@ public class Main {
             int connectingNode = minEntry.from;
 
             Entry finalMinEntry = minEntry;
-            //TODO optimize
+            //doneTODO optimize
 //            List<Edge> candidates = edges.stream().filter(e -> e.hasNode(finalMinEntry.nodeNumber) && e.required && edgeToComponent(e, routes) != route).toList();
 //            List<Edge> candidates = config.edgeMap.get(minEntry.nodeNumber).stream().filter(e -> e.required && edgeToComponent(e, routes) != route).toList();
             List<Edge> edgeCandidates = getCandidatesFromMultipleNodes(closestLRCandidates, config.edgeMap, route, routes);
@@ -83,13 +87,20 @@ public class Main {
             System.out.println();
             System.out.println(connectingNode);
             System.out.println(route.findOuterNodes());
-            route.add(edgeCandidates.get(0), connectingNode, minEntry.nodeNumber);
+            Edge selectedCandidate = selectViableCandidate(config.capacity, currentCapacity, edgeCandidates);
+            if(selectedCandidate == null){
+                //TODO vrat se zpet do depotu
+                route.add(new Separator());
+            }
+            else{
+                route.add(selectedCandidate, connectingNode, minEntry.nodeNumber);
+            }
 
             System.out.println();
             System.out.println(route.edges);
             System.out.println(route.findOuterNodes());
 
-            if (i == 0) break;
+            if (i == 1) break;
 
         }
     }
@@ -321,9 +332,17 @@ public class Main {
 
         //VEHICULOS
         line = bufferedReader.readLine();
+        Matcher vehiclesMatch = patternDigit.matcher(line);
+        if(!vehiclesMatch.find()) throw new RuntimeException();
+        int vehicles = Integer.parseInt(vehiclesMatch.group());
+        System.out.println(vehicles);
 
         //CAPACIDAD
         line = bufferedReader.readLine();
+        Matcher capacityMatch = patternDigit.matcher(line);
+        if(!capacityMatch.find()) throw  new RuntimeException();
+        int capacity = Integer.parseInt(capacityMatch.group());
+        System.out.println(capacity);
 
         //TIPO_COSTES_ARISTAS
         line = bufferedReader.readLine();
@@ -360,7 +379,7 @@ public class Main {
 
         List<Edge> edges = makeEdges(nodes);
 
-        return new Config(nodes, edges, depot);
+        return new Config(nodes, edges, depot, vehicles, capacity);
     }
 
     public static List<Edge> makeEdges(List<Node> nodes){
@@ -394,7 +413,7 @@ public class Main {
     }
 
     /**
-        Creates
+        get candidates more effectively
      */
     public static List<Edge> getCandidatesFromMultipleNodes(List<Entry> entries, Map<Integer, List<Edge>> edgeMap, Route route, List<Route> routes){
 
@@ -403,6 +422,20 @@ public class Main {
             edges.addAll(edgeMap.get(entry.nodeNumber).stream().filter(e -> e.required && edgeToComponent(e, routes) != route).toList());
         }
         return edges;
+    }
+
+    /**
+     * selects candidates based on current remaining vehicle capacity
+     * @return
+     */
+    public static Edge selectViableCandidate(int capacity, int taken, List<Edge> candidates){
+        for (int i = 0; i < candidates.size(); i++) {
+            Edge candidate = candidates.get(0);
+            if(taken + candidate.demand <= capacity){
+                return candidate;
+            }
+        }
+        return null;
     }
 
     public static void processEdge(String line, Pattern pattern, List<Node> nodes, boolean required){

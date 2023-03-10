@@ -14,6 +14,8 @@ public class Edge {
     public int demand;
     public boolean required;
 
+    public boolean taken = false;
+
     public Edge(){
 
     }
