@@ -1,3 +1,4 @@
+import javax.swing.text.html.Option;
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -28,13 +29,12 @@ public class Main {
         System.out.println("matrix2 row: ");
         System.out.println(Arrays.asList(matrix2[3]));
 
-        Entry[][] entries = createEntries(matrix2);
+        Entry[][] entries = createEntries(matrix2, config.nodes);
         System.out.println(Arrays.asList(entries[3]));
 
         Map<Integer, List<Edge>> edgeMap = config.edgeMap;
         System.out.println("Edge map:");
         System.out.println(edgeMap.get(7));
-
 
         List<Edge> requiredEdges = config.edges.stream().filter(e -> e.required).collect(Collectors.toList());
         System.out.println("Required edges: ");
@@ -64,9 +64,19 @@ public class Main {
             int right = ends.get(1);
 
             //TODO efektivneji vybrat entries aby se nemuselo filtrovat cele pokazde, nejak to mergnout
-            List<Entry> closestLeftCandidates = Arrays.stream(entries[left]).filter(node -> nodeToComponent(node.nodeNumber, routes) != route && node.distance < Double.POSITIVE_INFINITY).toList();
-            List<Entry> closestRightCandidates = Arrays.stream(entries[right]).filter(node -> nodeToComponent(node.nodeNumber, routes) != route && node.distance < Double.POSITIVE_INFINITY).toList();
-            List<Entry> closestLRCandidates = mergeEntryLists(closestLeftCandidates, closestRightCandidates);
+//            List<Entry> closestLeftCandidates = Arrays.stream(entries[left]).filter(entry -> nodeToComponent(entry.nodeNumber, routes) != route && entry.distance < Double.POSITIVE_INFINITY).toList();
+//            List<Entry> closestRightCandidates = Arrays.stream(entries[right]).filter(entry -> nodeToComponent(entry.nodeNumber, routes) != route && entry.distance < Double.POSITIVE_INFINITY).toList();
+            List<Entry> closestLeftCandidates = Arrays.stream(entries[left]).filter(entry -> entryToComponent(entry, route) && entry.distance < Double.POSITIVE_INFINITY).toList();
+            List<Entry> closestRightCandidates = Arrays.stream(entries[right]).filter(entry -> entryToComponent(entry, route) && entry.distance < Double.POSITIVE_INFINITY).toList();
+            List<Entry> closestLRCandidates;
+            //            List<Entry> closestLRCandidates = mergeEntryLists(closestLeftCandidates, closestRightCandidates);
+            closestLRCandidates = new ArrayList<>(Stream.concat(closestLeftCandidates.stream(), closestRightCandidates.stream()).toList());
+            closestLRCandidates.sort(new Comparator<Entry>() {
+                @Override
+                public int compare(Entry o1, Entry o2) {
+                    return Double.compare(o1.distance, o2.distance); }
+            });
+
             System.out.println("merged candidates");
             System.out.println(closestLRCandidates);
 
@@ -78,29 +88,32 @@ public class Main {
             //doneTODO optimize
 //            List<Edge> candidates = edges.stream().filter(e -> e.hasNode(finalMinEntry.nodeNumber) && e.required && edgeToComponent(e, routes) != route).toList();
 //            List<Edge> candidates = config.edgeMap.get(minEntry.nodeNumber).stream().filter(e -> e.required && edgeToComponent(e, routes) != route).toList();
-            List<Edge> edgeCandidates = getCandidatesFromMultipleNodes(closestLRCandidates, config.edgeMap, route, routes);
+            List<Candidate> edgeCandidates = getCandidatesFromMultipleNodes(closestLRCandidates, config.edgeMap, route, routes);
 
-            System.out.println("Candidates through  " + connectingNode + " distance " + minEntry.distance);
+            System.out.println(route.findOuterNodes());
+            System.out.println("Candidates through  " + connectingNode);
             System.out.println(edgeCandidates);
             assert edgeCandidates.size() > 0;
 
             System.out.println();
             System.out.println(connectingNode);
             System.out.println(route.findOuterNodes());
-            Edge selectedCandidate = selectViableCandidate(config.capacity, currentCapacity, edgeCandidates);
+            Candidate selectedCandidate = selectViableCandidate(config.capacity, currentCapacity, edgeCandidates);
+            System.out.println("selected candidate");
+            System.out.println(selectedCandidate);
             if(selectedCandidate == null){
                 //TODO vrat se zpet do depotu
                 route.add(new Separator());
             }
             else{
-                route.add(selectedCandidate, connectingNode, minEntry.nodeNumber);
+                route.add(selectedCandidate.edge, connectingNode, selectedCandidate.connectingEnd.number);
             }
 
-            System.out.println();
+            System.out.println("\nafter");
             System.out.println(route.edges);
             System.out.println(route.findOuterNodes());
 
-            if (i == 1) break;
+            if (i == 2) break;
 
         }
     }
@@ -132,6 +145,18 @@ public class Main {
         return onlyRoute;
     }
 
+    public static boolean entryToComponent(Entry entry, Route route){
+        if(entry.node == null){
+            return false;
+        }
+        for (Edge e : entry.node.edges){
+            if(e.component != route){
+                return true;
+            }
+        }
+        return false;
+    }
+
     public static Route edgeToComponent(Edge edge, List<Route> routes){
         for (int i = 0; i < routes.size(); i++) {
             Route route = routes.get(i);
@@ -142,13 +167,16 @@ public class Main {
         return null;
     }
 
-    public static Entry[][] createEntries(Double[][] matrix2){
+    public static Entry[][] createEntries(Double[][] matrix2, List<Node> nodes){
         Entry[][] entries = new Entry[matrix2.length][];
         for (int i = 1; i < matrix2.length; i++) {
             Double[] row = matrix2[i];
             Entry[] entryRow = new Entry[matrix2[i].length];
             for (int j = 0; j < matrix2[i].length; j++) {
-                entryRow[j] = new Entry(j, matrix2[i][j], i);
+                int finalJ = j;
+                Optional<Node> onode = nodes.stream().filter(n -> n.number == finalJ).findFirst();
+
+                entryRow[j] = new Entry(j, matrix2[i][j], i, onode);
             }
             Arrays.sort(entryRow, new Comparator<Entry>() {
                 @Override
@@ -233,7 +261,7 @@ public class Main {
 
                     //potrebuji zjistit jestli se vrchol nachazi ve vice pozadovanych hranach
                     int finalI = i;
-                    if(nodes.stream().filter(n_ -> n_.number == finalI).findFirst().get().nodes.stream().filter(n_ -> n_.hasRequired).collect(Collectors.toList()).size() > 1){
+                    if(nodes.stream().filter(n_ -> n_.number == finalI).findFirst().get().nodes.stream().filter(n_ -> n_.hasRequired).toList().size() > 1){
                         matrix2[i][j] = 0.0;
                     }
 //                    continue;
@@ -275,6 +303,7 @@ public class Main {
         return null;
     }
 
+    //TODO nemusí fungovat, protoze zadny z tech minimal nemusi byt vyhovujici pro
     public static List<Entry> mergeEntryLists(List<Entry> e1, List<Entry> e2){
         double minimal1 = e1.get(0).distance;
         double minimal2 = e2.get(0).distance;
@@ -393,7 +422,7 @@ public class Main {
                 Node next = node.nodes.get(j);
                 if (visited.contains(next)) continue;
 
-                Edge newEdge = new Edge(node.number, next.number, node.demands.get(next) != 0);
+                Edge newEdge = new Edge(node.number, next.number, node.demands.get(next) != 0, node, next);
                 newEdge.cost = node.costs.get(next);
                 newEdge.demand = node.demands.get(next);
 
@@ -401,7 +430,6 @@ public class Main {
                         || e.leftNumber == next.number || e.rightNumber == next.number).collect(Collectors.toList());
 
                 newEdge.connect(adjacent, true);
-
 
                 edges.add(newEdge);
             }
@@ -415,23 +443,26 @@ public class Main {
     /**
         get candidates more effectively
      */
-    public static List<Edge> getCandidatesFromMultipleNodes(List<Entry> entries, Map<Integer, List<Edge>> edgeMap, Route route, List<Route> routes){
+    public static List<Candidate> getCandidatesFromMultipleNodes(List<Entry> entries, Map<Integer, List<Edge>> edgeMap, Route route, List<Route> routes){
 
-        List<Edge> edges = new ArrayList<>();
+        List<Candidate> candidates = new ArrayList<>();
         for (Entry entry : entries){
-            edges.addAll(edgeMap.get(entry.nodeNumber).stream().filter(e -> e.required && edgeToComponent(e, routes) != route).toList());
+//            edges.addAll(edgeMap.get(entry.nodeNumber).stream().filter(e -> e.required && e.component != route).toList());
+            for(Edge e : edgeMap.get(entry.nodeNumber).stream().filter(_e -> _e.required && _e.component != route).collect(Collectors.toList())){
+                candidates.add(new Candidate(e, entry.node));
+            }
         }
-        return edges;
+        return candidates;
     }
 
     /**
      * selects candidates based on current remaining vehicle capacity
      * @return
      */
-    public static Edge selectViableCandidate(int capacity, int taken, List<Edge> candidates){
+    public static Candidate selectViableCandidate(int capacity, int taken, List<Candidate> candidates){
         for (int i = 0; i < candidates.size(); i++) {
-            Edge candidate = candidates.get(0);
-            if(taken + candidate.demand <= capacity){
+            Candidate candidate = candidates.get(i);
+            if(taken + candidate.edge.demand <= capacity){
                 return candidate;
             }
         }

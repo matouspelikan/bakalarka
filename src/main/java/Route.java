@@ -15,14 +15,20 @@ public class Route {
 
     public Route(Edge edge){
         this.add(edge, 0, 0);
+        edge.component = this;
     }
 
     public void add(Separator separator){
         edges.add(separator);
     }
     public void add(Edge edge, int connectingNode, int connectingNodeDestination){
+        System.out.println("adding edge");
+        System.out.println(edge);
+        System.out.println(connectingNode);
+        System.out.println(connectingNodeDestination);
         nodesInt.add(edge.leftNumber);
         nodesInt.add(edge.rightNumber);
+        edge.component = this;
         if(edges.size() == 0) {
             edges.add(edge);
 
@@ -85,7 +91,7 @@ public class Route {
     @Override
     public String toString() {
         return "Route{" +
-                "edges=" + edges +
+                "krajní edges=" + this.findOuterNodes().toString() +
                 '}';
     }
 }

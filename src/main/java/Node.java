@@ -1,7 +1,4 @@
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class Node {
 
@@ -9,6 +6,7 @@ public class Node {
     public List<Integer> neighbors;
     public boolean hasRequired = false;
     public List<Node> nodes = new ArrayList<>();
+    public Set<Edge> edges = new HashSet<>();
     Map<Node, Integer> costs = new HashMap<>();
     Map<Node, Integer> demands = new HashMap<>();
 

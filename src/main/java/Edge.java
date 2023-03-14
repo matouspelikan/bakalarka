@@ -7,6 +7,9 @@ public class Edge {
     public int leftNumber;
     public int rightNumber;
 
+    public Node leftNode;
+    public Node rightNode;
+
     List<Edge> leftEdges = new ArrayList<>();
     List<Edge> rightEdges = new ArrayList<>();
 
@@ -14,16 +17,23 @@ public class Edge {
     public int demand;
     public boolean required;
 
+    public Route component = null;
+
     public boolean taken = false;
 
     public Edge(){
 
     }
 
-    public Edge(int leftNumber, int rightNumber, boolean required){
+    public Edge(int leftNumber, int rightNumber, boolean required, Node leftNode, Node rightNode){
         this.leftNumber = leftNumber;
         this.rightNumber = rightNumber;
         this.required = required;
+        this.leftNode = leftNode;
+        this.rightNode = rightNode;
+
+        leftNode.edges.add(this);
+        rightNode.edges.add(this);
     }
 
     public void connect(List<Edge> adjacent, boolean recursive){
@@ -40,7 +50,7 @@ public class Edge {
                 throw new RuntimeException("spatne adjacent vyber");
             }
 
-            if(recursive) next.connect(Arrays.asList(this), false);
+            if(recursive) next.connect(List.of(this), false);
 
         }
     }
