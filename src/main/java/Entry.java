@@ -1,28 +1,31 @@
 import java.util.Optional;
 
 public class Entry {
-    public int nodeNumber;
-    public Node node;
+    public int toNodeNumber;
+    public Node toNode;
     public double distance;
 
-    public int from;
+    public int fromNodeNumber;
+    public Node fromNode;
 
-    public Entry(int nodeNumber, double distance, int from, Optional<Node> node){
-        this.nodeNumber = nodeNumber;
+
+    public Entry(int nodeNumber, double distance, int from, Optional<Node> toNode, Optional<Node> fromNode){
+        this.toNodeNumber = nodeNumber;
         this.distance = distance;
-        this.from = from;
+        this.fromNodeNumber = from;
         if (distance < Double.POSITIVE_INFINITY){
-            this.node = node.get();
+            this.toNode = toNode.get();
         }
         else{
-            this.node = null;
+            this.toNode = null;
         }
+        this.fromNode = fromNode.orElse(null);
     }
 
     @Override
     public String toString() {
         return "Entry{" +
-                "nodeNumber=" + nodeNumber +
+                "nodeNumber=" + toNodeNumber +
                 ", distance=" + distance +
                 '}';
     }

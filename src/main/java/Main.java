@@ -1,11 +1,7 @@
-import javax.swing.text.html.Option;
 import java.io.BufferedReader;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-import java.lang.reflect.Array;
 import java.util.*;
-import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -82,7 +78,7 @@ public class Main {
 
 
             Entry minEntry = closestLRCandidates.get(0);
-            int connectingNode = minEntry.from;
+            int connectingNode = minEntry.fromNodeNumber;
 
             Entry finalMinEntry = minEntry;
             //doneTODO optimize
@@ -91,7 +87,7 @@ public class Main {
             List<Candidate> edgeCandidates = getCandidatesFromMultipleNodes(closestLRCandidates, config.edgeMap, route, routes);
 
             System.out.println(route.findOuterNodes());
-            System.out.println("Candidates through  " + connectingNode);
+            System.out.println("Candidates through  " + route.findOuterNodes());
             System.out.println(edgeCandidates);
             assert edgeCandidates.size() > 0;
 
@@ -102,16 +98,19 @@ public class Main {
             System.out.println("selected candidate");
             System.out.println(selectedCandidate);
             if(selectedCandidate == null){
-                //TODO vrat se zpet do depotu
+                //TODO vrat se zpet do depot
                 route.add(new Separator());
             }
             else{
-                route.add(selectedCandidate.edge, connectingNode, selectedCandidate.connectingEnd.number);
+                route.mergeRoutes(selectedCandidate);
+                route.add(selectedCandidate.edge, connectingNode, selectedCandidate.toNode.number);
             }
 
             System.out.println("\nafter");
             System.out.println(route.edges);
             System.out.println(route.findOuterNodes());
+            System.out.println(route.leftBorder);
+            System.out.println(route.rightBorder);
 
             if (i == 2) break;
 
@@ -146,10 +145,10 @@ public class Main {
     }
 
     public static boolean entryToComponent(Entry entry, Route route){
-        if(entry.node == null){
+        if(entry.toNode == null){
             return false;
         }
-        for (Edge e : entry.node.edges){
+        for (Edge e : entry.toNode.edges){
             if(e.component != route){
                 return true;
             }
@@ -174,9 +173,12 @@ public class Main {
             Entry[] entryRow = new Entry[matrix2[i].length];
             for (int j = 0; j < matrix2[i].length; j++) {
                 int finalJ = j;
-                Optional<Node> onode = nodes.stream().filter(n -> n.number == finalJ).findFirst();
+                Optional<Node> toNode = nodes.stream().filter(n -> n.number == finalJ).findFirst();
 
-                entryRow[j] = new Entry(j, matrix2[i][j], i, onode);
+                int finalI = i;
+                Optional<Node> fromNode = nodes.stream().filter(n -> n.number == finalI).findFirst();
+
+                entryRow[j] = new Entry(j, matrix2[i][j], i, toNode, fromNode);
             }
             Arrays.sort(entryRow, new Comparator<Entry>() {
                 @Override
@@ -448,8 +450,8 @@ public class Main {
         List<Candidate> candidates = new ArrayList<>();
         for (Entry entry : entries){
 //            edges.addAll(edgeMap.get(entry.nodeNumber).stream().filter(e -> e.required && e.component != route).toList());
-            for(Edge e : edgeMap.get(entry.nodeNumber).stream().filter(_e -> _e.required && _e.component != route).collect(Collectors.toList())){
-                candidates.add(new Candidate(e, entry.node));
+            for(Edge e : edgeMap.get(entry.toNodeNumber).stream().filter(_e -> _e.required && _e.component != route).collect(Collectors.toList())){
+                candidates.add(new Candidate(e, entry.toNode, entry.fromNode));
             }
         }
         return candidates;
@@ -462,6 +464,12 @@ public class Main {
     public static Candidate selectViableCandidate(int capacity, int taken, List<Candidate> candidates){
         for (int i = 0; i < candidates.size(); i++) {
             Candidate candidate = candidates.get(i);
+            //TODO musím zajistit aby vybrany node byl na kraji svoji komponenty
+            if(!candidate.edge.component.findOuterNodes().contains(candidate.toNode.number)){
+                continue;
+            }
+
+            //greedy
             if(taken + candidate.edge.demand <= capacity){
                 return candidate;
             }

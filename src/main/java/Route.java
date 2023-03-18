@@ -14,8 +14,15 @@ public class Route {
     }
 
     public Route(Edge edge){
-        this.add(edge, 0, 0);
+//        this.add(edge, 0, 0);
+//        edge.component = this;
+
+        edges.add(edge);
         edge.component = this;
+
+        this.leftBorder = edge.leftNumber;
+        this.rightBorder = edge.rightNumber;
+
     }
 
     public void add(Separator separator){
@@ -58,6 +65,60 @@ public class Route {
             else{
                 throw new RuntimeException();
             }
+        }
+    }
+
+    public void mergeRoutes(Candidate candidate){
+        Route newRoute = candidate.edge.component;
+        if(newRoute.rightBorder == candidate.toNode.number){
+//        if()
+            if(this.rightBorder == candidate.fromNode.number){
+                int size = newRoute.edges.size();
+                for (int i = 0; i < size; i++) {
+                    Edge e = newRoute.edges.get(size - i);
+                    e.component = this;
+                    this.edges.add(e);
+                }
+            }
+            else if(this.leftBorder == candidate.fromNode.number){
+                int size = newRoute.edges.size();
+                for (int i = 0; i < size; i++) {
+                    Edge e = newRoute.edges.get(size - i);
+                    e.component = this;
+                    this.edges.add(0, e);
+                }
+            }
+            else{
+                throw new RuntimeException();
+            }
+
+        }
+        else if(newRoute.leftBorder == candidate.toNode.number){
+            if(this.rightBorder == candidate.fromNode.number){
+                int size = newRoute.edges.size();
+                for (int i = 0; i < size; i++) {
+                    Edge e = newRoute.edges.get(i);
+                    e.component = this;
+                    this.edges.add(e);
+                }
+            }
+            else if(this.leftBorder == candidate.fromNode.number){
+                int size = newRoute.edges.size();
+                for (int i = 0; i < size; i++) {
+                    Edge e = newRoute.edges.get(i);
+                    e.component = this;
+                    this.edges.add(0, e);
+                }
+            }
+            else{
+                throw new RuntimeException();
+            }
+        }
+        else{
+            System.out.println(newRoute);
+            System.out.println(candidate.fromNode);
+            System.out.println(candidate.toNode);
+            throw new RuntimeException();
         }
     }
 
