@@ -5,23 +5,42 @@ import java.util.List;
 public class Route {
 
     public List<Edge> edges = new ArrayList<>();
+    public List<Candidate> candidates = new ArrayList<>();
     public List<Integer> nodesInt = new ArrayList<>();
 
     public int leftBorder;
     public int rightBorder;
 
+    public int capacityLeft;
+    public int capacityTaken;
+
+    public Element head = null;
+    public Element tail = null;
+
+    public boolean active = true;
+
     public Route(){
     }
 
-    public Route(Edge edge){
+    public Route(Edge edge, int capacity){
 //        this.add(edge, 0, 0);
 //        edge.component = this;
+        this.capacityLeft = capacity;
+        this.capacityTaken = 0;
 
         edges.add(edge);
         edge.component = this;
+        edge.component2 = this;
 
         this.leftBorder = edge.leftNumber;
         this.rightBorder = edge.rightNumber;
+
+        Candidate base = new Candidate(edge, null, null, -1);
+        candidates.add(base);
+
+        Element element = new Element(base);
+        head = element;
+        tail = element;
 
     }
 
@@ -69,6 +88,63 @@ public class Route {
     }
 
     public void mergeRoutes(Candidate candidate){
+
+
+        Route newRoute = candidate.edge.component;
+        if(newRoute.rightBorder == candidate.toNode.number){
+//        if()
+            if(this.rightBorder == candidate.fromNode.number){
+//                int size = newRoute.edges.size();
+//                for (int i = 0; i < size; i++) {
+//                    Edge e = newRoute.edges.get(size - i);
+//                    e.component = this;
+//                    this.edges.add(e);
+//                }
+            }
+            else if(this.leftBorder == candidate.fromNode.number){
+//                int size = newRoute.edges.size();
+//                for (int i = 0; i < size; i++) {
+//                    Edge e = newRoute.edges.get(size - i);
+//                    e.component = this;
+//                    this.edges.add(0, e);
+//                }
+            }
+            else{
+                throw new RuntimeException();
+            }
+
+        }
+        else if(newRoute.leftBorder == candidate.toNode.number){
+            if(this.rightBorder == candidate.fromNode.number){
+//                int size = newRoute.edges.size();
+//                for (int i = 0; i < size; i++) {
+//                    Edge e = newRoute.edges.get(i);
+//                    e.component = this;
+//                    this.edges.add(e);
+//                }
+            }
+            else if(this.leftBorder == candidate.fromNode.number){
+//                int size = newRoute.edges.size();
+//                for (int i = 0; i < size; i++) {
+//                    Edge e = newRoute.edges.get(i);
+//                    e.component = this;
+//                    this.edges.add(0, e);
+//                }
+            }
+            else{
+                throw new RuntimeException();
+            }
+        }
+        else{
+            System.out.println(newRoute);
+            System.out.println(candidate.fromNode);
+            System.out.println(candidate.toNode);
+            throw new RuntimeException();
+        }
+    }
+
+
+    public void mergeRoutesC(Candidate candidate){
         Route newRoute = candidate.edge.component;
         if(newRoute.rightBorder == candidate.toNode.number){
 //        if()
@@ -78,6 +154,9 @@ public class Route {
                     Edge e = newRoute.edges.get(size - i);
                     e.component = this;
                     this.edges.add(e);
+
+                    Candidate c = newRoute.candidates.get(size - i);
+                    this.candidates.add(c);
                 }
             }
             else if(this.leftBorder == candidate.fromNode.number){
@@ -86,6 +165,9 @@ public class Route {
                     Edge e = newRoute.edges.get(size - i);
                     e.component = this;
                     this.edges.add(0, e);
+
+                    Candidate c = newRoute.candidates.get(size - i);
+                    this.candidates.add(0, c);
                 }
             }
             else{
@@ -122,6 +204,58 @@ public class Route {
         }
     }
 
+    public Element getEnd(Candidate candidate){
+//        if(candidate.edge.leftNode.number == this.)
+        return null;
+    }
+
+    public void mergeRouteE(Candidate candidate){
+        this.capacityLeft -= candidate.edge.demand;
+
+        if(this.capacityLeft < 0) throw new RuntimeException();
+        candidate.edge.component.active = false;
+
+        Element element = new Element(candidate);
+
+
+        if(head.candidate.edge.hasNode(candidate.fromNode.number)){
+            head.next = element;
+            head.nextDistance = element.candidate.distance;
+            head.nextLink = element.candidate.fromNode;
+
+            element.previous = head;
+            element.previousDistance = element.candidate.distance;
+            element.previousLink = element.candidate.toNode;
+            while (element != null) {
+                head = element;
+                element.candidate.edge.component = this;
+                element = element.next;
+            }
+        }
+        else if(tail.candidate.edge.hasNode(candidate.fromNode.number)){
+            tail.previous = element;
+            tail.previousDistance = element.candidate.distance;
+            tail.previousLink = element.candidate.fromNode;
+
+            element.next = tail;
+            element.nextDistance = element.candidate.distance;
+            element.nextLink = element.candidate.toNode;
+            while (element != null) {
+                System.out.println("setting tail");
+                System.out.println(element);
+                tail = element;
+                element.candidate.edge.component = this;
+                element = element.previous;
+            }
+        }
+        else{
+            System.out.println(head.candidate.edge);
+            System.out.println(tail.candidate.edge);
+            System.out.println(candidate.fromNode);
+            throw new RuntimeException();
+        }
+    }
+
     public boolean containsNodeI(int node){
         return this.nodesInt.contains(node);
     }
@@ -145,6 +279,27 @@ public class Route {
 //
 //        }
 //        return null;
+//        return Arrays.asList(leftBorder, rightBorder);
+
+        if(head == tail){
+            return Arrays.asList(leftBorder, rightBorder);
+        }
+
+
+        if(tail.candidate.edge.leftNode.number == tail.nextLink.number){
+            leftBorder = tail.candidate.edge.rightNode.number;
+        }
+        else {
+            leftBorder = tail.candidate.edge.leftNode.number;
+        }
+
+        if(head.candidate.edge.leftNode.number == head.previousLink.number){
+            rightBorder = head.candidate.edge.rightNode.number;
+        }
+        else{
+            rightBorder = head.candidate.edge.leftNode.number;
+        }
+
         return Arrays.asList(leftBorder, rightBorder);
 
     }

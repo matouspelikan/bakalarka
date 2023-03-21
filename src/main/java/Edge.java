@@ -18,6 +18,7 @@ public class Edge {
     public boolean required;
 
     public Route component = null;
+    public Route component2 = null;
 
     public boolean taken = false;
 

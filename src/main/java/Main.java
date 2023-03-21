@@ -43,17 +43,19 @@ public class Main {
     public static void construct(List<Edge> priority, Double[][] matrix, Double[][] matrix2, Entry[][] entries, Config config){
         List<Route> routes = new ArrayList<>();
         for (int i = 0; i < priority.size(); i++) {
-            routes.add(new Route(priority.get(i)));
+            routes.add(new Route(priority.get(i), config.capacity));
         }
 
-        int currentCapacity = 0;
         int currentVehicle = 0;
 
         for (int i = 0; i < priority.size(); i++) {
             System.out.println("Iteration " + i);
             Edge edge = priority.get(i);
             //identify component (Route)
-            Route route = routes.stream().filter(r -> r.edges.contains(edge)).findFirst().get();
+//            Route route = routes.stream().filter(r -> r.edges.contains(edge)).findFirst().get();
+            Route route = edge.component;
+            System.out.println(route.tail);
+            System.out.println(route.head);
 
             List<Integer> ends = route.findOuterNodes();
             int left = ends.get(0);
@@ -94,27 +96,46 @@ public class Main {
             System.out.println();
             System.out.println(connectingNode);
             System.out.println(route.findOuterNodes());
-            Candidate selectedCandidate = selectViableCandidate(config.capacity, currentCapacity, edgeCandidates);
+            Candidate selectedCandidate = selectViableCandidate(route, edgeCandidates);
             System.out.println("selected candidate");
             System.out.println(selectedCandidate);
             if(selectedCandidate == null){
                 //TODO vrat se zpet do depot
+                System.out.println("je null");
                 route.add(new Separator());
             }
             else{
-                route.mergeRoutes(selectedCandidate);
-                route.add(selectedCandidate.edge, connectingNode, selectedCandidate.toNode.number);
+                route.mergeRouteE(selectedCandidate);
+//                route.mergeRoutes(selectedCandidate);
+//                route.add(selectedCandidate.edge, connectingNode, selectedCandidate.toNode.number);
             }
 
-            System.out.println("\nafter");
-            System.out.println(route.edges);
-            System.out.println(route.findOuterNodes());
-            System.out.println(route.leftBorder);
-            System.out.println(route.rightBorder);
+            Element ocas = route.tail;
+            System.out.println("looping");
+            while (ocas != null) {
+                System.out.println(ocas);
+//                System.out.println(ocas.candidate.edge.component);
+                ocas = ocas.next;
+            }
+            System.out.println(route.active);
 
             if (i == 2) break;
-
         }
+
+        for (Route r : routes) {
+            System.out.println();
+            System.out.println(r.findOuterNodes());
+            System.out.println(r.active);
+
+            Element el = r.tail;
+            System.out.println("tail: ");
+            while(el != null){
+                System.out.println(el.candidate.edge);
+                el = el.next;
+            }
+            System.out.println("end");
+        }
+
     }
 
     /**
@@ -451,7 +472,7 @@ public class Main {
         for (Entry entry : entries){
 //            edges.addAll(edgeMap.get(entry.nodeNumber).stream().filter(e -> e.required && e.component != route).toList());
             for(Edge e : edgeMap.get(entry.toNodeNumber).stream().filter(_e -> _e.required && _e.component != route).collect(Collectors.toList())){
-                candidates.add(new Candidate(e, entry.toNode, entry.fromNode));
+                candidates.add(new Candidate(e, entry.toNode, entry.fromNode, entry.distance));
             }
         }
         return candidates;
@@ -461,7 +482,7 @@ public class Main {
      * selects candidates based on current remaining vehicle capacity
      * @return
      */
-    public static Candidate selectViableCandidate(int capacity, int taken, List<Candidate> candidates){
+    public static Candidate selectViableCandidate(Route route, List<Candidate> candidates){
         for (int i = 0; i < candidates.size(); i++) {
             Candidate candidate = candidates.get(i);
             //TODO musím zajistit aby vybrany node byl na kraji svoji komponenty
@@ -470,7 +491,8 @@ public class Main {
             }
 
             //greedy
-            if(taken + candidate.edge.demand <= capacity){
+            if(candidate.edge.demand <= route.capacityLeft){
+//            if(candidate.edge.component2.capacityTaken <= route.capacityLeft){
                 return candidate;
             }
         }
