@@ -56,6 +56,8 @@ public class Main {
             Route route = edge.component;
             System.out.println(route.tail);
             System.out.println(route.head);
+            System.out.println(route.tail.next);
+            System.out.println(route.tail.nextLink);
 
             List<Integer> ends = route.findOuterNodes();
             int left = ends.get(0);

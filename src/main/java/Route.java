@@ -143,7 +143,6 @@ public class Route {
         }
     }
 
-
     public void mergeRoutesC(Candidate candidate){
         Route newRoute = candidate.edge.component;
         if(newRoute.rightBorder == candidate.toNode.number){
@@ -205,8 +204,27 @@ public class Route {
     }
 
     public Element getEnd(Candidate candidate){
-//        if(candidate.edge.leftNode.number == this.)
-        return null;
+
+        if(candidate.edge.component.tail.candidate.edge == candidate.edge){
+            candidate.edge.component.tail.candidate = candidate;
+        }
+        else if(candidate.edge.component.head.candidate.edge == candidate.edge){
+            candidate.edge.component.head.candidate = candidate;
+        }
+        else{
+            throw new RuntimeException();
+        }
+
+
+        if(candidate.edge == candidate.edge.component.tail.candidate.edge){
+            return candidate.edge.component.tail;
+        }
+        else if(candidate.edge == candidate.edge.component.head.candidate.edge){
+            return candidate.edge.component.head;
+        }
+        else{
+            throw new RuntimeException();
+        }
     }
 
     public void mergeRouteE(Candidate candidate){
@@ -216,6 +234,16 @@ public class Route {
         candidate.edge.component.active = false;
 
         Element element = new Element(candidate);
+        element = getEnd(candidate);
+
+        System.out.println(candidate);
+        System.out.println(candidate.edge.component);
+//        System.out.println(candidate.edge.component.head.candidate);
+        System.out.println("tail/head");
+        System.out.println(element.candidate);
+        System.out.println(element);
+        System.out.println(element.previous);
+        System.out.println(element.next);
 
 
         if(head.candidate.edge.hasNode(candidate.fromNode.number)){
@@ -284,7 +312,6 @@ public class Route {
         if(head == tail){
             return Arrays.asList(leftBorder, rightBorder);
         }
-
 
         if(tail.candidate.edge.leftNode.number == tail.nextLink.number){
             leftBorder = tail.candidate.edge.rightNode.number;
