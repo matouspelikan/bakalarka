@@ -33,6 +33,7 @@ public class Main {
         System.out.println(edgeMap.get(7));
 
         List<Edge> requiredEdges = config.edges.stream().filter(e -> e.required).collect(Collectors.toList());
+        Collections.shuffle(requiredEdges, new Random(1));
         System.out.println("Required edges: ");
 //        requiredEdges.remove(0);
         System.out.println(requiredEdges);
@@ -120,6 +121,7 @@ public class Main {
                 ocas = ocas.next;
             }
             System.out.println(route.active);
+            System.out.println(route.findOuterNodes());
 
             if (i == 2) break;
         }

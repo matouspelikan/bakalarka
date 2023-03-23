@@ -13,6 +13,7 @@ public class Candidate {
 
     @Override
     public String toString() {
-        return edge.toString() + " fromNode: " + this.fromNode.number + " toNode: " + this.toNode.number;
+        return edge.toString() + " fromNode: " + this.fromNode.number + " toNode: " + this.toNode.number +
+                " distance: " + distance;
     }
 }

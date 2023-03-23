@@ -237,30 +237,60 @@ public class Route {
         element = getEnd(candidate);
 
         System.out.println(candidate);
-        System.out.println(candidate.edge.component);
-//        System.out.println(candidate.edge.component.head.candidate);
         System.out.println("tail/head");
         System.out.println(element.candidate);
         System.out.println(element);
         System.out.println(element.previous);
         System.out.println(element.next);
 
+        boolean forward = true;
+        if(element.next == null){
+            forward = false;
+        }
+        else if(element.previous == null){
+            forward = true;
+        }
+        else{
+            throw new RuntimeException();
+        }
+
+        System.out.println("forward: ");
+        System.out.println(forward);
 
         if(head.candidate.edge.hasNode(candidate.fromNode.number)){
+            System.out.println("head ji ma");
             head.next = element;
             head.nextDistance = element.candidate.distance;
             head.nextLink = element.candidate.fromNode;
 
-            element.previous = head;
+            Element HEAD = head;
+
+            Element elementIter = element;
+            Element elementIterNext = null;
+            while (elementIter != null) {
+                System.out.println(elementIter);
+                System.out.println(elementIter.previous);
+                System.out.println(elementIter.next);
+//                System.out.println(elementIter.candidate);
+                head = elementIter;
+                elementIter.candidate.edge.component = this;
+                if(forward){
+                    elementIterNext = elementIter.next;
+
+                }
+                else
+                    elementIterNext = elementIter.previous;
+
+                elementIter.next = elementIterNext;
+                elementIter = elementIterNext;
+            }
+
+            element.previous = HEAD;
             element.previousDistance = element.candidate.distance;
             element.previousLink = element.candidate.toNode;
-            while (element != null) {
-                head = element;
-                element.candidate.edge.component = this;
-                element = element.next;
-            }
         }
         else if(tail.candidate.edge.hasNode(candidate.fromNode.number)){
+            if (true) throw new RuntimeException();
             tail.previous = element;
             tail.previousDistance = element.candidate.distance;
             tail.previousLink = element.candidate.fromNode;
@@ -269,11 +299,12 @@ public class Route {
             element.nextDistance = element.candidate.distance;
             element.nextLink = element.candidate.toNode;
             while (element != null) {
-                System.out.println("setting tail");
-                System.out.println(element);
                 tail = element;
                 element.candidate.edge.component = this;
-                element = element.previous;
+                if(forward)
+                    element = element.next;
+                else
+                    element = element.previous;
             }
         }
         else{
@@ -309,6 +340,10 @@ public class Route {
 //        return null;
 //        return Arrays.asList(leftBorder, rightBorder);
 
+        System.out.println("find outer nodes");
+        System.out.println(tail);
+        System.out.println(head);
+
         if(head == tail){
             return Arrays.asList(leftBorder, rightBorder);
         }
@@ -320,6 +355,16 @@ public class Route {
             leftBorder = tail.candidate.edge.leftNode.number;
         }
 
+        System.out.println(tail.previous);
+        System.out.println(tail.next);
+        System.out.println(tail.next.next);
+        if(tail.next.next != null)
+            System.out.println(tail.next.next.next);
+//        System.out.println(tail.next.next.next);
+
+        System.out.println();
+        System.out.println(head.previous);
+        System.out.println(head.next);
         if(head.candidate.edge.leftNode.number == head.previousLink.number){
             rightBorder = head.candidate.edge.rightNode.number;
         }
