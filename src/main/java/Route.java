@@ -42,6 +42,9 @@ public class Route {
         head = element;
         tail = element;
 
+        element.nextLink = element.candidate.edge.rightNode;
+        element.previousLink = element.candidate.edge.leftNode;
+
     }
 
     public void add(Separator separator){
@@ -265,23 +268,49 @@ public class Route {
 
             Element HEAD = head;
 
+            Element elementIterLast = head;
             Element elementIter = element;
             Element elementIterNext = null;
             while (elementIter != null) {
-                System.out.println(elementIter);
-                System.out.println(elementIter.previous);
-                System.out.println(elementIter.next);
-//                System.out.println(elementIter.candidate);
                 head = elementIter;
                 elementIter.candidate.edge.component = this;
                 if(forward){
+                    //TODO asi nemusim delat vubec nic
                     elementIterNext = elementIter.next;
+                    if(elementIterNext != null){
+
+
+
+                    }
+                }
+                else{
+                    elementIterNext = elementIter.previous;
+                    elementIter.previous = elementIterLast;
+
+                    double previousDistance = elementIter.previousDistance;
+                    elementIter.previousDistance = elementIterLast.nextDistance;
+
+                    Node previousLink = elementIter.previousLink;
+                    elementIter.previousLink = elementIter.candidate.edge.otherNode(elementIter.previousLink);
+                    elementIter.previousLink = elementIter.nextLink;
+
+                    if(elementIterNext != null){
+                        elementIter.next = elementIterNext;
+//                        elementIter.nextDistance = elementIter.previousDistance; //TODO konflikt
+                        elementIter.nextDistance = previousDistance;
+//                        elementIter.nextLink = elementIter.previousLink;
+                        elementIter.nextLink = previousLink;
+                    }
+                    else{
+                        elementIter.next = null;
+                        elementIter.nextDistance = -1;
+                        elementIter.nextLink = previousLink; //TODO tohle se mi vyresi samo na konci
+                    }
 
                 }
-                else
-                    elementIterNext = elementIter.previous;
 
-                elementIter.next = elementIterNext;
+                elementIterLast = elementIter;
+//                elementIter.next = elementIterNext;
                 elementIter = elementIterNext;
             }
 
@@ -355,16 +384,7 @@ public class Route {
             leftBorder = tail.candidate.edge.leftNode.number;
         }
 
-        System.out.println(tail.previous);
-        System.out.println(tail.next);
-        System.out.println(tail.next.next);
-        if(tail.next.next != null)
-            System.out.println(tail.next.next.next);
-//        System.out.println(tail.next.next.next);
 
-        System.out.println();
-        System.out.println(head.previous);
-        System.out.println(head.next);
         if(head.candidate.edge.leftNode.number == head.previousLink.number){
             rightBorder = head.candidate.edge.rightNode.number;
         }

@@ -121,20 +121,25 @@ public class Main {
                 ocas = ocas.next;
             }
             System.out.println(route.active);
-            System.out.println(route.findOuterNodes());
+//            System.out.println(route.findOuterNodes());
 
             if (i == 2) break;
         }
 
         for (Route r : routes) {
             System.out.println();
-            System.out.println(r.findOuterNodes());
+//            System.out.println(r.findOuterNodes());
             System.out.println(r.active);
 
             Element el = r.tail;
             System.out.println("tail: ");
             while(el != null){
                 System.out.println(el.candidate.edge);
+                System.out.println(el.previousLink);
+                System.out.println(el.previousDistance);
+                System.out.println(el.nextLink);
+                System.out.println(el.nextDistance);
+                System.out.println();
                 el = el.next;
             }
             System.out.println("end");

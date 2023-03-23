@@ -65,6 +65,14 @@ public class Edge {
         }
         return null;
     }
+
+    public Node otherNode(Node other){
+        if(leftNode == other){
+            return rightNode;
+        }
+        return leftNode;
+    }
+
     public List<Integer> numbers(){
         return Arrays.asList(leftNumber, rightNumber);
     }
