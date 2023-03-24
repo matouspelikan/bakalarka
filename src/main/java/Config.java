@@ -22,8 +22,6 @@ public class Config {
         createEdgeMap();
     }
 
-
-
     public void createEdgeMap(){
         for (Edge e : this.edges){
             if(edgeMap.containsKey(e.leftNumber)){

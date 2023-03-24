@@ -25,8 +25,8 @@ public class Route {
     public Route(Edge edge, int capacity){
 //        this.add(edge, 0, 0);
 //        edge.component = this;
-        this.capacityLeft = capacity;
-        this.capacityTaken = 0;
+        this.capacityLeft = capacity - edge.demand;
+        this.capacityTaken = edge.demand;
 
         edges.add(edge);
         edge.component = this;
@@ -215,6 +215,14 @@ public class Route {
             candidate.edge.component.head.candidate = candidate;
         }
         else{
+            System.out.println("This Route");
+            System.out.println(this.tail);
+            System.out.println(this.head);
+            System.out.println(candidate);
+            System.out.println();
+            System.out.println(candidate.edge.component.tail);
+            System.out.println(candidate.edge.component.tail.next);
+            System.out.println(candidate.edge.component.head);
             throw new RuntimeException();
         }
 
@@ -231,7 +239,9 @@ public class Route {
     }
 
     public void mergeRouteE(Candidate candidate){
-        this.capacityLeft -= candidate.edge.demand;
+        this.capacityTaken += candidate.edge.component.capacityTaken;
+        this.capacityLeft -= candidate.edge.component.capacityTaken;
+
 
         if(this.capacityLeft < 0) throw new RuntimeException();
         candidate.edge.component.active = false;
@@ -239,12 +249,12 @@ public class Route {
         Element element = new Element(candidate);
         element = getEnd(candidate);
 
-        System.out.println(candidate);
-        System.out.println("tail/head");
-        System.out.println(element.candidate);
-        System.out.println(element);
-        System.out.println(element.previous);
-        System.out.println(element.next);
+//        System.out.println(candidate);
+//        System.out.println("tail/head");
+//        System.out.println(element.candidate);
+//        System.out.println(element);
+//        System.out.println(element.previous);
+//        System.out.println(element.next);
 
         boolean forward = true;
         if(element.next == null){
@@ -279,8 +289,6 @@ public class Route {
                     elementIterNext = elementIter.next;
                     if(elementIterNext != null){
 
-
-
                     }
                 }
                 else{
@@ -303,10 +311,9 @@ public class Route {
                     }
                     else{
                         elementIter.next = null;
-                        elementIter.nextDistance = -1;
+                        elementIter.nextDistance = 0;
                         elementIter.nextLink = previousLink; //TODO tohle se mi vyresi samo na konci
                     }
-
                 }
 
                 elementIterLast = elementIter;
@@ -317,24 +324,54 @@ public class Route {
             element.previous = HEAD;
             element.previousDistance = element.candidate.distance;
             element.previousLink = element.candidate.toNode;
+            head.nextLink = head.candidate.edge.otherNode(head.previousLink);
         }
         else if(tail.candidate.edge.hasNode(candidate.fromNode.number)){
-            if (true) throw new RuntimeException();
+//            if (true) throw new RuntimeException();
             tail.previous = element;
             tail.previousDistance = element.candidate.distance;
             tail.previousLink = element.candidate.fromNode;
 
-            element.next = tail;
+            Element TAIL = tail;
+
+            Element elementIterLast = tail;
+            Element elementIter = element;
+            Element elementIterNext = null;
+            while (elementIter != null) {
+                tail = elementIter;
+                elementIter.candidate.edge.component = this;
+                if(forward){
+                    elementIterNext = elementIter.next;
+                    elementIter.next = elementIterLast;
+
+                    double nextDistance = elementIter.nextDistance;
+                    elementIter.nextDistance = elementIterLast.previousDistance;
+
+                    Node nextLink = elementIter.nextLink;
+                    elementIter.nextLink = elementIter.previousLink;
+
+                    if(elementIterNext != null){
+                        elementIter.previous = elementIterNext;
+                        elementIter.previousDistance = nextDistance;
+                        elementIter.previousLink = nextLink;
+                    }
+                    else{
+                        elementIter.previous = null;
+                        elementIter.previousDistance = -1;
+                        elementIter.previousLink = nextLink;
+                    }
+                }
+                else{
+                    elementIterNext = elementIter.previous;//samo se vyresi
+                }
+                elementIterLast = elementIter;
+                elementIter = elementIterNext;
+            }
+
+            element.next = TAIL;
             element.nextDistance = element.candidate.distance;
             element.nextLink = element.candidate.toNode;
-            while (element != null) {
-                tail = element;
-                element.candidate.edge.component = this;
-                if(forward)
-                    element = element.next;
-                else
-                    element = element.previous;
-            }
+            tail.previousLink = tail.candidate.edge.otherNode(tail.nextLink);
         }
         else{
             System.out.println(head.candidate.edge);
@@ -369,9 +406,6 @@ public class Route {
 //        return null;
 //        return Arrays.asList(leftBorder, rightBorder);
 
-        System.out.println("find outer nodes");
-        System.out.println(tail);
-        System.out.println(head);
 
         if(head == tail){
             return Arrays.asList(leftBorder, rightBorder);
@@ -394,6 +428,37 @@ public class Route {
 
         return Arrays.asList(leftBorder, rightBorder);
 
+    }
+
+    public List<Node> findOuterNodesObj(){
+        if(head == tail){
+//            return Arrays.asList(leftBorder, rightBorder);
+            return Arrays.asList(tail.candidate.edge.leftNode, tail.candidate.edge.rightNode);
+        }
+        Node leftNode;
+        Node rightNode;
+
+        if(tail.candidate.edge.leftNode.number == tail.nextLink.number){
+            leftBorder = tail.candidate.edge.rightNode.number;
+            leftNode = tail.candidate.edge.rightNode;
+        }
+        else {
+            leftBorder = tail.candidate.edge.leftNode.number;
+            leftNode = tail.candidate.edge.leftNode;
+        }
+
+
+        if(head.candidate.edge.leftNode.number == head.previousLink.number){
+            rightBorder = head.candidate.edge.rightNode.number;
+            rightNode = head.candidate.edge.rightNode;
+        }
+        else{
+            rightBorder = head.candidate.edge.leftNode.number;
+            rightNode = head.candidate.edge.rightNode;
+        }
+
+//        return Arrays.asList(leftBorder, rightBorder);
+        return Arrays.asList(leftNode, rightNode);
     }
 
     @Override

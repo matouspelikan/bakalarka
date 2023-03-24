@@ -23,7 +23,10 @@ public class Main {
         Double[][] matrix2 = (Double[][]) matrices.get(1);
 
         System.out.println("matrix2 row: ");
-        System.out.println(Arrays.asList(matrix2[3]));
+        System.out.println(Arrays.asList(matrix[1]));
+        System.out.println(Arrays.asList(matrix2[1]));
+        System.out.println(Arrays.asList(matrix[4]));
+        System.out.println(Arrays.asList(matrix2[4]));
 
         Entry[][] entries = createEntries(matrix2, config.nodes);
         System.out.println(Arrays.asList(entries[3]));
@@ -33,32 +36,36 @@ public class Main {
         System.out.println(edgeMap.get(7));
 
         List<Edge> requiredEdges = config.edges.stream().filter(e -> e.required).collect(Collectors.toList());
-        Collections.shuffle(requiredEdges, new Random(1));
+        Collections.shuffle(requiredEdges, new Random(3));
         System.out.println("Required edges: ");
 //        requiredEdges.remove(0);
         System.out.println(requiredEdges);
 
-        construct(requiredEdges, matrix, matrix2, entries, config);
+        construct(requiredEdges, entries, config);
     }
 
-    public static void construct(List<Edge> priority, Double[][] matrix, Double[][] matrix2, Entry[][] entries, Config config){
+    public static double evaluatePriorityList(List<Edge> priority, Entry[][] entries, Config config, Double[][] matrix2){
+        List<Route> routes = construct(priority, entries, config);
+        int cumulativeCost = 0;
+        for (Route r :
+                routes) {
+            cumulativeCost += evaluateRoute(r, matrix2);
+        }
+        return cumulativeCost;
+    }
+
+    public static List<Route> construct(List<Edge> priority, Entry[][] entries, Config config){
         List<Route> routes = new ArrayList<>();
         for (int i = 0; i < priority.size(); i++) {
             routes.add(new Route(priority.get(i), config.capacity));
         }
 
-        int currentVehicle = 0;
-
         for (int i = 0; i < priority.size(); i++) {
-            System.out.println("Iteration " + i);
+//            System.out.println("Iteration " + i);
             Edge edge = priority.get(i);
             //identify component (Route)
 //            Route route = routes.stream().filter(r -> r.edges.contains(edge)).findFirst().get();
             Route route = edge.component;
-            System.out.println(route.tail);
-            System.out.println(route.head);
-            System.out.println(route.tail.next);
-            System.out.println(route.tail.nextLink);
 
             List<Integer> ends = route.findOuterNodes();
             int left = ends.get(0);
@@ -82,29 +89,26 @@ public class Main {
             System.out.println(closestLRCandidates);
 
 
-            Entry minEntry = closestLRCandidates.get(0);
-            int connectingNode = minEntry.fromNodeNumber;
 
-            Entry finalMinEntry = minEntry;
             //doneTODO optimize
 //            List<Edge> candidates = edges.stream().filter(e -> e.hasNode(finalMinEntry.nodeNumber) && e.required && edgeToComponent(e, routes) != route).toList();
 //            List<Edge> candidates = config.edgeMap.get(minEntry.nodeNumber).stream().filter(e -> e.required && edgeToComponent(e, routes) != route).toList();
             List<Candidate> edgeCandidates = getCandidatesFromMultipleNodes(closestLRCandidates, config.edgeMap, route, routes);
 
-            System.out.println(route.findOuterNodes());
-            System.out.println("Candidates through  " + route.findOuterNodes());
-            System.out.println(edgeCandidates);
+//            System.out.println(route.findOuterNodes());
+//            System.out.println("Candidates through  " + route.findOuterNodes());
+//            System.out.println(edgeCandidates);
             assert edgeCandidates.size() > 0;
 
-            System.out.println();
-            System.out.println(connectingNode);
-            System.out.println(route.findOuterNodes());
             Candidate selectedCandidate = selectViableCandidate(route, edgeCandidates);
+//            System.out.println("Route tail + head");
+//            System.out.println(route.tail);
+//            System.out.println(route.head);
             System.out.println("selected candidate");
             System.out.println(selectedCandidate);
             if(selectedCandidate == null){
                 //TODO vrat se zpet do depot
-                System.out.println("je null");
+//                System.out.println("je null");
                 route.add(new Separator());
             }
             else{
@@ -113,38 +117,51 @@ public class Main {
 //                route.add(selectedCandidate.edge, connectingNode, selectedCandidate.toNode.number);
             }
 
-            Element ocas = route.tail;
-            System.out.println("looping");
-            while (ocas != null) {
-                System.out.println(ocas);
-//                System.out.println(ocas.candidate.edge.component);
-                ocas = ocas.next;
-            }
-            System.out.println(route.active);
+//            Element ocas = route.tail;
+//            System.out.println("looping");
+//            while (ocas != null) {
+////                System.out.println(ocas);
+////                System.out.println(ocas.candidate.edge.component);
+//                ocas = ocas.next;
+//            }
+//            System.out.println(route.active);
 //            System.out.println(route.findOuterNodes());
 
-            if (i == 2) break;
+//            if (i == 2) break;
         }
 
+        List<Route> finalList = new ArrayList<>();
         for (Route r : routes) {
-            System.out.println();
-//            System.out.println(r.findOuterNodes());
-            System.out.println(r.active);
+//            System.out.println(r.active);
+            if(!r.active){
+                continue;
+            }
+            finalList.add(r);
 
             Element el = r.tail;
-            System.out.println("tail: ");
             while(el != null){
                 System.out.println(el.candidate.edge);
-                System.out.println(el.previousLink);
-                System.out.println(el.previousDistance);
-                System.out.println(el.nextLink);
-                System.out.println(el.nextDistance);
-                System.out.println();
                 el = el.next;
             }
-            System.out.println("end");
+
         }
 
+        return finalList;
+    }
+
+    public static double evaluateRoute(Route route, Double[][] matrix2){
+        Element element = route.tail;
+        double cost = 0;
+        while(element != null){
+            cost += element.candidate.edge.cost;
+            cost += element.nextDistance;
+            element = element.next;
+        }
+        for (Node krajni :
+                route.findOuterNodesObj()) {
+            cost += matrix2[krajni.number][1];
+        }
+        return cost;
     }
 
     /**
@@ -362,7 +379,7 @@ public class Main {
     }
 
     public static Config readGDB() throws IOException {
-        FileReader fileReader = new FileReader("C:\\Users\\Asus\\ownCloud\\cvut\\carp\\carpbak\\src\\main\\resources\\test.dat");
+        FileReader fileReader = new FileReader("C:\\Users\\Asus\\ownCloud\\cvut\\carp\\carpbak\\src\\main\\resources\\test2.dat");
         BufferedReader bufferedReader = new BufferedReader(fileReader);
 
         String line;
@@ -498,9 +515,12 @@ public class Main {
             if(!candidate.edge.component.findOuterNodes().contains(candidate.toNode.number)){
                 continue;
             }
+            if(!(candidate.edge.component.tail.candidate.edge == candidate.edge || candidate.edge.component.head.candidate.edge == candidate.edge)){
+                continue;
+            }
 
             //greedy
-            if(candidate.edge.demand <= route.capacityLeft){
+            if(candidate.edge.component.capacityLeft >= route.capacityTaken){
 //            if(candidate.edge.component2.capacityTaken <= route.capacityLeft){
                 return candidate;
             }
