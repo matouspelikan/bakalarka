@@ -3,8 +3,8 @@ public class Element {
     public Element previous = null;
     public Element next = null;
 
-    public double nextDistance = -1;
-    public double previousDistance = -1;
+    public double nextDistance = 0;
+    public double previousDistance = 0;
 
     public Node previousLink;
     public Node nextLink;

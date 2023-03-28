@@ -240,8 +240,8 @@ public class Route {
     }
 
     public void mergeRouteE(Candidate candidate){
-        this.capacityTaken += candidate.edge.component.capacityTaken + candidate.distance;
-        this.capacityLeft -= (candidate.edge.component.capacityTaken + candidate.distance);
+        this.capacityTaken += candidate.edge.component.capacityTaken;
+        this.capacityLeft -= (candidate.edge.component.capacityTaken);
 
 
         if(this.capacityLeft < 0) throw new RuntimeException();
@@ -455,11 +455,21 @@ public class Route {
         }
         else{
             rightBorder = head.candidate.edge.leftNode.number;
-            rightNode = head.candidate.edge.rightNode;
+            rightNode = head.candidate.edge.leftNode;
         }
 
 //        return Arrays.asList(leftBorder, rightBorder);
         return Arrays.asList(leftNode, rightNode);
+    }
+
+    public int length(){
+        Element el = tail;
+        int count = 0;
+        while (el != null){
+            count++;
+            el = el.next;
+        }
+        return count;
     }
 
     @Override

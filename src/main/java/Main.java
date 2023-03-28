@@ -158,10 +158,12 @@ public class Main {
             if(!r.active){
                 continue;
             }
-            System.out.println("new route " + r.capacityTaken);
+            System.out.println("new route " + r.capacityTaken + " length: " + r.length());
             System.out.println(r.findOuterNodes());
             System.out.println(r.tail.previousLink);
             System.out.println(r.head.nextLink);
+            System.out.println("objects:");
+            System.out.println(r.findOuterNodesObj());
             finalList.add(r);
 
             Element el = r.tail;
@@ -556,7 +558,7 @@ public class Main {
 
             //greedy
 //            if(candidate.edge.component.capacityLeft >= route.capacityTaken){
-            if(route.capacityLeft >= candidate.edge.component.capacityTaken + candidate.distance){
+            if(route.capacityLeft >= candidate.edge.component.capacityTaken){
 //            if(candidate.edge.component2.capacityTaken <= route.capacityLeft){
                 return candidate;
             }
