@@ -35,8 +35,9 @@ public class Route {
         this.leftBorder = edge.leftNumber;
         this.rightBorder = edge.rightNumber;
 
-        Candidate base = new Candidate(edge, null, null, -1);
+        Candidate base = new Candidate(edge, null, null, 0);
         candidates.add(base);
+
 
         Element element = new Element(base);
         head = element;
@@ -239,8 +240,8 @@ public class Route {
     }
 
     public void mergeRouteE(Candidate candidate){
-        this.capacityTaken += candidate.edge.component.capacityTaken;
-        this.capacityLeft -= candidate.edge.component.capacityTaken;
+        this.capacityTaken += candidate.edge.component.capacityTaken + candidate.distance;
+        this.capacityLeft -= (candidate.edge.component.capacityTaken + candidate.distance);
 
 
         if(this.capacityLeft < 0) throw new RuntimeException();

@@ -36,22 +36,40 @@ public class Main {
         System.out.println(edgeMap.get(7));
 
         List<Edge> requiredEdges = config.edges.stream().filter(e -> e.required).collect(Collectors.toList());
-        Collections.shuffle(requiredEdges, new Random(3));
-        System.out.println("Required edges: ");
-//        requiredEdges.remove(0);
+        System.out.println("original: ");
         System.out.println(requiredEdges);
 
-        construct(requiredEdges, entries, config);
+        List<Edge> r1 = new ArrayList<>(List.copyOf(requiredEdges));
+//        Collections.shuffle(r1, new Random(1));
+        System.out.println("r1: ");
+        System.out.println(r1);
+        System.out.println(evaluatePriorityList(r1, entries, config, matrix2));
+        System.out.println("result:");
+
+
+//        List<Edge> r2 = new ArrayList<>(List.copyOf(requiredEdges));
+//        Collections.shuffle(r2, new Random(2));
+//        System.out.println("r2: ");
+//        System.out.println(r2);
+//        System.out.println(evaluatePriorityList(r2, entries, config, matrix2));
+//        System.out.println("result:");
+
+//        System.out.println(evaluatePriorityList(requiredEdges, entries, config, matrix2));
+
+//        Genetic genetic = new Genetic(config, matrix2, entries, requiredEdges);
+//        genetic.evolution(10, 10, 0.9, 0.2);
+
     }
 
-    public static double evaluatePriorityList(List<Edge> priority, Entry[][] entries, Config config, Double[][] matrix2){
+
+    public static Evaluation evaluatePriorityList(List<Edge> priority, Entry[][] entries, Config config, Double[][] matrix2){
         List<Route> routes = construct(priority, entries, config);
         int cumulativeCost = 0;
         for (Route r :
                 routes) {
             cumulativeCost += evaluateRoute(r, matrix2);
         }
-        return cumulativeCost;
+        return new Evaluation(cumulativeCost, routes.size());
     }
 
     public static List<Route> construct(List<Edge> priority, Entry[][] entries, Config config){
@@ -66,6 +84,10 @@ public class Main {
             //identify component (Route)
 //            Route route = routes.stream().filter(r -> r.edges.contains(edge)).findFirst().get();
             Route route = edge.component;
+            System.out.println("Route tail + head");
+            System.out.println(route.tail);
+            System.out.println(route.head);
+
 
             List<Integer> ends = route.findOuterNodes();
             int left = ends.get(0);
@@ -136,13 +158,23 @@ public class Main {
             if(!r.active){
                 continue;
             }
+            System.out.println("new route " + r.capacityTaken);
+            System.out.println(r.findOuterNodes());
+            System.out.println(r.tail.previousLink);
+            System.out.println(r.head.nextLink);
             finalList.add(r);
 
             Element el = r.tail;
             while(el != null){
+                System.out.println();
+                System.out.println(el.previousLink);
                 System.out.println(el.candidate.edge);
+                System.out.println(el.nextLink);
+                System.out.println(el.nextDistance);
                 el = el.next;
             }
+
+            System.out.println(r.findOuterNodes());
 
         }
 
@@ -159,6 +191,9 @@ public class Main {
         }
         for (Node krajni :
                 route.findOuterNodesObj()) {
+            if(krajni.number == 1){
+                continue;
+            }
             cost += matrix2[krajni.number][1];
         }
         return cost;
@@ -520,7 +555,8 @@ public class Main {
             }
 
             //greedy
-            if(candidate.edge.component.capacityLeft >= route.capacityTaken){
+//            if(candidate.edge.component.capacityLeft >= route.capacityTaken){
+            if(route.capacityLeft >= candidate.edge.component.capacityTaken + candidate.distance){
 //            if(candidate.edge.component2.capacityTaken <= route.capacityLeft){
                 return candidate;
             }
