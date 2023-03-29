@@ -271,7 +271,7 @@ public class Route {
         System.out.println("forward: ");
         System.out.println(forward);
 
-        if(head.candidate.edge.hasNode(candidate.fromNode.number)){
+        if(head.candidate.edge.hasNode(candidate.fromNode.number) && (head.nextLink.number == candidate.fromNode.number)){
             System.out.println("head ji ma");
             head.next = element;
             head.nextDistance = element.candidate.distance;
@@ -327,7 +327,7 @@ public class Route {
             element.previousLink = element.candidate.toNode;
             head.nextLink = head.candidate.edge.otherNode(head.previousLink);
         }
-        else if(tail.candidate.edge.hasNode(candidate.fromNode.number)){
+        else if(tail.candidate.edge.hasNode(candidate.fromNode.number) && tail.previousLink.number == candidate.fromNode.number){
 //            if (true) throw new RuntimeException();
             tail.previous = element;
             tail.previousDistance = element.candidate.distance;
@@ -409,6 +409,7 @@ public class Route {
 
 
         if(head == tail){
+            System.out.println("tricky");
             return Arrays.asList(leftBorder, rightBorder);
         }
 
@@ -418,7 +419,6 @@ public class Route {
         else {
             leftBorder = tail.candidate.edge.leftNode.number;
         }
-
 
         if(head.candidate.edge.leftNode.number == head.previousLink.number){
             rightBorder = head.candidate.edge.rightNode.number;

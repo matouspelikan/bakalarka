@@ -40,7 +40,7 @@ public class Main {
         System.out.println(requiredEdges);
 
         List<Edge> r1 = new ArrayList<>(List.copyOf(requiredEdges));
-//        Collections.shuffle(r1, new Random(1));
+        Collections.shuffle(r1, new Random(2));
         System.out.println("r1: ");
         System.out.println(r1);
         System.out.println(evaluatePriorityList(r1, entries, config, matrix2));
@@ -87,6 +87,8 @@ public class Main {
             System.out.println("Route tail + head");
             System.out.println(route.tail);
             System.out.println(route.head);
+            System.out.println(route.tail.previousLink);
+            System.out.println(route.head.nextLink);
 
 
             List<Integer> ends = route.findOuterNodes();
@@ -164,6 +166,7 @@ public class Main {
             System.out.println(r.head.nextLink);
             System.out.println("objects:");
             System.out.println(r.findOuterNodesObj());
+
             finalList.add(r);
 
             Element el = r.tail;
@@ -416,7 +419,7 @@ public class Main {
     }
 
     public static Config readGDB() throws IOException {
-        FileReader fileReader = new FileReader("C:\\Users\\Asus\\ownCloud\\cvut\\carp\\carpbak\\src\\main\\resources\\test2.dat");
+        FileReader fileReader = new FileReader("C:\\Users\\Asus\\ownCloud\\cvut\\carp\\carpbak\\src\\main\\resources\\test.dat");
         BufferedReader bufferedReader = new BufferedReader(fileReader);
 
         String line;
