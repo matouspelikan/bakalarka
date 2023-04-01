@@ -1,6 +1,4 @@
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 public class Route {
 
@@ -425,6 +423,18 @@ public class Route {
         }
         else{
             rightBorder = head.candidate.edge.leftNode.number;
+        }
+
+        Set<Integer> s1 = new HashSet<>();
+        s1.add(leftBorder);
+        s1.add(rightBorder);
+
+        Set<Integer> s2 = new HashSet<>();
+        s2.add(tail.previousLink.number);
+        s2.add(head.nextLink.number);
+
+        if(!s1.containsAll(s2) || !s2.containsAll(s1)){
+            throw new RuntimeException();
         }
 
         return Arrays.asList(leftBorder, rightBorder);
