@@ -75,10 +75,6 @@ public class Main {
     }
 
     public static List<Route> construct(List<Edge> priority, Entry[][] entries, Config config){
-
-        Set<Node> outerNodes = new HashSet<>();
-        Map<Node, Integer> outerNodesMap = new HashMap<>();
-
         System.out.println("Priority list");
         System.out.println(priority);
 
@@ -86,35 +82,12 @@ public class Main {
         for (int i = 0; i < priority.size(); i++) {
             Edge edge = priority.get(i);
             routes.add(new Route(edge, config.capacity));
-            outerNodes.add(edge.leftNode);
-            outerNodes.add(edge.rightNode);
-
-            Integer c1 = outerNodesMap.get(edge.leftNode);
-            Integer c2 = outerNodesMap.get(edge.rightNode);
-
-            if(c1 == null){
-                outerNodesMap.put(edge.leftNode, 1);
-            }
-            else{
-                outerNodesMap.put(edge.leftNode, c1 + 1);
-            }
-
-            if(c2 == null){
-                outerNodesMap.put(edge.rightNode, 1);
-            }
-            else{
-                outerNodesMap.put(edge.rightNode, c2 + 1);
-            }
-
         }
 
         for (int i = 0; i < priority.size(); i++) {
 //            System.out.println("Iteration " + i);
             Edge edge = priority.get(i);
             Route route = edge.component;
-
-
-            List<Node> nodeEnds = route.findOuterNodesObj();
 
 
             List<Integer> ends = route.findOuterNodes();
@@ -146,21 +119,12 @@ public class Main {
             List<Candidate> edgeCandidates = getCandidatesFromMultipleNodes(closestLRCandidates, config.edgeMap, route, routes);
 
             assert edgeCandidates.size() > 0;
-//            Collections.sort(edgeCandidates, new Comparator<Candidate>() {
-//                @Override
-//                public int compare(Candidate o1, Candidate o2) {
-//                    return Double.compare(o1.distance, o2.distance);
-//                }
-//            });
+
 
             Collections.sort(edgeCandidates, Comparator.comparingDouble(Candidate::getDistance).thenComparingInt(Candidate::getToNodeNumber).thenComparingInt(Candidate::getFromNodeNumber).thenComparingInt(Candidate::hashCode));
-
-
-
             Candidate selectedCandidate = selectViableCandidate(route, edgeCandidates);
 
-            selectFromRoutes(routes, route, config.matrix);
-
+            System.out.println(selectFromRoutes(routes, route, config.matrix));
             System.out.println("selected candidate");
             System.out.println(selectedCandidate);
             if(selectedCandidate == null){
@@ -452,7 +416,7 @@ public class Main {
     }
 
     public static Config readGDB() throws IOException {
-        FileReader fileReader = new FileReader("C:\\Users\\Asus\\ownCloud\\cvut\\carp\\carpbak\\src\\main\\resources\\gdb\\gdb10.dat");
+        FileReader fileReader = new FileReader("C:\\Users\\Asus\\ownCloud\\cvut\\carp\\carpbak\\src\\main\\resources\\egl\\egl-e2-B.dat");
         BufferedReader bufferedReader = new BufferedReader(fileReader);
 
         String line;
@@ -602,7 +566,7 @@ public class Main {
         return null;
     }
 
-    public static void selectFromRoutes(List<Route> routes, Route route, Double[][] matrix){
+    public static Candidate selectFromRoutes(List<Route> routes, Route route, Double[][] matrix){
         Node outerLeft = route.tail.previousLink;
         Node outerRight = route.head.nextLink;
 
@@ -620,27 +584,6 @@ public class Main {
             Node left = r.tail.previousLink;
             Node right = r.head.nextLink;
 
-            if(matrix[outerLeft.number][left.number] < minDistance){
-                minDistance = matrix[outerLeft.number][left.number];
-                minNodeFrom = outerLeft;
-                minNodeTo = left;
-            }
-            if(matrix[outerLeft.number][right.number] < minDistance){
-                minDistance = matrix[outerLeft.number][right.number];
-                minNodeFrom = outerLeft;
-                minNodeTo = right;
-            }
-            if(matrix[outerRight.number][left.number] < minDistance){
-                minDistance = matrix[outerRight.number][left.number];
-                minNodeFrom = outerRight;
-                minNodeTo = left;
-            }
-            if(matrix[outerRight.number][right.number] < minDistance){
-                minDistance = matrix[outerRight.number][right.number];
-                minNodeFrom = outerRight;
-                minNodeTo = right;
-            }
-
             Candidate c;
             if((c = evaluateCandidate(route, outerLeft, left, r.tail.candidate.edge, matrix)) != null){
                 candidates.add(c);
@@ -657,21 +600,12 @@ public class Main {
 
         }
 
-        System.out.println("min distance: " + minDistance + " from: " + minNodeFrom.number + " to: " + minNodeTo.number);
-        System.out.println(candidates.size());
-        Collections.sort(candidates, new Comparator<Candidate>() {
-            @Override
-            public int compare(Candidate o1, Candidate o2) {
-                return Double.compare(o1.score, o2.score);
-            }
-        });
         Collections.sort(candidates, Comparator.comparingDouble(Candidate::getScore).thenComparingInt(Candidate::getToNodeNumber).thenComparingInt(Candidate::getFromNodeNumber).thenComparingInt(Candidate::hashCode));
 
-        if(candidates.size() > 0)
-            System.out.println(candidates.get(0));
-        else{
-            System.out.println("nic");
+        if(candidates.size() > 0){
+            return candidates.get(0);
         }
+        return null;
     }
 
     public static Candidate evaluateCandidate(Route route, Node fromNode, Node toNode, Edge toEdge, Double[][] matrix){
