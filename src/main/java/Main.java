@@ -73,22 +73,43 @@ public class Main {
     }
 
     public static List<Route> construct(List<Edge> priority, Entry[][] entries, Config config){
+
+        Set<Node> outerNodes = new HashSet<>();
+        Map<Node, Integer> outerNodesMap = new HashMap<>();
+
         List<Route> routes = new ArrayList<>();
         for (int i = 0; i < priority.size(); i++) {
-            routes.add(new Route(priority.get(i), config.capacity));
+            Edge edge = priority.get(i);
+            routes.add(new Route(edge, config.capacity));
+            outerNodes.add(edge.leftNode);
+            outerNodes.add(edge.rightNode);
+
+            Integer c1 = outerNodesMap.get(edge.leftNode);
+            Integer c2 = outerNodesMap.get(edge.rightNode);
+
+            if(c1 == null){
+                outerNodesMap.put(edge.leftNode, 1);
+            }
+            else{
+                outerNodesMap.put(edge.leftNode, c1 + 1);
+            }
+
+            if(c2 == null){
+                outerNodesMap.put(edge.rightNode, 1);
+            }
+            else{
+                outerNodesMap.put(edge.rightNode, c2 + 1);
+            }
+
         }
 
         for (int i = 0; i < priority.size(); i++) {
 //            System.out.println("Iteration " + i);
             Edge edge = priority.get(i);
-            //identify component (Route)
-//            Route route = routes.stream().filter(r -> r.edges.contains(edge)).findFirst().get();
             Route route = edge.component;
-            System.out.println("Route tail + head");
-            System.out.println(route.tail);
-            System.out.println(route.head);
-            System.out.println(route.tail.previousLink);
-            System.out.println(route.head.nextLink);
+
+
+            List<Node> nodeEnds = route.findOuterNodesObj();
 
 
             List<Integer> ends = route.findOuterNodes();
@@ -345,7 +366,7 @@ public class Main {
                 }
                 if (i == j) {
 //                    matrix[i][j] = 0.0;
-                    matrix[i][j] = Double.POSITIVE_INFINITY;
+//                    matrix[i][j] = Double.POSITIVE_INFINITY;
                     matrix2[i][j] = Double.POSITIVE_INFINITY;
 
                     //potrebuji zjistit jestli se vrchol nachazi ve vice pozadovanych hranach
@@ -567,6 +588,57 @@ public class Main {
             }
         }
         return null;
+    }
+
+    public static void selectFromRoutes(List<Route> routes, Route route, Double[][] matrix){
+        Node outerLeft = route.tail.previousLink;
+        Node outerRight = route.head.nextLink;
+
+        double minDistance = Double.POSITIVE_INFINITY;
+        Node minNodeFrom;
+        Node minNodeTo;
+
+        for (Route r :
+                routes) {
+            if(!r.active || r == route){
+                continue;
+            }
+            Node left = r.tail.previousLink;
+            Node right = r.head.nextLink;
+
+            if(matrix[outerLeft.number][left.number] < minDistance){
+                minDistance = matrix[outerLeft.number][left.number];
+                minNodeFrom = outerLeft;
+                minNodeTo = left;
+            }
+            if(matrix[outerLeft.number][right.number] < minDistance){
+                minDistance = matrix[outerLeft.number][right.number];
+                minNodeFrom = outerLeft;
+                minNodeTo = right;
+            }
+            if(matrix[outerRight.number][left.number] < minDistance){
+                minDistance = matrix[outerRight.number][left.number];
+                minNodeFrom = outerRight;
+                minNodeTo = left;
+            }
+            if(matrix[outerRight.number][right.number] < minDistance){
+                minDistance = matrix[outerRight.number][right.number];
+                minNodeFrom = outerRight;
+                minNodeTo = right;
+            }
+
+        }
+
+        System.out.println();
+
+    }
+
+    public static void selectBestFromOuterNodes(Set<Node> outerNodes, Node leftNode, Node rightNode, Double[][] matrix, Route component){
+        for (Node node :
+                outerNodes) {
+
+
+        }
     }
 
     public static void processEdge(String line, Pattern pattern, List<Node> nodes, boolean required){

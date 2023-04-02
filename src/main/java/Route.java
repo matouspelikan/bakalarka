@@ -434,7 +434,7 @@ public class Route {
         s2.add(head.nextLink.number);
 
         if(!s1.containsAll(s2) || !s2.containsAll(s1)){
-            throw new RuntimeException();
+            throw new RuntimeException("findOuterNodes not working properly");
         }
 
         return Arrays.asList(leftBorder, rightBorder);
