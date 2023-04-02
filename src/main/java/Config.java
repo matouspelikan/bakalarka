@@ -12,6 +12,8 @@ public class Config {
 
     public Map<Integer, List<Edge>> edgeMap = new HashMap<>();
 
+    public Double[][] matrix;
+
     public Config(List<Node> nodes, List<Edge> edges, int depot, int vehicles, int capacity){
         this.nodes = nodes;
         this.edges = edges;
