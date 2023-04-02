@@ -42,7 +42,7 @@ public class Main {
         System.out.println(requiredEdges);
 
         List<Edge> r1 = new ArrayList<>(List.copyOf(requiredEdges));
-        Collections.shuffle(r1, new Random(2));
+        Collections.shuffle(r1, new Random(11332));
         System.out.println("r1: ");
         System.out.println(r1);
         System.out.println(evaluatePriorityList(r1, entries, config, matrix2));
@@ -69,15 +69,12 @@ public class Main {
         int cumulativeCost = 0;
         for (Route r :
                 routes) {
-            cumulativeCost += evaluateRoute(r, matrix2);
+            cumulativeCost += evaluateRoute(r, config.matrix);
         }
         return new Evaluation(cumulativeCost, routes.size());
     }
 
     public static List<Route> construct(List<Edge> priority, Entry[][] entries, Config config){
-        System.out.println("Priority list");
-        System.out.println(priority);
-
         List<Route> routes = new ArrayList<>();
         for (int i = 0; i < priority.size(); i++) {
             Edge edge = priority.get(i);
@@ -89,101 +86,20 @@ public class Main {
             Edge edge = priority.get(i);
             Route route = edge.component;
 
+            Candidate selectedCandidate = selectFromRoutes(routes, route, config.matrix);
 
-            List<Integer> ends = route.findOuterNodes();
-            int left = ends.get(0);
-            int right = ends.get(1);
-
-            //TODO efektivneji vybrat entries aby se nemuselo filtrovat cele pokazde, nejak to mergnout
-//            List<Entry> closestLeftCandidates = Arrays.stream(entries[left]).filter(entry -> nodeToComponent(entry.nodeNumber, routes) != route && entry.distance < Double.POSITIVE_INFINITY).toList();
-//            List<Entry> closestRightCandidates = Arrays.stream(entries[right]).filter(entry -> nodeToComponent(entry.nodeNumber, routes) != route && entry.distance < Double.POSITIVE_INFINITY).toList();
-            List<Entry> closestLeftCandidates = Arrays.stream(entries[left]).filter(entry -> entryToComponent(entry, route) && entry.distance < Double.POSITIVE_INFINITY).toList();
-            List<Entry> closestRightCandidates = Arrays.stream(entries[right]).filter(entry -> entryToComponent(entry, route) && entry.distance < Double.POSITIVE_INFINITY).toList();
-            List<Entry> closestLRCandidates;
-            //            List<Entry> closestLRCandidates = mergeEntryLists(closestLeftCandidates, closestRightCandidates);
-            closestLRCandidates = new ArrayList<>(Stream.concat(closestLeftCandidates.stream(), closestRightCandidates.stream()).toList());
-            closestLRCandidates.sort(new Comparator<Entry>() {
-                @Override
-                public int compare(Entry o1, Entry o2) {
-                    return Double.compare(o1.distance, o2.distance); }
-            });
-
-            System.out.println("merged candidates");
-            System.out.println(closestLRCandidates);
-
-
-
-            //doneTODO optimize
-//            List<Edge> candidates = edges.stream().filter(e -> e.hasNode(finalMinEntry.nodeNumber) && e.required && edgeToComponent(e, routes) != route).toList();
-//            List<Edge> candidates = config.edgeMap.get(minEntry.nodeNumber).stream().filter(e -> e.required && edgeToComponent(e, routes) != route).toList();
-            List<Candidate> edgeCandidates = getCandidatesFromMultipleNodes(closestLRCandidates, config.edgeMap, route, routes);
-
-            assert edgeCandidates.size() > 0;
-
-
-            Collections.sort(edgeCandidates, Comparator.comparingDouble(Candidate::getDistance).thenComparingInt(Candidate::getToNodeNumber).thenComparingInt(Candidate::getFromNodeNumber).thenComparingInt(Candidate::hashCode));
-            Candidate selectedCandidate = selectViableCandidate(route, edgeCandidates);
-
-            System.out.println(selectFromRoutes(routes, route, config.matrix));
-            System.out.println("selected candidate");
-            System.out.println(selectedCandidate);
             if(selectedCandidate == null){
-                //TODO vrat se zpet do depot
-//                System.out.println("je null");
-                route.add(new Separator());
+                //TODO vrat se zpet do depot, NEMUSIM RESIT
             }
             else{
                 route.mergeRouteE(selectedCandidate);
-//                route.mergeRoutes(selectedCandidate);
-//                route.add(selectedCandidate.edge, connectingNode, selectedCandidate.toNode.number);
             }
-
-//            Element ocas = route.tail;
-//            System.out.println("looping");
-//            while (ocas != null) {
-////                System.out.println(ocas);
-////                System.out.println(ocas.candidate.edge.component);
-//                ocas = ocas.next;
-//            }
-//            System.out.println(route.active);
-//            System.out.println(route.findOuterNodes());
-
-//            if (i == 2) break;
         }
 
-        List<Route> finalList = new ArrayList<>();
-        for (Route r : routes) {
-//            System.out.println(r.active);
-            if(!r.active){
-                continue;
-            }
-            System.out.println("new route " + r.capacityTaken + " length: " + r.length());
-            System.out.println(r.findOuterNodes());
-            System.out.println(r.tail.previousLink);
-            System.out.println(r.head.nextLink);
-            System.out.println("objects:");
-            System.out.println(r.findOuterNodesObj());
-
-            finalList.add(r);
-
-            Element el = r.tail;
-            while(el != null){
-                System.out.println();
-                System.out.println(el.previousLink);
-                System.out.println(el.candidate.edge);
-                System.out.println(el.nextLink);
-                System.out.println(el.nextDistance);
-                el = el.next;
-            }
-
-            System.out.println(r.findOuterNodes());
-
-        }
-
-        return finalList;
+        return new ArrayList<>(routes.stream().filter(r -> r.active).collect(Collectors.toList()));
     }
 
-    public static double evaluateRoute(Route route, Double[][] matrix2){
+    public static double evaluateRoute(Route route, Double[][] matrix){
         Element element = route.tail;
         double cost = 0;
         while(element != null){
@@ -196,7 +112,7 @@ public class Main {
             if(krajni.number == 1){
                 continue;
             }
-            cost += matrix2[krajni.number][1];
+            cost += matrix[krajni.number][1];
         }
         return cost;
     }
@@ -416,7 +332,7 @@ public class Main {
     }
 
     public static Config readGDB() throws IOException {
-        FileReader fileReader = new FileReader("C:\\Users\\Asus\\ownCloud\\cvut\\carp\\carpbak\\src\\main\\resources\\egl\\egl-e2-B.dat");
+        FileReader fileReader = new FileReader("C:\\Users\\Asus\\ownCloud\\cvut\\carp\\carpbak\\src\\main\\resources\\test.dat");
         BufferedReader bufferedReader = new BufferedReader(fileReader);
 
         String line;
@@ -570,10 +486,6 @@ public class Main {
         Node outerLeft = route.tail.previousLink;
         Node outerRight = route.head.nextLink;
 
-        double minDistance = Double.POSITIVE_INFINITY;
-        Node minNodeFrom = null;
-        Node minNodeTo = null;
-
         List<Candidate> candidates = new ArrayList<>();
 
         for (Route r :
@@ -613,16 +525,9 @@ public class Main {
             return null;
         }
         Candidate c = new Candidate(toEdge, toNode, fromNode, matrix[fromNode.number][toNode.number]);
+        //TODO score evaluation bude pocitat s cetnosti
         c.score = c.distance;
         return c;
-    }
-
-    public static void selectBestFromOuterNodes(Set<Node> outerNodes, Node leftNode, Node rightNode, Double[][] matrix, Route component){
-        for (Node node :
-                outerNodes) {
-
-
-        }
     }
 
     public static void processEdge(String line, Pattern pattern, List<Node> nodes, boolean required){
