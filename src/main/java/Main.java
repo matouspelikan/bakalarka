@@ -58,8 +58,8 @@ public class Main {
 
 //        System.out.println(evaluatePriorityList(requiredEdges, entries, config, matrix2));
 
-//        Genetic genetic = new Genetic(config, matrix2, entries, requiredEdges);
-//        genetic.evolution(10, 10, 0.9, 0.2);
+        Genetic genetic = new Genetic(config, matrix, entries, requiredEdges);
+        genetic.evolution(10, 10, 0.9, 0.3);
 
     }
 
@@ -109,9 +109,6 @@ public class Main {
         }
         for (Node krajni :
                 route.findOuterNodesObj()) {
-            if(krajni.number == 1){
-                continue;
-            }
             cost += matrix[krajni.number][1];
         }
         return cost;
@@ -332,7 +329,7 @@ public class Main {
     }
 
     public static Config readGDB() throws IOException {
-        FileReader fileReader = new FileReader("C:\\Users\\Asus\\ownCloud\\cvut\\carp\\carpbak\\src\\main\\resources\\test.dat");
+        FileReader fileReader = new FileReader("C:\\Users\\Asus\\ownCloud\\cvut\\carp\\carpbak\\src\\main\\resources\\gdb\\gdb10.dat");
         BufferedReader bufferedReader = new BufferedReader(fileReader);
 
         String line;

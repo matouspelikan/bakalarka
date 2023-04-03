@@ -5,14 +5,10 @@ import java.util.function.Predicate;
 
 public class Delete {
     public static void main(String[] args) {
-
-        Map<Integer, Integer> mapa = new HashMap<>();
-
-        List<Candidate> c = new ArrayList<>();
-        c.add(null);
-        c.add(null);
-
-        System.out.println(c);
+        List<Integer> list = new ArrayList<>(Arrays.asList(1, 2, 3, 4));
+        System.out.println(list);
+        list.subList(2, list.size()).clear();
+        System.out.println(list);
     }
 
     public static void method(int a){

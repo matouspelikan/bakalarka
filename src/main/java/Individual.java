@@ -1,7 +1,10 @@
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 public class Individual {
+
+    public static Random random = new Random(0);
 
     public List<Edge> priorityList;
     public Evaluation evaluation;
@@ -39,8 +42,20 @@ public class Individual {
     }
 
     public void mutate(){
+        int indexFrom = random.nextInt(priorityList.size());
+        int indexTo = random.nextInt(priorityList.size());
+        Edge temp = priorityList.get(indexFrom);
 
+        priorityList.set(indexFrom, priorityList.get(indexTo));
+        priorityList.set(indexTo, temp);
+
+//        System.out.println(indexFrom + "  " + indexTo);
     }
 
-
+    @Override
+    public String toString() {
+        return "Individual{" +
+                "priorityList=" + priorityList +
+                '}';
+    }
 }

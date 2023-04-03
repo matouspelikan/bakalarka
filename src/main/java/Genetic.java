@@ -2,7 +2,14 @@ import java.util.*;
 
 public class Genetic {
 
-    public static Random random = new Random();
+    public static Random random = new Random(0);
+    public static Comparator comparator = new Comparator() {
+        @Override
+        public int compare(Object o1, Object o2) {
+            return 0;
+        }
+    };
+
 
     public Config config;
     public Double[][] matrix2;
@@ -22,25 +29,35 @@ public class Genetic {
 
         for (int i = 0; i < popSize; i++) {
             List<Edge> newPopulation = new ArrayList<>(List.copyOf(this.requiredEdges));
-            Collections.shuffle(newPopulation, new Random(i));
+            Collections.shuffle(newPopulation, new Random(random.nextInt()));
             Individual individual = new Individual(newPopulation);
             Evaluation evaluation = Main.evaluatePriorityList(individual.priorityList, entries, config, matrix2);
             individual.evaluation = evaluation;
             population.add(individual);
         }
 
+//        System.out.println("Population test");
+//        System.out.println(population.get(0));
+//        population.get(0).mutate();
+//        System.out.println(population.get(0));
+//
+//        System.out.println(population.get(1));
+//        System.out.println(population.get(0).crossWith(population.get(1)));
+
+//        if(true) return;
+
         for (int i = 0; i < popSize; i++) {
             Individual individual = population.get(i);
-            System.out.println(individual.evaluation.cost);
-            System.out.println(individual.evaluation.vehicleCount);
+            System.out.println(individual.evaluation);
         }
 
         for (int i = 0; i < maxGen; i++) {
             List<Individual> interPop = new ArrayList<>();
 
-            for (int j = 0; j < popSize; j++) {
-                Individual parent1 = tournamentSelection(population);
-                Individual parent2 = tournamentSelection(population);
+            int interPopSize = 0;
+            while (interPopSize < popSize) {
+                Individual parent1 = tournamentSelection(population, config.vehicles);
+                Individual parent2 = tournamentSelection(population, config.vehicles);
 
                 Individual child1 = null;
                 Individual child2 = null;
@@ -54,41 +71,71 @@ public class Genetic {
                     }
                 }
                 else{
-                    child1 = parent1;
-                    child2 = parent2;
+                    child1 = new Individual(parent1.priorityList);
+                    child2 = new Individual(parent2.priorityList);
 
                     child1.mutate();
                     child2.mutate();
                 }
 
-//                Evaluation evaluation1 = Main.evaluatePriorityList(child1.priorityList, entries, config, matrix2);
-//                child1.evaluation = evaluation1;
+                Evaluation evaluation1 = Main.evaluatePriorityList(child1.priorityList, entries, config, matrix2);
+                child1.evaluation = evaluation1;
 
-//                Evaluation evaluation2 = Main.evaluatePriorityList(child2.priorityList, entries, config, matrix2);
-//                child2.evaluation = evaluation2;
+                Evaluation evaluation2 = Main.evaluatePriorityList(child2.priorityList, entries, config, matrix2);
+                child2.evaluation = evaluation2;
 
                 interPop.add(child1);
                 interPop.add(child2);
-
+                interPopSize += 2;
             }
 
+            int originalSize = population.size();
+            population.addAll(interPop);
+            comparison1(population, config.vehicles);
+            population.subList(originalSize, population.size()).clear();
+//            System.out.println(population.size());
+
+            if (originalSize != population.size()) throw new RuntimeException();
         }
 
+        System.out.println();
+        for (int i = 0; i < popSize; i++) {
+            Individual individual = population.get(i);
+//            System.out.println(individual.evaluation.cost);
+//            System.out.println(individual.evaluation.vehicleCount);
+            System.out.println(individual.evaluation);
+        }
 
     }
 
-    public Individual tournamentSelection(List<Individual> population){
+    private void comparison1(List<Individual> population, int maxVehicles) {
+        Collections.sort(population, new Comparator<Individual>() {
+            @Override
+            public int compare(Individual o1, Individual o2) {
+//                return Double.compare(o1.fitness(), o2.fitness());
+                if(o1.evaluation.vehicleCount <= maxVehicles && o2.evaluation.vehicleCount <= maxVehicles){
+                    return Double.compare(o1.evaluation.cost, o2.evaluation.cost);
+                }
+                else if(o1.evaluation.vehicleCount <= maxVehicles){
+                    return -1;
+                }
+                else if(o2.evaluation.vehicleCount <= maxVehicles){
+                    return 1;
+                }
+                else{
+                    return Double.compare(o1.evaluation.cost, o2.evaluation.cost);
+                }
+            }
+        });
+    }
+
+    public Individual tournamentSelection(List<Individual> population, int maxVehicles){
         List<Individual> subset = new ArrayList<>();
         for (int i = 0; i < this.k; i++) {
             subset.add(population.get(random.nextInt(population.size())));
         }
 
-        Collections.sort(subset, new Comparator<Individual>() {
-            @Override
-            public int compare(Individual o1, Individual o2) {
-                return Double.compare(o1.fitness(), o2.fitness());
-            }
-        });
+        comparison1(subset, maxVehicles);
 
         return subset.get(0);
     }
