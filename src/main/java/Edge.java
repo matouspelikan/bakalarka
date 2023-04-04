@@ -37,6 +37,17 @@ public class Edge {
         rightNode.edges.add(this);
     }
 
+    public Edge(Edge edge){
+        this.leftNumber = edge.leftNumber;
+        this.rightNumber = edge.rightNumber;
+        this.required = edge.required;
+        this.leftNode = edge.leftNode;
+        this.rightNode = edge.rightNode;
+
+        this.cost = edge.cost;
+        this.demand = edge.demand;
+    }
+
     public void connect(List<Edge> adjacent, boolean recursive){
         for (int i = 0; i < adjacent.size(); i++) {
             Edge next = adjacent.get(i);

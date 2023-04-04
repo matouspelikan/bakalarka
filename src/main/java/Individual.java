@@ -29,7 +29,6 @@ public class Individual {
         }
 
         for (int i = newPriorityList.size(); i < priorityList.size(); i++) {
-
             for (int j = 0; j < other.priorityList.size(); j++) {
                 if(!newPriorityList.contains(other.priorityList.get(j))){
                     newPriorityList.add(other.priorityList.get(j));

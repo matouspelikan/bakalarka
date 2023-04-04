@@ -245,8 +245,7 @@ public class Route {
         if(this.capacityLeft < 0) throw new RuntimeException();
         candidate.edge.component.active = false;
 
-        Element element = new Element(candidate);
-        element = getEnd(candidate);
+        Element element = getEnd(candidate);
 
 //        System.out.println(candidate);
 //        System.out.println("tail/head");
@@ -352,7 +351,7 @@ public class Route {
                     }
                     else{
                         elementIter.previous = null;
-                        elementIter.previousDistance = -1;
+                        elementIter.previousDistance = 0;
                         elementIter.previousLink = nextLink;
                     }
                 }
@@ -372,6 +371,10 @@ public class Route {
 
             throw new RuntimeException();
         }
+    }
+
+    public void twoOpt(){
+        System.out.println(this.length());
     }
 
     public boolean containsNodeI(int node){
@@ -477,8 +480,16 @@ public class Route {
 
     @Override
     public String toString() {
-        return "Route{" +
-                "krajní edges=" + this.findOuterNodes().toString() +
-                '}';
+        return fullRoute();
+    }
+
+    public String fullRoute(){
+        String s = "";
+        Element element = tail;
+        while(element != null){
+            s += element.candidate.edge + " | ";
+            element = element.next;
+        }
+        return s;
     }
 }

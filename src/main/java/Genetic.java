@@ -28,7 +28,8 @@ public class Genetic {
         List<Individual> population = new ArrayList<>();
 
         for (int i = 0; i < popSize; i++) {
-            List<Edge> newPopulation = new ArrayList<>(List.copyOf(this.requiredEdges));
+//            List<Edge> newPopulation = new ArrayList<>(List.copyOf(this.requiredEdges));
+            List<Edge> newPopulation = Main.deepCopy(requiredEdges);
             Collections.shuffle(newPopulation, new Random(random.nextInt()));
             Individual individual = new Individual(newPopulation);
             Evaluation evaluation = Main.evaluatePriorityList(individual.priorityList, entries, config, matrix2);
@@ -106,6 +107,12 @@ public class Genetic {
             System.out.println(individual.evaluation);
         }
 
+        Individual in = population.get(0);
+
+        for(Route r : in.evaluation.routes){
+            System.out.println(r);
+            System.out.println(Main.evaluateRoute(r, config.matrix));
+        }
     }
 
     private void comparison1(List<Individual> population, int maxVehicles) {

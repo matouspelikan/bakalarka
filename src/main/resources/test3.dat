@@ -1,0 +1,26 @@
+ NOMBRE : egl-e1-A
+ COMENTARIO : 3625. (cota superior)
+ VERTICES : 10
+ ARISTAS_REQ : 5
+ ARISTAS_NOREQ : 9
+ VEHICULOS : 5
+ CAPACIDAD : 12
+ TIPO_COSTES_ARISTAS : EXPLICITOS
+ COSTE_TOTAL_REQ : 1468
+ LISTA_ARISTAS_REQ :
+ ( 2, 3)   coste 5   demanda 5
+ ( 4, 5)   coste 5   demanda 5
+ ( 6, 7)   coste 5   demanda 5
+ ( 9, 10)   coste 5   demanda 5
+ ( 8, 11)   coste 5   demanda 5
+ LISTA_ARISTAS_NOREQ :
+ ( 1, 2)   coste 3
+ ( 3, 4)   coste 3
+ ( 1, 5)   coste 3
+ ( 1, 8)   coste 3
+ ( 1, 6)   coste 3
+ ( 5, 6)   coste 3
+ ( 1, 7)   coste 3
+ ( 7, 10)  coste 3
+ ( 9, 11)  coste 3
+ DEPOSITO :   1
