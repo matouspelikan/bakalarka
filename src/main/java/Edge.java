@@ -1,6 +1,7 @@
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
 public class Edge {
 
@@ -100,5 +101,18 @@ public class Edge {
                 ", cost=" + cost +
                 ", demand=" + demand +
                 '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Edge edge = (Edge) o;
+        return leftNumber == edge.leftNumber && rightNumber == edge.rightNumber && cost == edge.cost && demand == edge.demand;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(leftNumber, rightNumber, cost, demand);
     }
 }

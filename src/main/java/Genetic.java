@@ -28,15 +28,18 @@ public class Genetic {
         List<Individual> population = new ArrayList<>();
 
         for (int i = 0; i < popSize; i++) {
-//            List<Edge> newPopulation = new ArrayList<>(List.copyOf(this.requiredEdges));
-            List<Edge> newPopulation = Main.deepCopy(requiredEdges);
-            Collections.shuffle(newPopulation, new Random(random.nextInt()));
-            Individual individual = new Individual(newPopulation);
+//            List<Edge> newPriorityList = new ArrayList<>(List.copyOf(this.requiredEdges));
+            List<Edge> newPriorityList = Main.deepCopy(requiredEdges);
+            Collections.shuffle(newPriorityList, new Random(random.nextInt()));
+            Individual individual = new Individual(newPriorityList);
             Evaluation evaluation = Main.evaluatePriorityList(individual.priorityList, entries, config, matrix2);
             individual.evaluation = evaluation;
             population.add(individual);
+            System.out.println(individual.evaluation.routes.get(0));
         }
 
+
+        System.out.println("\nstart\n");
 //        System.out.println("Population test");
 //        System.out.println(population.get(0));
 //        population.get(0).mutate();
@@ -96,6 +99,12 @@ public class Genetic {
             population.subList(originalSize, population.size()).clear();
 //            System.out.println(population.size());
 
+            for (Individual individual :
+                    population) {
+                System.out.println(individual.evaluation.routes.get(0));
+            }
+            System.out.println();
+
             if (originalSize != population.size()) throw new RuntimeException();
         }
 
@@ -112,6 +121,8 @@ public class Genetic {
         for(Route r : in.evaluation.routes){
             System.out.println(r);
             System.out.println(Main.evaluateRoute(r, config.matrix));
+            System.out.println(r.length());
+            System.out.println(r.tail.previous);
         }
     }
 
