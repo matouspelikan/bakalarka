@@ -42,36 +42,37 @@ public class Main {
         System.out.println(requiredEdges);
 
         List<Edge> r1 = new ArrayList<>(List.copyOf(requiredEdges));
-        Collections.shuffle(r1, new Random(13241243));
+        Collections.shuffle(r1, new Random(0));
         System.out.println("r1: ");
         System.out.println(r1);
         System.out.println(evaluatePriorityList(r1, entries, config, matrix));
         System.out.println("result:");
-//        Route rrr = r1.get(0).component;
-//        System.out.println(rrr);
-//
-//
-//        List<Edge> r2 = new ArrayList<>(List.copyOf(requiredEdges));
-//        r2 = deepCopy(requiredEdges);
-////        Collections.shuffle(r2, new Random(0));
-//        System.out.println("r2: ");
-//        System.out.println(r2);
-//        System.out.println(evaluatePriorityList(r2, entries, config, matrix));
-//        System.out.println("result:");
-//        System.out.println(rrr);
-//        System.out.println(rrr.tail.candidate.edge);
-//        System.out.println(rrr.tail.candidate.edge.component == rrr); //must be true
-//
-//        System.out.println("\n\n\n");
-//
-//        Edge e1 = r1.get(0);
-//        Edge e2 = r2.get(0);
-//
-//        System.out.println(e1);
-//        System.out.println(e2);
-//
-//        System.out.println(e1 == e2); //must be false
-//        System.out.println(e1.component == e2.component); //must be false
+        Route rrr = r1.get(0).component;
+        System.out.println(rrr);
+
+
+        List<Edge> r2 = new ArrayList<>(List.copyOf(requiredEdges));
+        r2 = deepCopy(requiredEdges);
+        Collections.shuffle(r2, new Random(0));
+        System.out.println("r2: ");
+        System.out.println(r2);
+        System.out.println(evaluatePriorityList(r2, entries, config, matrix));
+        System.out.println("result:");
+        System.out.println(rrr);
+        System.out.println(rrr.tail.candidate.edge);
+        System.out.println(rrr.tail.candidate.edge.component == rrr); //must be true
+
+        System.out.println("\n\n\n");
+
+        Edge e1 = r1.get(0);
+        Edge e2 = r2.get(0);
+
+        System.out.println(e1);
+        System.out.println(e2);
+
+        System.out.println(e1.equals(e2));
+        System.out.println(e1 == e2); //must be false
+        System.out.println(e1.component == e2.component); //must be false
 //
 //        System.out.println(evaluatePriorityList(r2, entries, config, matrix));
 //        System.out.println(evaluatePriorityList(r1, entries, config, matrix));
@@ -128,10 +129,19 @@ public class Main {
             cost += element.nextDistance;
             element = element.next;
         }
-        for (Node krajni :
-                route.findOuterNodesObj()) {
-            cost += matrix[krajni.number][1];
-        }
+//        for (Node krajni :
+//                route.findOuterNodesObj()) {
+//            cost += matrix[krajni.number][1];
+//        }
+//        cost += matrix[route.tail.previousLink.number][1];
+//        cost += matrix[route.head.nextLink.number][1];
+
+        route.tail.previousDistance = matrix[route.tail.previousLink.number][1];
+        route.head.nextDistance = matrix[route.head.nextLink.number][1];
+
+        cost += route.tail.previousDistance;
+        cost += route.head.nextDistance;
+
         return cost;
     }
 

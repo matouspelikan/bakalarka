@@ -2,6 +2,8 @@ import java.util.*;
 
 public class Route {
 
+    public static Random random = new Random(0);
+
     public List<Edge> edges = new ArrayList<>();
     public List<Candidate> candidates = new ArrayList<>();
     public List<Integer> nodesInt = new ArrayList<>();
@@ -374,7 +376,22 @@ public class Route {
     }
 
     public void twoOpt(){
-        System.out.println(this.length());
+        int len = length();
+        int first = random.nextInt(len);
+        int second;
+        while((second = random.nextInt(len)) == first)
+            ;
+        Element e1 = get(first);
+        Element e2 = get(second);
+
+        System.out.println(first);
+        System.out.println(second);
+
+        System.out.println(e1);
+        System.out.println(e2);
+
+        System.out.println(tail.previousDistance);
+        System.out.println(head.nextDistance);
     }
 
     public boolean containsNodeI(int node){
@@ -476,6 +493,15 @@ public class Route {
             el = el.next;
         }
         return count;
+    }
+
+    public Element get(int index){
+        Element el = tail;
+        while(el != null && index > 0){
+            el = el.next;
+            index--;
+        }
+        return el;
     }
 
     @Override

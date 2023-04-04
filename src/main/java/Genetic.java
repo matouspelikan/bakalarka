@@ -99,12 +99,6 @@ public class Genetic {
             population.subList(originalSize, population.size()).clear();
 //            System.out.println(population.size());
 
-            for (Individual individual :
-                    population) {
-                System.out.println(individual.evaluation.routes.get(0));
-            }
-            System.out.println();
-
             if (originalSize != population.size()) throw new RuntimeException();
         }
 
@@ -122,7 +116,7 @@ public class Genetic {
             System.out.println(r);
             System.out.println(Main.evaluateRoute(r, config.matrix));
             System.out.println(r.length());
-            System.out.println(r.tail.previous);
+            r.twoOpt();
         }
     }
 
