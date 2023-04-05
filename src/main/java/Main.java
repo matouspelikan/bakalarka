@@ -23,6 +23,7 @@ public class Main {
         Double[][] matrix = (Double[][]) matrices.get(0);
         Double[][] matrix2 = (Double[][]) matrices.get(1);
         config.matrix = matrix;
+        Route.matrix = matrix;
 
         System.out.println("matrix2 row: ");
         System.out.println(Arrays.asList(matrix[1]));
@@ -368,7 +369,7 @@ public class Main {
     }
 
     public static Config readGDB() throws IOException {
-        FileReader fileReader = new FileReader("C:\\Users\\Asus\\ownCloud\\cvut\\carp\\carpbak\\src\\main\\resources\\test3.dat");
+        FileReader fileReader = new FileReader("C:\\Users\\Asus\\ownCloud\\cvut\\carp\\carpbak\\src\\main\\resources\\egl\\egl-s4-A.dat");
         BufferedReader bufferedReader = new BufferedReader(fileReader);
 
         String line;

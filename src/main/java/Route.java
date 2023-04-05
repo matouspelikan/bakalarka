@@ -3,6 +3,7 @@ import java.util.*;
 public class Route {
 
     public static Random random = new Random(0);
+    public static Double[][] matrix;
 
     public List<Edge> edges = new ArrayList<>();
     public List<Candidate> candidates = new ArrayList<>();
@@ -18,6 +19,7 @@ public class Route {
     public Element tail = null;
 
     public boolean active = true;
+
 
     public Route(){
     }
@@ -375,24 +377,55 @@ public class Route {
         }
     }
 
-    public void twoOpt(){
+    public void twoOptWrap(){
+        System.out.println("twoopt");
         int len = length();
-        int first = random.nextInt(len);
-        int second;
-        while((second = random.nextInt(len)) == first)
-            ;
+        for (int i = 0; i < len; i++) {
+            for (int j = 0; j < len; j++) {
+                if(i == j) continue;
+                if(twoOpt(i, j) < 0){
+                    System.out.println("improvement");
+                    System.out.println(this);
+                    System.out.println(i + " " + j);
+                }
+            }
+        }
+    }
+
+    public double twoOpt(int first, int second){
+//        int len = length();
+//        int first = random.nextInt(len);
+//        int second;
+//        while((second = random.nextInt(len)) == first)
+//            ;
         Element e1 = get(first);
         Element e2 = get(second);
 
-        System.out.println(first);
-        System.out.println(second);
 
-        System.out.println(e1);
-        System.out.println(e2);
+        double diff = - e1.nextDistance - e2.nextDistance;
+        diff += matrix[e1.nextLink.number][e2.nextLink.number];
 
-        System.out.println(tail.previousDistance);
-        System.out.println(head.nextDistance);
+        int e1N;
+        Element e1n = e1.next;
+        if(e1n != null)
+            e1N = e1n.previousLink.number;
+        else
+            e1N = 1;
+
+        int e2N;
+        Element e2n = e2.next;
+        if(e2n != null)
+            e2N = e2n.previousLink.number;
+        else
+            e2N = 1;
+
+        diff += matrix[e1N][e2N];
+
+//        System.out.println(diff);
+        return diff;
     }
+
+
 
     public boolean containsNodeI(int node){
         return this.nodesInt.contains(node);

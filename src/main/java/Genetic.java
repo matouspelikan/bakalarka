@@ -84,9 +84,15 @@ public class Genetic {
 
                 Evaluation evaluation1 = Main.evaluatePriorityList(child1.priorityList, entries, config, matrix2);
                 child1.evaluation = evaluation1;
+                for(Route r : child1.evaluation.routes){
+                    r.twoOptWrap();
+                }
 
                 Evaluation evaluation2 = Main.evaluatePriorityList(child2.priorityList, entries, config, matrix2);
                 child2.evaluation = evaluation2;
+                for (Route r : child2.evaluation.routes){
+                    r.twoOptWrap();
+                }
 
                 interPop.add(child1);
                 interPop.add(child2);
@@ -116,7 +122,8 @@ public class Genetic {
             System.out.println(r);
             System.out.println(Main.evaluateRoute(r, config.matrix));
             System.out.println(r.length());
-            r.twoOpt();
+//            r.twoOpt();
+            r.twoOptWrap();
         }
     }
 
