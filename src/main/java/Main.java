@@ -132,7 +132,8 @@ public class Main {
         double cost = 0;
         while(element != null){
             cost += element.candidate.edge.cost;
-            cost += element.nextDistance;
+            if(element.next != null)
+                cost += element.nextDistance;
             element = element.next;
         }
 //        for (Node krajni :

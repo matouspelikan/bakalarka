@@ -47,6 +47,9 @@ public class Edge {
 
         this.cost = edge.cost;
         this.demand = edge.demand;
+
+        this.leftEdges = edge.leftEdges;
+        this.rightEdges = edge.rightEdges;
     }
 
     public void connect(List<Edge> adjacent, boolean recursive){

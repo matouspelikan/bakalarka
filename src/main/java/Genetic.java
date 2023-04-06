@@ -37,7 +37,6 @@ public class Genetic {
             Evaluation evaluation = Main.evaluatePriorityList(individual.priorityList, config);
             individual.evaluation = evaluation;
             population.add(individual);
-            System.out.println(individual.evaluation.routes.get(0));
         }
 
 
@@ -59,6 +58,11 @@ public class Genetic {
 
         for (int i = 0; i < maxGen; i++) {
             List<Individual> interPop = new ArrayList<>();
+
+            for (int j = 0; j < popSize; j++) {
+                Individual individual = population.get(j);
+                individual.parent = false;
+            }
 
             int interPopSize = 0;
             while (interPopSize < popSize) {
@@ -91,6 +95,10 @@ public class Genetic {
 //                    r.singleInsertWrap();
                 }
 
+                System.out.println(child1.evaluation);
+                System.out.println(Main.evaluateRoutes(child1.evaluation.routes, config));
+                System.out.println();
+
                 Evaluation evaluation2 = Main.evaluatePriorityList(child2.priorityList, config);
                 child2.evaluation = evaluation2;
                 for (Route r : child2.evaluation.routes){
@@ -103,13 +111,21 @@ public class Genetic {
                 interPopSize += 2;
             }
 
+            for (int j = 0; j < popSize; j++) {
+                Individual individual = population.get(j);
+                individual.parent = true;
+            }
+
             int originalSize = population.size();
             population.addAll(interPop);
             comparison1(population, config.vehicles);
             population.subList(originalSize, population.size()).clear();
+
+
 //            System.out.println(population.size());
 
             if (originalSize != population.size()) throw new RuntimeException();
+
         }
 
         System.out.println();
@@ -124,16 +140,16 @@ public class Genetic {
 
         Individual in = population.get(0);
 
-        List<Route> _routes = in.evaluation.routes;
-        Collections.sort(_routes, new Comparator<Route>() {
-            @Override
-            public int compare(Route o1, Route o2) {
-                return Integer.compare(o1.length(), o2.length());
-            }
-        });
-        for(Route r: _routes){
-            System.out.println(r.length() + " cost: " + Main.evaluateRoute(r, config.matrix) + " taken: " + r.capacityTaken + " left: " + r.capacityLeft);
-        }
+//        List<Route> _routes = in.evaluation.routes;
+//        Collections.sort(_routes, new Comparator<Route>() {
+//            @Override
+//            public int compare(Route o1, Route o2) {
+//                return Integer.compare(o1.length(), o2.length());
+//            }
+//        });
+//        for(Route r: _routes){
+//            System.out.println(r.length() + " cost: " + Main.evaluateRoute(r, config.matrix) + " taken: " + r.capacityTaken + " left: " + r.capacityLeft);
+//        }
 
         pathScanningWrap(in);
 //        for(Route r : in.evaluation.routes){
@@ -179,8 +195,12 @@ public class Genetic {
 
     public void pathScanningWrap(Individual individual){
         List<Route> routes = individual.evaluation.routes;
-        Collections.shuffle(routes, new Random(0));
-        pathScanning(routes.stream().limit(3).collect(Collectors.toList()));
+        System.out.println("Issue");
+        System.out.println(individual.evaluation);
+        System.out.println(Main.evaluatePriorityList(individual.priorityList, config));
+        System.out.println(Main.evaluateRoutes(routes, config));
+//        Collections.shuffle(routes, new Random(0));
+        pathScanning(routes.stream().collect(Collectors.toList()));
     }
 
     public void pathScanning(List<Route> routes){
