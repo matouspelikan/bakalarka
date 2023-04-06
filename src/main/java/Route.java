@@ -378,15 +378,16 @@ public class Route {
     }
 
     public void twoOptWrap(){
-        System.out.println("twoopt");
+//        System.out.println("twoopt");
         int len = length();
+        double diff;
         for (int i = 0; i < len; i++) {
             for (int j = 0; j < len; j++) {
                 if(i == j) continue;
-                if(twoOpt(i, j) < 0){
-                    System.out.println("improvement");
+                if((diff = twoOpt(i, j)) < 0){
+                    System.out.println("improvement twoopt " + diff);
                     System.out.println(this);
-                    System.out.println(i + " " + j);
+//                    System.out.println(i + " " + j);
                 }
             }
         }
@@ -405,24 +406,69 @@ public class Route {
         double diff = - e1.nextDistance - e2.nextDistance;
         diff += matrix[e1.nextLink.number][e2.nextLink.number];
 
-        int e1N;
-        Element e1n = e1.next;
-        if(e1n != null)
-            e1N = e1n.previousLink.number;
-        else
-            e1N = 1;
+        int e1N = elementToNumberNext(e1.next);
+//        Element e1n = e1.next;
+//        if(e1n != null)
+//            e1N = e1n.previousLink.number;
+//        else
+//            e1N = 1;
 
-        int e2N;
-        Element e2n = e2.next;
-        if(e2n != null)
-            e2N = e2n.previousLink.number;
-        else
-            e2N = 1;
+        int e2N = elementToNumberNext(e2.next);
+//        Element e2n = e2.next;
+//        if(e2n != null)
+//            e2N = e2n.previousLink.number;
+//        else
+//            e2N = 1;
 
         diff += matrix[e1N][e2N];
 
 //        System.out.println(diff);
         return diff;
+    }
+
+    public void singleInsertWrap(){
+//        System.out.println("singleinsert");
+        int len = length();
+        double diff;
+        for (int i = 0; i < len; i++) {
+            for (int j = 0; j < len; j++) {
+                if(i == j) continue;
+                if((diff = singleInsert(i, j)) < 0){
+                    System.out.println("improvement single " + diff);
+//                    System.out.println(this);
+//                    System.out.println(i + " " + j);
+                }
+            }
+        }
+    }
+
+    public double singleInsert(int first, int second){
+        Element e1 = get(first);
+        Element e2 = get(second);
+
+        double diff = - e1.previousDistance - e1.nextDistance - e2.previousDistance - e2.nextDistance;
+
+        int e1N = elementToNumberNext(e1.next);
+        int e2N = elementToNumberNext(e2.next);
+
+        int e1P = elementToNumberPrev(e1.previous);
+        int e2P = elementToNumberPrev(e1.previous);
+
+        diff += matrix[e1P][e2.previousLink.number] + matrix[e2.nextLink.number][e1N];
+        diff += matrix[e2P][e1.previousLink.number] + matrix[e1.nextLink.number][e2N];
+
+        return diff;
+    }
+
+    public int elementToNumberNext(Element element){
+        if(element != null)
+            return element.previousLink.number;
+        return 1;
+    }
+    public int elementToNumberPrev(Element element){
+        if(element != null)
+            return element.nextLink.number;
+        return 1;
     }
 
 

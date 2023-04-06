@@ -42,38 +42,38 @@ public class Main {
         System.out.println("original: ");
         System.out.println(requiredEdges);
 
-        List<Edge> r1 = new ArrayList<>(List.copyOf(requiredEdges));
-        Collections.shuffle(r1, new Random(0));
-        System.out.println("r1: ");
-        System.out.println(r1);
-        System.out.println(evaluatePriorityList(r1, entries, config, matrix));
-        System.out.println("result:");
-        Route rrr = r1.get(0).component;
-        System.out.println(rrr);
-
-
-        List<Edge> r2 = new ArrayList<>(List.copyOf(requiredEdges));
-        r2 = deepCopy(requiredEdges);
-        Collections.shuffle(r2, new Random(0));
-        System.out.println("r2: ");
-        System.out.println(r2);
-        System.out.println(evaluatePriorityList(r2, entries, config, matrix));
-        System.out.println("result:");
-        System.out.println(rrr);
-        System.out.println(rrr.tail.candidate.edge);
-        System.out.println(rrr.tail.candidate.edge.component == rrr); //must be true
-
-        System.out.println("\n\n\n");
-
-        Edge e1 = r1.get(0);
-        Edge e2 = r2.get(0);
-
-        System.out.println(e1);
-        System.out.println(e2);
-
-        System.out.println(e1.equals(e2));
-        System.out.println(e1 == e2); //must be false
-        System.out.println(e1.component == e2.component); //must be false
+//        List<Edge> r1 = new ArrayList<>(List.copyOf(requiredEdges));
+//        Collections.shuffle(r1, new Random(0));
+//        System.out.println("r1: ");
+//        System.out.println(r1);
+//        System.out.println(evaluatePriorityList(r1, entries, config, matrix));
+//        System.out.println("result:");
+//        Route rrr = r1.get(0).component;
+//        System.out.println(rrr);
+//
+//
+//        List<Edge> r2 = new ArrayList<>(List.copyOf(requiredEdges));
+//        r2 = deepCopy(requiredEdges);
+//        Collections.shuffle(r2, new Random(0));
+//        System.out.println("r2: ");
+//        System.out.println(r2);
+//        System.out.println(evaluatePriorityList(r2, entries, config, matrix));
+//        System.out.println("result:");
+//        System.out.println(rrr);
+//        System.out.println(rrr.tail.candidate.edge);
+//        System.out.println(rrr.tail.candidate.edge.component == rrr); //must be true
+//
+//        System.out.println("\n\n\n");
+//
+//        Edge e1 = r1.get(0);
+//        Edge e2 = r2.get(0);
+//
+//        System.out.println(e1);
+//        System.out.println(e2);
+//
+//        System.out.println(e1.equals(e2));
+//        System.out.println(e1 == e2); //must be false
+//        System.out.println(e1.component == e2.component); //must be false
 //
 //        System.out.println(evaluatePriorityList(r2, entries, config, matrix));
 //        System.out.println(evaluatePriorityList(r1, entries, config, matrix));
@@ -82,22 +82,27 @@ public class Main {
 //        System.out.println(evaluatePriorityList(requiredEdges, entries, config, matrix2));
 
         Genetic genetic = new Genetic(config, matrix, entries, requiredEdges);
-        genetic.evolution(10, 10, 0.9, 0.3);
+        genetic.evolution(10, 50, 0.9, 0.3);
 
     }
 
 
-    public static Evaluation evaluatePriorityList(List<Edge> priority, Entry[][] entries, Config config, Double[][] matrix2){
-        List<Route> routes = construct(priority, entries, config);
+    public static Evaluation evaluatePriorityList(List<Edge> priority, Config config){
+        List<Route> routes = construct(priority, config);
+        int cumulativeCost = evaluateRoutes(routes, config);
+        return new Evaluation(cumulativeCost, routes.size(), routes);
+    }
+
+    public static int evaluateRoutes(List<Route> routes, Config config){
         int cumulativeCost = 0;
         for (Route r :
                 routes) {
             cumulativeCost += evaluateRoute(r, config.matrix);
         }
-        return new Evaluation(cumulativeCost, routes.size(), routes);
+        return cumulativeCost;
     }
 
-    public static List<Route> construct(List<Edge> priority, Entry[][] entries, Config config){
+    public static List<Route> construct(List<Edge> priority, Config config){
         List<Route> routes = new ArrayList<>();
         for (int i = 0; i < priority.size(); i++) {
             Edge edge = priority.get(i);
@@ -369,7 +374,7 @@ public class Main {
     }
 
     public static Config readGDB() throws IOException {
-        FileReader fileReader = new FileReader("C:\\Users\\Asus\\ownCloud\\cvut\\carp\\carpbak\\src\\main\\resources\\egl\\egl-s4-A.dat");
+        FileReader fileReader = new FileReader("C:\\Users\\Asus\\ownCloud\\cvut\\carp\\carpbak\\src\\main\\resources\\egl\\egl-s3-C.dat");
         BufferedReader bufferedReader = new BufferedReader(fileReader);
 
         String line;

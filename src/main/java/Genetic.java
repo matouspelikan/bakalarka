@@ -1,4 +1,6 @@
+import java.security.NoSuchAlgorithmException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class Genetic {
 
@@ -32,7 +34,7 @@ public class Genetic {
             List<Edge> newPriorityList = Main.deepCopy(requiredEdges);
             Collections.shuffle(newPriorityList, new Random(random.nextInt()));
             Individual individual = new Individual(newPriorityList);
-            Evaluation evaluation = Main.evaluatePriorityList(individual.priorityList, entries, config, matrix2);
+            Evaluation evaluation = Main.evaluatePriorityList(individual.priorityList, config);
             individual.evaluation = evaluation;
             population.add(individual);
             System.out.println(individual.evaluation.routes.get(0));
@@ -82,16 +84,18 @@ public class Genetic {
                     child2.mutate();
                 }
 
-                Evaluation evaluation1 = Main.evaluatePriorityList(child1.priorityList, entries, config, matrix2);
+                Evaluation evaluation1 = Main.evaluatePriorityList(child1.priorityList, config);
                 child1.evaluation = evaluation1;
                 for(Route r : child1.evaluation.routes){
-                    r.twoOptWrap();
+//                    r.twoOptWrap();
+//                    r.singleInsertWrap();
                 }
 
-                Evaluation evaluation2 = Main.evaluatePriorityList(child2.priorityList, entries, config, matrix2);
+                Evaluation evaluation2 = Main.evaluatePriorityList(child2.priorityList, config);
                 child2.evaluation = evaluation2;
                 for (Route r : child2.evaluation.routes){
-                    r.twoOptWrap();
+//                    r.twoOptWrap();
+//                    r.singleInsertWrap();
                 }
 
                 interPop.add(child1);
@@ -111,20 +115,34 @@ public class Genetic {
         System.out.println();
         for (int i = 0; i < popSize; i++) {
             Individual individual = population.get(i);
-//            System.out.println(individual.evaluation.cost);
-//            System.out.println(individual.evaluation.vehicleCount);
             System.out.println(individual.evaluation);
+            for(Route r : individual.evaluation.routes){
+//                r.singleInsertWrap();
+//                r.twoOptWrap();
+            }
         }
 
         Individual in = population.get(0);
 
-        for(Route r : in.evaluation.routes){
-            System.out.println(r);
-            System.out.println(Main.evaluateRoute(r, config.matrix));
-            System.out.println(r.length());
-//            r.twoOpt();
-            r.twoOptWrap();
+        List<Route> _routes = in.evaluation.routes;
+        Collections.sort(_routes, new Comparator<Route>() {
+            @Override
+            public int compare(Route o1, Route o2) {
+                return Integer.compare(o1.length(), o2.length());
+            }
+        });
+        for(Route r: _routes){
+            System.out.println(r.length() + " cost: " + Main.evaluateRoute(r, config.matrix) + " taken: " + r.capacityTaken + " left: " + r.capacityLeft);
         }
+
+        pathScanningWrap(in);
+//        for(Route r : in.evaluation.routes){
+//            System.out.println(r);
+//            System.out.println(Main.evaluateRoute(r, config.matrix));
+//            System.out.println(r.length());
+////            r.twoOpt();
+//            r.twoOptWrap();
+//        }
     }
 
     private void comparison1(List<Individual> population, int maxVehicles) {
@@ -157,6 +175,27 @@ public class Genetic {
         comparison1(subset, maxVehicles);
 
         return subset.get(0);
+    }
+
+    public void pathScanningWrap(Individual individual){
+        List<Route> routes = individual.evaluation.routes;
+        Collections.shuffle(routes, new Random(0));
+        pathScanning(routes.stream().limit(3).collect(Collectors.toList()));
+    }
+
+    public void pathScanning(List<Route> routes){
+        List<Edge> allEdges = new ArrayList<>();
+        for (Route r : routes){
+            Element element = r.tail;
+            while(element != null){
+                allEdges.add(new Edge(element.candidate.edge));
+                element = element.next;
+            }
+        }
+        System.out.println("difference");
+        System.out.println(routes.size());
+        System.out.println(Main.evaluateRoutes(routes, config));
+        System.out.println(Main.evaluatePriorityList(allEdges, config));
     }
 
 }
