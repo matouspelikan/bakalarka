@@ -42,9 +42,10 @@ public class Node {
 
     @Override
     public String toString() {
-        return "Node{" +
-                "number=" + number +
-                ", nodes=" + nodes.size() +
-                '}';
+//        return "Node{" +
+//                "number=" + number +
+//                ", nodes=" + nodes.size() +
+//                '}';
+        return "Node " + number;
     }
 }

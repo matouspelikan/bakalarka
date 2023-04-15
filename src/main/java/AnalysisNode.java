@@ -12,4 +12,11 @@ public class AnalysisNode {
         count = 1;
     }
 
+    @Override
+    public String toString() {
+        return "AnalysisNode{" +
+                "sum=" + sum +
+                ", count=" + count +
+                '}';
+    }
 }

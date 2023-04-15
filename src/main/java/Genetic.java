@@ -36,7 +36,7 @@ public class Genetic {
             List<Edge> newPriorityList = Main.deepCopy(requiredEdges);
             Collections.shuffle(newPriorityList, new Random(random.nextInt()));
             Individual individual = new Individual(newPriorityList);
-            Evaluation evaluation = Main.evaluatePriorityList(individual.priorityList, config);
+            Evaluation evaluation = Main.evaluatePriorityList(individual.priorityList, config, journal);
             individual.evaluation = evaluation;
             population.add(individual);
         }
@@ -94,7 +94,7 @@ public class Genetic {
                     child2.mutate();
                 }
 
-                Evaluation evaluation1 = Main.evaluatePriorityList(child1.priorityList, config);
+                Evaluation evaluation1 = Main.evaluatePriorityList(child1.priorityList, config, journal);
                 child1.evaluation = evaluation1;
                 for(Route r : child1.evaluation.routes){
 //                    r.twoOptWrap();
@@ -102,7 +102,7 @@ public class Genetic {
                 }
 
 
-                Evaluation evaluation2 = Main.evaluatePriorityList(child2.priorityList, config);
+                Evaluation evaluation2 = Main.evaluatePriorityList(child2.priorityList, config, journal);
                 child2.evaluation = evaluation2;
                 for (Route r : child2.evaluation.routes){
 //                    r.twoOptWrap();
@@ -141,6 +141,7 @@ public class Genetic {
             }
 
         }
+        System.out.println(journal);
 
 //        Individual in = population.get(0);
 //        System.out.println(in);
@@ -216,12 +217,12 @@ public class Genetic {
         return subset.get(0);
     }
 
-    public void pathScanningWrap(Individual individual){
+    public void pathScanningWrap(Individual individual,Map<Node, Map<Node, AnalysisNode>> journal){
         List<Route> routes = individual.evaluation.routes;
         Collections.shuffle(routes, new Random());
         List<Route> subRoutes = routes.stream().limit(3).collect(Collectors.toList());
         double pre = Main.evaluateRoutes(subRoutes, config);
-        Evaluation evaluation = pathScanning(subRoutes);
+        Evaluation evaluation = pathScanning(subRoutes, journal);
         if(evaluation.cost < pre){
             System.out.println("improvement pathscanning");
             System.out.println(pre);
@@ -230,7 +231,7 @@ public class Genetic {
 //        pathScanning(routes.stream().limit(3).collect(Collectors.toList()));
     }
 
-    public Evaluation pathScanning(List<Route> routes){
+    public Evaluation pathScanning(List<Route> routes, Map<Node, Map<Node, AnalysisNode>> journal){
         List<Edge> allEdges = new ArrayList<>();
         for (Route r : routes){
             Element element = r.tail;
@@ -244,7 +245,7 @@ public class Genetic {
 //        System.out.println(routes.size());
 //        System.out.println(Main.evaluateRoutes(routes, config));
 //        System.out.println(Main.evaluatePriorityList(allEdges, config));
-        return Main.evaluatePriorityList(allEdges, config);
+        return Main.evaluatePriorityList(allEdges, config, journal);
     }
 
     public void analyzePopulation(List<Individual> population, Map<Node, Map<Node, AnalysisNode>> journal){
@@ -262,13 +263,13 @@ public class Genetic {
         for (Route route : routes) {
             Element element = route.tail;
             while(element != null){
-                analyzeElement(element, journal);
+                analyzeElement(element, individual.evaluation, journal);
                 element = element.next;
             }
         }
     }
 
-    public void analyzeElement(Element element, Map<Node, Map<Node, AnalysisNode>> journal){
+    public void analyzeElement(Element element, Evaluation evaluation, Map<Node, Map<Node, AnalysisNode>> journal){
         if(element.previous != null){
             Map<Node, AnalysisNode> subJournal;
             if(journal.containsKey(element.previousLink)){

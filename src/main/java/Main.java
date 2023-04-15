@@ -81,8 +81,8 @@ public class Main {
     }
 
 
-    public static Evaluation evaluatePriorityList(List<Edge> priority, Config config){
-        List<Route> routes = construct(priority, config);
+    public static Evaluation evaluatePriorityList(List<Edge> priority, Config config, Map<Node, Map<Node, AnalysisNode>> journal){
+        List<Route> routes = construct(priority, config, journal);
         int cumulativeCost = evaluateRoutes(routes, config);
         return new Evaluation(cumulativeCost, routes.size(), routes);
     }
@@ -96,7 +96,7 @@ public class Main {
         return cumulativeCost;
     }
 
-    public static List<Route> construct(List<Edge> priority, Config config){
+    public static List<Route> construct(List<Edge> priority, Config config, Map<Node, Map<Node, AnalysisNode>> journal){
         List<Route> routes = new ArrayList<>();
         for (int i = 0; i < priority.size(); i++) {
             Edge edge = priority.get(i);
@@ -108,7 +108,7 @@ public class Main {
             Edge edge = priority.get(i);
             Route route = edge.component;
 
-            Candidate selectedCandidate = selectFromRoutes(routes, route, config.matrix);
+            Candidate selectedCandidate = selectFromRoutes(routes, route, config.matrix, journal);
 
             if(selectedCandidate == null){
                 //TODO vrat se zpet do depot, NEMUSIM RESIT
@@ -521,7 +521,7 @@ public class Main {
 
 
 
-    public static Candidate selectFromRoutes(List<Route> routes, Route route, Double[][] matrix){
+    public static Candidate selectFromRoutes(List<Route> routes, Route route, Double[][] matrix, Map<Node, Map<Node, AnalysisNode>> journal){
         Node outerLeft = route.tail.previousLink;
         Node outerRight = route.head.nextLink;
 
