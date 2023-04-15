@@ -95,9 +95,6 @@ public class Genetic {
 //                    r.singleInsertWrap();
                 }
 
-                System.out.println(child1.evaluation);
-                System.out.println(Main.evaluateRoutes(child1.evaluation.routes, config));
-                System.out.println();
 
                 Evaluation evaluation2 = Main.evaluatePriorityList(child2.priorityList, config);
                 child2.evaluation = evaluation2;
@@ -138,7 +135,20 @@ public class Genetic {
             }
         }
 
-        Individual in = population.get(0);
+//        Individual in = population.get(0);
+//        System.out.println(in);
+//
+//        Individual in1 = population.get(1);
+//        System.out.println(in1);
+//
+//        System.out.println(in.evaluation.routes.get(0).tail);
+//        System.out.println(in1.evaluation.routes.get(0).tail);
+//
+//        System.out.println(in.evaluation.routes.get(0).tail.candidate.edge.leftNode == in1.evaluation.routes.get(0).tail.candidate.edge.leftNode);
+//        System.out.println(in.evaluation.routes.get(0).tail.candidate.edge == in1.evaluation.routes.get(0).tail.candidate.edge);
+//        System.out.println(in.evaluation.routes.get(0).tail.candidate.edge.equals(in1.evaluation.routes.get(0).tail.candidate.edge));
+
+
 
 //        List<Route> _routes = in.evaluation.routes;
 //        Collections.sort(_routes, new Comparator<Route>() {
@@ -151,7 +161,13 @@ public class Genetic {
 //            System.out.println(r.length() + " cost: " + Main.evaluateRoute(r, config.matrix) + " taken: " + r.capacityTaken + " left: " + r.capacityLeft);
 //        }
 
-        pathScanningWrap(in);
+//        for (int i = 0; i < 100; i++) {
+////            pathScanningWrap(in);
+//        }
+//        for(Route r : in.evaluation.routes){
+////                r.singleInsertWrap();
+////                r.twoOptWrap();
+//        }
 //        for(Route r : in.evaluation.routes){
 //            System.out.println(r);
 //            System.out.println(Main.evaluateRoute(r, config.matrix));
@@ -195,15 +211,19 @@ public class Genetic {
 
     public void pathScanningWrap(Individual individual){
         List<Route> routes = individual.evaluation.routes;
-        System.out.println("Issue");
-        System.out.println(individual.evaluation);
-        System.out.println(Main.evaluatePriorityList(individual.priorityList, config));
-        System.out.println(Main.evaluateRoutes(routes, config));
-//        Collections.shuffle(routes, new Random(0));
-        pathScanning(routes.stream().collect(Collectors.toList()));
+        Collections.shuffle(routes, new Random());
+        List<Route> subRoutes = routes.stream().limit(3).collect(Collectors.toList());
+        double pre = Main.evaluateRoutes(subRoutes, config);
+        Evaluation evaluation = pathScanning(subRoutes);
+        if(evaluation.cost < pre){
+            System.out.println("improvement pathscanning");
+            System.out.println(pre);
+            System.out.println(evaluation.cost);
+        }
+//        pathScanning(routes.stream().limit(3).collect(Collectors.toList()));
     }
 
-    public void pathScanning(List<Route> routes){
+    public Evaluation pathScanning(List<Route> routes){
         List<Edge> allEdges = new ArrayList<>();
         for (Route r : routes){
             Element element = r.tail;
@@ -212,10 +232,26 @@ public class Genetic {
                 element = element.next;
             }
         }
-        System.out.println("difference");
-        System.out.println(routes.size());
-        System.out.println(Main.evaluateRoutes(routes, config));
-        System.out.println(Main.evaluatePriorityList(allEdges, config));
+        Collections.shuffle(allEdges);
+//        System.out.println("difference");
+//        System.out.println(routes.size());
+//        System.out.println(Main.evaluateRoutes(routes, config));
+//        System.out.println(Main.evaluatePriorityList(allEdges, config));
+        return Main.evaluatePriorityList(allEdges, config);
+    }
+
+    public void analyze(Individual individual){
+        List<Route> routes = individual.evaluation.routes;
+        for (Route route : routes) {
+            Element element = route.tail;
+            while(element != null){
+
+
+
+
+                element = element.next;
+            }
+        }
     }
 
 }

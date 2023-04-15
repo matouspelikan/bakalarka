@@ -12,6 +12,8 @@ public class Node {
 
     Map<Node, Boolean> required = new HashMap<>();
 
+    public Map<Node, Integer> analysis = new HashMap<>();
+
     public Node(int number, int neighbor){
         this.number = number;
         this.neighbors = new ArrayList<>();

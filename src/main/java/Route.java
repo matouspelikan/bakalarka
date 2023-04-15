@@ -377,6 +377,8 @@ public class Route {
         }
     }
 
+
+
     public void twoOptWrap(){
 //        System.out.println("twoopt");
         int len = length();
@@ -436,7 +438,7 @@ public class Route {
                 if((diff = singleInsert(i, j)) < 0){
                     System.out.println("improvement single " + diff);
 //                    System.out.println(this);
-//                    System.out.println(i + " " + j);
+                    System.out.println(i + " " + j + "  : " + len);
                 }
             }
         }
@@ -452,7 +454,7 @@ public class Route {
         int e2N = elementToNumberNext(e2.next);
 
         int e1P = elementToNumberPrev(e1.previous);
-        int e2P = elementToNumberPrev(e1.previous);
+        int e2P = elementToNumberPrev(e2.previous);
 
         diff += matrix[e1P][e2.previousLink.number] + matrix[e2.nextLink.number][e1N];
         diff += matrix[e2P][e1.previousLink.number] + matrix[e1.nextLink.number][e2N];
@@ -465,7 +467,7 @@ public class Route {
             return element.previousLink.number;
         return 1;
     }
-    public int elementToNumberPrev(Element element){
+    public int  elementToNumberPrev(Element element){
         if(element != null)
             return element.nextLink.number;
         return 1;

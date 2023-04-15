@@ -25,12 +25,6 @@ public class Main {
         config.matrix = matrix;
         Route.matrix = matrix;
 
-        System.out.println("matrix2 row: ");
-        System.out.println(Arrays.asList(matrix[1]));
-        System.out.println(Arrays.asList(matrix2[1]));
-        System.out.println(Arrays.asList(matrix[4]));
-        System.out.println(Arrays.asList(matrix2[4]));
-
         Entry[][] entries = createEntries(matrix2, config.nodes);
         System.out.println(Arrays.asList(entries[3]));
 
@@ -375,7 +369,7 @@ public class Main {
     }
 
     public static Config readGDB() throws IOException {
-        FileReader fileReader = new FileReader("C:\\Users\\Asus\\ownCloud\\cvut\\carp\\carpbak\\src\\main\\resources\\egl\\egl-s3-C.dat");
+        FileReader fileReader = new FileReader("C:\\Users\\Asus\\ownCloud\\cvut\\carp\\carpbak\\src\\main\\resources\\egl\\egl-s4-A.dat");
         BufferedReader bufferedReader = new BufferedReader(fileReader);
 
         String line;
@@ -599,7 +593,7 @@ public class Main {
         if(nodes.stream().anyMatch(n -> n.number == number)){
             return nodes.stream().filter(n -> n.number == number).findFirst().get();
         }
-        Node newNode =  new Node(number);
+        Node newNode = new Node(number);
         nodes.add(newNode);
         return newNode;
     }
