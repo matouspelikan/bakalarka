@@ -282,10 +282,10 @@ public class Genetic {
             if(subJournal.containsKey(element.previous.nextLink)){
                 AnalysisNode analysisNode = subJournal.get(element.previous.nextLink);
                 analysisNode.count += 1;
-                analysisNode.sum += element.previousDistance;
+                analysisNode.sum += evaluation.cost;
             }
             else{
-                AnalysisNode analysisNode = new AnalysisNode(element.previousDistance);
+                AnalysisNode analysisNode = new AnalysisNode(evaluation.cost);
                 subJournal.put(element.previous.nextLink, analysisNode);
             }
         }
@@ -301,10 +301,10 @@ public class Genetic {
             if(subJournal.containsKey(element.next.previousLink)){
                 AnalysisNode analysisNode = subJournal.get(element.next.previousLink);
                 analysisNode.count += 1;
-                analysisNode.sum += element.nextDistance;
+                analysisNode.sum += evaluation.cost;
             }
             else{
-                AnalysisNode analysisNode = new AnalysisNode(element.nextDistance);
+                AnalysisNode analysisNode = new AnalysisNode(evaluation.cost);
                 subJournal.put(element.next.previousLink, analysisNode);
             }
         }
