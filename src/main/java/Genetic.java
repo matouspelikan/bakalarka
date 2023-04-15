@@ -29,6 +29,8 @@ public class Genetic {
     public void evolution(int popSize, int maxGen, double probCross, double probMutation){
         List<Individual> population = new ArrayList<>();
 
+        Map<Node, Map<Node, AnalysisNode>> journal = new HashMap<>();
+
         for (int i = 0; i < popSize; i++) {
 //            List<Edge> newPriorityList = new ArrayList<>(List.copyOf(this.requiredEdges));
             List<Edge> newPriorityList = Main.deepCopy(requiredEdges);
@@ -57,6 +59,10 @@ public class Genetic {
         }
 
         for (int i = 0; i < maxGen; i++) {
+            if(i>10 && (i%10 == 0)){
+                analyzePopulation(population, journal);
+            }
+
             List<Individual> interPop = new ArrayList<>();
 
             for (int j = 0; j < popSize; j++) {
@@ -133,6 +139,7 @@ public class Genetic {
 //                r.singleInsertWrap();
 //                r.twoOptWrap();
             }
+
         }
 
 //        Individual in = population.get(0);
@@ -240,16 +247,64 @@ public class Genetic {
         return Main.evaluatePriorityList(allEdges, config);
     }
 
-    public void analyze(Individual individual){
+    public void analyzePopulation(List<Individual> population, Map<Node, Map<Node, AnalysisNode>> journal){
+//        Map<Node, Map<Node, AnalysisNode>> journal = new HashMap<>();
+
+        int sizeWorthy = population.size()/4;
+        List<Individual> populationWorthy = new ArrayList<>(population.stream().limit(sizeWorthy).toList());
+        for (Individual individual : populationWorthy) {
+            analyzeIndividual(individual, journal);
+        }
+    }
+
+    public void analyzeIndividual(Individual individual, Map<Node, Map<Node, AnalysisNode>> journal){
         List<Route> routes = individual.evaluation.routes;
         for (Route route : routes) {
             Element element = route.tail;
             while(element != null){
-
-
-
-
+                analyzeElement(element, journal);
                 element = element.next;
+            }
+        }
+    }
+
+    public void analyzeElement(Element element, Map<Node, Map<Node, AnalysisNode>> journal){
+        if(element.previous != null){
+            Map<Node, AnalysisNode> subJournal;
+            if(journal.containsKey(element.previousLink)){
+                subJournal = journal.get(element.previousLink);
+            }
+            else{
+                subJournal = new HashMap<>();
+                journal.put(element.previousLink, subJournal);
+            }
+            if(subJournal.containsKey(element.previous.nextLink)){
+                AnalysisNode analysisNode = subJournal.get(element.previous.nextLink);
+                analysisNode.count += 1;
+                analysisNode.sum += element.previousDistance;
+            }
+            else{
+                AnalysisNode analysisNode = new AnalysisNode(element.previousDistance);
+                subJournal.put(element.previous.nextLink, analysisNode);
+            }
+        }
+        if(element.next != null){
+            Map<Node, AnalysisNode> subJournal;
+            if(journal.containsKey(element.nextLink)){
+                subJournal = journal.get(element.nextLink);
+            }
+            else{
+                subJournal = new HashMap<>();
+                journal.put(element.nextLink, subJournal);
+            }
+            if(subJournal.containsKey(element.next.previousLink)){
+                AnalysisNode analysisNode = subJournal.get(element.next.previousLink);
+                analysisNode.count += 1;
+                analysisNode.sum += element.nextDistance;
+            }
+            else{
+                AnalysisNode analysisNode = new AnalysisNode(element.nextDistance);
+                subJournal.put(element.next.previousLink, analysisNode);
             }
         }
     }
