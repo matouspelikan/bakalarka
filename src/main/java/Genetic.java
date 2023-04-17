@@ -4,13 +4,10 @@ import java.util.stream.Collectors;
 
 public class Genetic {
 
+
+
     public static Random random = new Random(0);
-    public static Comparator comparator = new Comparator() {
-        @Override
-        public int compare(Object o1, Object o2) {
-            return 0;
-        }
-    };
+    public static Comparator<Individual> comparator;
 
 
     public Config config;
@@ -24,6 +21,25 @@ public class Genetic {
         this.matrix2 = matrix2;
         this.entries = entries;
         this.requiredEdges = requiredEdges;
+
+        comparator = new Comparator<Individual>() {
+            @Override
+            public int compare(Individual o1, Individual o2) {
+//                return Double.compare(o1.fitness(), o2.fitness());
+                if(o1.evaluation.vehicleCount <= config.vehicles && o2.evaluation.vehicleCount <= config.vehicles){
+                    return Double.compare(o1.evaluation.cost, o2.evaluation.cost);
+                }
+                else if(o1.evaluation.vehicleCount <= config.vehicles){
+                    return -1;
+                }
+                else if(o2.evaluation.vehicleCount <= config.vehicles){
+                    return 1;
+                }
+                else{
+                    return Double.compare(o1.evaluation.cost, o2.evaluation.cost);
+                }
+            }
+        };
     }
 
     public void evolution(int popSize, int maxGen, double probCross, double probMutation){
@@ -53,15 +69,15 @@ public class Genetic {
 
 //        if(true) return;
 
-        for (int i = 0; i < popSize; i++) {
-            Individual individual = population.get(i);
-            System.out.println(individual.evaluation);
-        }
+        comparison1(population, config.vehicles);
+        printPopulation(population);
 
         for (int i = 0; i < maxGen; i++) {
             if(i>10 && (i%10 == 0)){
                 analyzePopulation(population, journal);
             }
+
+            printPopulation(population);
 
             List<Individual> interPop = new ArrayList<>();
 
@@ -71,7 +87,11 @@ public class Genetic {
             }
 
             int interPopSize = 0;
-            while (interPopSize < popSize) {
+            int iteration = 0;
+            while (interPopSize < popSize/4) {
+                iteration++;
+                if(iteration > popSize*4) break;
+
                 Individual parent1 = tournamentSelection(population, config.vehicles);
                 Individual parent2 = tournamentSelection(population, config.vehicles);
 
@@ -101,7 +121,6 @@ public class Genetic {
 //                    r.singleInsertWrap();
                 }
 
-
                 Evaluation evaluation2 = Main.evaluatePriorityList(child2.priorityList, config, journal);
                 child2.evaluation = evaluation2;
                 for (Route r : child2.evaluation.routes){
@@ -109,9 +128,14 @@ public class Genetic {
 //                    r.singleInsertWrap();
                 }
 
-                interPop.add(child1);
-                interPop.add(child2);
-                interPopSize += 2;
+                if(comparator.compare(child1, parent1) < 0){
+                    interPop.add(child1);
+                    interPopSize++;
+                }
+                if(comparator.compare(child2, parent2) < 0){
+                    interPop.add(child2);
+                    interPopSize++;
+                }
             }
 
             for (int j = 0; j < popSize; j++) {
@@ -132,9 +156,11 @@ public class Genetic {
         }
 
         System.out.println();
+        printPopulation(population);
+
+
         for (int i = 0; i < popSize; i++) {
             Individual individual = population.get(i);
-            System.out.println(individual.evaluation);
             for(Route r : individual.evaluation.routes){
 //                r.singleInsertWrap();
 //                r.twoOptWrap();
@@ -186,24 +212,7 @@ public class Genetic {
     }
 
     private void comparison1(List<Individual> population, int maxVehicles) {
-        Collections.sort(population, new Comparator<Individual>() {
-            @Override
-            public int compare(Individual o1, Individual o2) {
-//                return Double.compare(o1.fitness(), o2.fitness());
-                if(o1.evaluation.vehicleCount <= maxVehicles && o2.evaluation.vehicleCount <= maxVehicles){
-                    return Double.compare(o1.evaluation.cost, o2.evaluation.cost);
-                }
-                else if(o1.evaluation.vehicleCount <= maxVehicles){
-                    return -1;
-                }
-                else if(o2.evaluation.vehicleCount <= maxVehicles){
-                    return 1;
-                }
-                else{
-                    return Double.compare(o1.evaluation.cost, o2.evaluation.cost);
-                }
-            }
-        });
+        Collections.sort(population, comparator);
     }
 
     public Individual tournamentSelection(List<Individual> population, int maxVehicles){
@@ -215,6 +224,14 @@ public class Genetic {
         comparison1(subset, maxVehicles);
 
         return subset.get(0);
+    }
+
+    public void printPopulation(List<Individual> population){
+        for(Individual individual : population){
+            System.out.print(individual.evaluation);
+            System.out.print(" ");
+        }
+        System.out.println();
     }
 
     public void pathScanningWrap(Individual individual,Map<Node, Map<Node, AnalysisNode>> journal){

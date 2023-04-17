@@ -14,9 +14,9 @@ public class Evaluation {
 
     @Override
     public String toString() {
-        return "Evaluation{" +
+        return "Ev{" +
                 "cost=" + cost +
-                ", vehicleCount=" + vehicleCount +
+                ", vehC=" + vehicleCount +
                 '}';
     }
 }

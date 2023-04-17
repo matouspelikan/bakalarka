@@ -76,7 +76,7 @@ public class Main {
 //        System.out.println(evaluatePriorityList(requiredEdges, entries, config, matrix2));
 
         Genetic genetic = new Genetic(config, matrix, entries, requiredEdges);
-        genetic.evolution(10, 50, 0.9, 0.3);
+        genetic.evolution(30, 5000, 0.9, 0.3);
 
     }
 
@@ -369,7 +369,7 @@ public class Main {
     }
 
     public static Config readGDB() throws IOException {
-        FileReader fileReader = new FileReader("C:\\Users\\Asus\\ownCloud\\cvut\\carp\\carpbak\\src\\main\\resources\\egl\\egl-s4-A.dat");
+        FileReader fileReader = new FileReader("C:\\Users\\Asus\\ownCloud\\cvut\\carp\\carpbak\\src\\main\\resources\\gdb\\gdb23.dat");
         BufferedReader bufferedReader = new BufferedReader(fileReader);
 
         String line;
