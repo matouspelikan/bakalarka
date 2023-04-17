@@ -22,12 +22,8 @@ public class Individual {
     public List<Edge> crossWith(Individual other){
         List<Edge> newPriorityList = new ArrayList<>();
         int half = priorityList.size() / 2;
-        for (int i = 0; i < priorityList.size(); i++) {
-            if (i < half){
-                newPriorityList.add(priorityList.get(i));
-                continue;
-            }
-            break;
+        for (int i = 0; i < half; i++) {
+            newPriorityList.add(priorityList.get(i));
         }
 
         for (int i = newPriorityList.size(); i < priorityList.size(); i++) {
@@ -37,6 +33,43 @@ public class Individual {
                     break;
                 }
             }
+        }
+
+        return newPriorityList;
+    }
+
+    public List<Edge> crossWith2(Individual other){
+        int midsize = this.priorityList.size()/2;
+        int residuum = priorityList.size() - midsize;
+        int presize = residuum/2;
+        int postsize = residuum - presize;
+
+        if(presize + midsize + postsize != priorityList.size()) throw new RuntimeException();
+
+        List<Edge> newPriorityList = new ArrayList<>();
+        for (int i = presize; i < presize + midsize; i++) {
+            newPriorityList.add(priorityList.get(i));
+        }
+
+        for (int i = 0; i < presize; i++) {
+            for (int j = 0; j < other.priorityList.size(); j++) {
+                if(!newPriorityList.contains(other.priorityList.get(j))){
+                    newPriorityList.add(0, other.priorityList.get(j));
+                    break;
+                }
+            }
+        }
+        for (int i = 0; i < postsize; i++) {
+            for (int j = 0; j < other.priorityList.size(); j++) {
+                if(!newPriorityList.contains(other.priorityList.get(j))){
+                    newPriorityList.add(other.priorityList.get(j));
+                    break;
+                }
+            }
+        }
+
+        if(newPriorityList.size() != priorityList.size()){
+            throw new RuntimeException();
         }
 
         return newPriorityList;

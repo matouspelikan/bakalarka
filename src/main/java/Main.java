@@ -1,12 +1,10 @@
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
-import java.text.CollationElementIterator;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class Main {
 
@@ -76,10 +74,8 @@ public class Main {
 //        System.out.println(evaluatePriorityList(requiredEdges, entries, config, matrix2));
 
         Genetic genetic = new Genetic(config, matrix, entries, requiredEdges);
-        genetic.evolution(30, 5000, 0.9, 0.3);
-
+        genetic.evolution(30, 800, 0.9, 0.3);
     }
-
 
     public static Evaluation evaluatePriorityList(List<Edge> priority, Config config, Map<Node, Map<Node, AnalysisNode>> journal){
         List<Route> routes = construct(priority, config, journal);
@@ -369,7 +365,7 @@ public class Main {
     }
 
     public static Config readGDB() throws IOException {
-        FileReader fileReader = new FileReader("C:\\Users\\Asus\\ownCloud\\cvut\\carp\\carpbak\\src\\main\\resources\\gdb\\gdb23.dat");
+        FileReader fileReader = new FileReader("C:\\Users\\Asus\\ownCloud\\cvut\\carp\\carpbak\\src\\main\\resources\\egl\\egl-e1-A.dat");
         BufferedReader bufferedReader = new BufferedReader(fileReader);
 
         String line;
@@ -536,22 +532,43 @@ public class Main {
             Node right = r.head.nextLink;
 
             Candidate c;
-            if((c = evaluateCandidate(route, outerLeft, left, r.tail.candidate.edge, matrix)) != null){
+            if((c = evaluateCandidate(route, outerLeft, left, r.tail.candidate.edge, matrix, journal)) != null){
                 candidates.add(c);
             }
-            if((c = evaluateCandidate(route, outerLeft, right, r.head.candidate.edge, matrix)) != null){
+            if((c = evaluateCandidate(route, outerLeft, right, r.head.candidate.edge, matrix, journal)) != null){
                 candidates.add(c);
             }
-            if((c = evaluateCandidate(route, outerRight, left, r.tail.candidate.edge, matrix)) != null){
+            if((c = evaluateCandidate(route, outerRight, left, r.tail.candidate.edge, matrix, journal)) != null){
                 candidates.add(c);
             }
-            if((c = evaluateCandidate(route, outerRight, right, r.head.candidate.edge, matrix)) != null){
+            if((c = evaluateCandidate(route, outerRight, right, r.head.candidate.edge, matrix, journal)) != null){
                 candidates.add(c);
             }
 
         }
 
-        Collections.sort(candidates, Comparator.comparingDouble(Candidate::getScore).thenComparingInt(Candidate::getToNodeNumber).thenComparingInt(Candidate::getFromNodeNumber).thenComparingInt(Candidate::hashCode));
+//        Collections.sort(candidates, Comparator.comparingDouble(Candidate::getScore).thenComparingInt(Candidate::getToNodeNumber).thenComparingInt(Candidate::getFromNodeNumber).thenComparingInt(Candidate::hashCode));
+        Collections.sort(candidates, Comparator.comparingDouble(Candidate::getDistance));
+        Candidate c1 = null;
+        if(candidates.size()>0)
+            c1 = candidates.get(0);
+
+        Collections.sort(candidates, Comparator.comparingDouble(Candidate::getJournalEntry).thenComparingDouble(Candidate::getDistance));
+        Candidate c2 = null;
+        if(candidates.size() > 0)
+            c2 = candidates.get(0);
+
+        if(candidates.size() > 0){
+//            if(c1 != c2){
+////                throw new RuntimeException();
+//            }
+//            if(c1.journalEntry != Double.POSITIVE_INFINITY){
+//                System.out.println(c1.journalEntry);
+//                throw new RuntimeException();
+//            }
+        }
+
+        Collections.sort(candidates, Comparator.comparingDouble(Candidate::getDistance));
 
         if(candidates.size() > 0){
             return candidates.get(0);
@@ -559,13 +576,28 @@ public class Main {
         return null;
     }
 
-    public static Candidate evaluateCandidate(Route route, Node fromNode, Node toNode, Edge toEdge, Double[][] matrix){
+    public static Candidate evaluateCandidate(Route route, Node fromNode, Node toNode, Edge toEdge, Double[][] matrix, Map<Node, Map<Node, AnalysisNode>> journal){
         if(toEdge.component == route || route.capacityLeft < toEdge.component.capacityTaken){
             return null;
         }
         Candidate c = new Candidate(toEdge, toNode, fromNode, matrix[fromNode.number][toNode.number]);
         //TODO score evaluation bude pocitat s cetnosti
         c.score = c.distance;
+
+        if(journal.containsKey(fromNode)){
+            Map<Node, AnalysisNode> subJournal = journal.get(fromNode);
+            if(subJournal.containsKey(toNode)){
+                AnalysisNode an = subJournal.get(toNode);
+                c.journalEntry = an.sum/an.count;
+            }
+            else{
+                c.journalEntry = Double.POSITIVE_INFINITY;
+            }
+        }
+        else{
+            c.journalEntry = Double.POSITIVE_INFINITY;
+        }
+
         return c;
     }
 

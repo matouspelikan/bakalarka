@@ -98,12 +98,13 @@ public class Edge {
 
     @Override
     public String toString() {
-        return "Edge{" +
-                "leftNumber=" + leftNumber +
-                ", rightNumber=" + rightNumber +
-                ", cost=" + cost +
-                ", demand=" + demand +
-                '}';
+//        return "Edge{" +
+//                "leftNumber=" + leftNumber +
+//                ", rightNumber=" + rightNumber +
+//                ", cost=" + cost +
+//                ", demand=" + demand +
+//                '}';
+        return "(" + leftNumber + ", " + rightNumber + ")";
     }
 
     @Override

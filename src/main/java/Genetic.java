@@ -73,7 +73,8 @@ public class Genetic {
         printPopulation(population);
 
         for (int i = 0; i < maxGen; i++) {
-            if(i>10 && (i%10 == 0)){
+            if(false && i>20 && (i%3 == 0)){
+                journal = new HashMap<>();
                 analyzePopulation(population, journal);
             }
 
@@ -99,8 +100,8 @@ public class Genetic {
                 Individual child2 = null;
 
                 if(random.nextDouble() < probCross){
-                    child1 = new Individual(parent1.crossWith(parent2));
-                    child2 = new Individual(parent2.crossWith(parent1));
+                    child1 = new Individual(parent1.crossWith2(parent2));
+                    child2 = new Individual(parent2.crossWith2(parent1));
                     if(random.nextDouble() < probMutation){
                         child1.mutate();
                         child2.mutate();
@@ -159,18 +160,36 @@ public class Genetic {
         printPopulation(population);
 
 
-        for (int i = 0; i < popSize; i++) {
-            Individual individual = population.get(i);
-            for(Route r : individual.evaluation.routes){
+//        for (int i = 0; i < popSize; i++) {
+//            Individual individual = population.get(i);
+//            for(Route r : individual.evaluation.routes){
 //                r.singleInsertWrap();
 //                r.twoOptWrap();
-            }
-
-        }
+//            }
+//
+//        }
         System.out.println(journal);
 
 //        Individual in = population.get(0);
 //        System.out.println(in);
+//        System.out.println("all routes");
+//        for(Route route: in.evaluation.routes) {
+//            System.out.println(route);
+//        }
+//        System.out.println("\n\n");
+//
+//        for(Route route: in.evaluation.routes){
+//            System.out.println("new route");
+//            System.out.println(route);
+//            Element element = route.tail;
+//            while(element != null){
+//                System.out.println("\t\tnew element");
+//                System.out.println(element.previousLink + " " + element.previousDistance);
+//                System.out.println(element.candidate.edge);
+//                System.out.println(element.nextLink + " " + element.nextDistance);
+//                element = element.next;
+//            }
+//        }
 //
 //        Individual in1 = population.get(1);
 //        System.out.println(in1);
@@ -195,13 +214,17 @@ public class Genetic {
 //            System.out.println(r.length() + " cost: " + Main.evaluateRoute(r, config.matrix) + " taken: " + r.capacityTaken + " left: " + r.capacityLeft);
 //        }
 
-//        for (int i = 0; i < 100; i++) {
-////            pathScanningWrap(in);
+//        for (Individual inn: population){
+//            System.out.println(inn);
+//            for (int i = 0; i < 100; i++) {
+//                pathScanningWrap(inn, journal);
+//            }
+//            for(Route r : inn.evaluation.routes){
+//                r.singleInsertWrap();
+//                r.twoOptWrap();
+//            }
 //        }
-//        for(Route r : in.evaluation.routes){
-////                r.singleInsertWrap();
-////                r.twoOptWrap();
-//        }
+
 //        for(Route r : in.evaluation.routes){
 //            System.out.println(r);
 //            System.out.println(Main.evaluateRoute(r, config.matrix));
@@ -216,6 +239,8 @@ public class Genetic {
     }
 
     public Individual tournamentSelection(List<Individual> population, int maxVehicles){
+        if(true)
+            return population.get(random.nextInt(population.size()));
         List<Individual> subset = new ArrayList<>();
         for (int i = 0; i < this.k; i++) {
             subset.add(population.get(random.nextInt(population.size())));
@@ -268,7 +293,7 @@ public class Genetic {
     public void analyzePopulation(List<Individual> population, Map<Node, Map<Node, AnalysisNode>> journal){
 //        Map<Node, Map<Node, AnalysisNode>> journal = new HashMap<>();
 
-        int sizeWorthy = population.size()/4;
+        int sizeWorthy = population.size()/6;
         List<Individual> populationWorthy = new ArrayList<>(population.stream().limit(sizeWorthy).toList());
         for (Individual individual : populationWorthy) {
             analyzeIndividual(individual, journal);

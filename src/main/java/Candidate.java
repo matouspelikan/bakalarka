@@ -7,6 +7,7 @@ public class Candidate {
     public double distance;
 
     public double score;
+    public double journalEntry;
 
     public Candidate(Edge edge, Node toNode, Node fromNode, double distance) {
         this.edge = edge;
@@ -17,6 +18,10 @@ public class Candidate {
 
     public Double getDistance(){
         return distance;
+    }
+
+    public Double getJournalEntry(){
+        return journalEntry;
     }
 
     public Double getScore(){

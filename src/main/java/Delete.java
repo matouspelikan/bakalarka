@@ -6,9 +6,22 @@ import java.util.stream.Collectors;
 
 public class Delete {
     public static void main(String[] args) {
-        List<Integer> list = new ArrayList<>(Arrays.asList(1, 2, 3, 4));
+        Candidate c1 = new Candidate(null, null, null, 0);
+        Candidate c2 = new Candidate(null, null, null, 0);
+        Candidate c3 = new Candidate(null, null, null, 0);
+
+
+
+        c1.journalEntry = 1.0;
+        c2.journalEntry = 10.0;
+        c3.journalEntry = 5.0;
+
+        List<Candidate> list = new ArrayList<>(Arrays.asList(c1, c2, c3));
+
+        Collections.sort(list, Comparator.comparingDouble(Candidate::getJournalEntry));
+
         System.out.println(list);
-        System.out.println(list.stream().limit(2).collect(Collectors.toList()));
+
     }
 
     public static void method(int a){

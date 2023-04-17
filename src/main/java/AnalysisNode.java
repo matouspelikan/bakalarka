@@ -14,9 +14,10 @@ public class AnalysisNode {
 
     @Override
     public String toString() {
-        return "AnalysisNode{" +
-                "sum=" + sum +
-                ", count=" + count +
-                '}';
+//        return "AnalysisNode{" +
+//                "sum=" + sum +
+//                ", count=" + count +
+//                '}';
+        return "AN{" + sum/count + "}";
     }
 }
