@@ -74,11 +74,12 @@ public class Main {
 //        System.out.println(evaluatePriorityList(requiredEdges, entries, config, matrix2));
 
         Genetic genetic = new Genetic(config, matrix, entries, requiredEdges);
-        genetic.evolution(30, 800, 0.9, 0.3);
+        genetic.evolution(100, 800, 0.9, 0.5, 100, 7, 0.2);
     }
 
-    public static Evaluation evaluatePriorityList(List<Edge> priority, Config config, Map<Node, Map<Node, AnalysisNode>> journal){
-        List<Route> routes = construct(priority, config, journal);
+    public static Evaluation evaluatePriorityList(List<Edge> priority, Config config, Map<Node, Map<Node,
+            AnalysisNode>> journal, boolean journaling){
+        List<Route> routes = construct(priority, config, journal, journaling);
         int cumulativeCost = evaluateRoutes(routes, config);
         return new Evaluation(cumulativeCost, routes.size(), routes);
     }
@@ -92,7 +93,8 @@ public class Main {
         return cumulativeCost;
     }
 
-    public static List<Route> construct(List<Edge> priority, Config config, Map<Node, Map<Node, AnalysisNode>> journal){
+    public static List<Route> construct(List<Edge> priority, Config config, Map<Node, Map<Node, AnalysisNode>> journal,
+                                        boolean journaling){
         List<Route> routes = new ArrayList<>();
         for (int i = 0; i < priority.size(); i++) {
             Edge edge = priority.get(i);
@@ -104,7 +106,7 @@ public class Main {
             Edge edge = priority.get(i);
             Route route = edge.component;
 
-            Candidate selectedCandidate = selectFromRoutes(routes, route, config.matrix, journal);
+            Candidate selectedCandidate = selectFromRoutes(routes, route, config.matrix, journal, journaling);
 
             if(selectedCandidate == null){
                 //TODO vrat se zpet do depot, NEMUSIM RESIT
@@ -365,7 +367,7 @@ public class Main {
     }
 
     public static Config readGDB() throws IOException {
-        FileReader fileReader = new FileReader("C:\\Users\\Asus\\ownCloud\\cvut\\carp\\carpbak\\src\\main\\resources\\egl\\egl-e1-A.dat");
+        FileReader fileReader = new FileReader("C:\\Users\\Asus\\ownCloud\\cvut\\carp\\carpbak\\src\\main\\resources\\gdb\\gdb1.dat");
         BufferedReader bufferedReader = new BufferedReader(fileReader);
 
         String line;
@@ -517,7 +519,8 @@ public class Main {
 
 
 
-    public static Candidate selectFromRoutes(List<Route> routes, Route route, Double[][] matrix, Map<Node, Map<Node, AnalysisNode>> journal){
+    public static Candidate selectFromRoutes(List<Route> routes, Route route, Double[][] matrix, Map<Node, Map<Node,
+            AnalysisNode>> journal, boolean journaling){
         Node outerLeft = route.tail.previousLink;
         Node outerRight = route.head.nextLink;
 
@@ -544,31 +547,15 @@ public class Main {
             if((c = evaluateCandidate(route, outerRight, right, r.head.candidate.edge, matrix, journal)) != null){
                 candidates.add(c);
             }
-
         }
 
 //        Collections.sort(candidates, Comparator.comparingDouble(Candidate::getScore).thenComparingInt(Candidate::getToNodeNumber).thenComparingInt(Candidate::getFromNodeNumber).thenComparingInt(Candidate::hashCode));
-        Collections.sort(candidates, Comparator.comparingDouble(Candidate::getDistance));
-        Candidate c1 = null;
-        if(candidates.size()>0)
-            c1 = candidates.get(0);
-
-        Collections.sort(candidates, Comparator.comparingDouble(Candidate::getJournalEntry).thenComparingDouble(Candidate::getDistance));
-        Candidate c2 = null;
-        if(candidates.size() > 0)
-            c2 = candidates.get(0);
-
-        if(candidates.size() > 0){
-//            if(c1 != c2){
-////                throw new RuntimeException();
-//            }
-//            if(c1.journalEntry != Double.POSITIVE_INFINITY){
-//                System.out.println(c1.journalEntry);
-//                throw new RuntimeException();
-//            }
+        if(!journaling){
+            Collections.sort(candidates, Comparator.comparingDouble(Candidate::getDistance));
         }
-
-        Collections.sort(candidates, Comparator.comparingDouble(Candidate::getDistance));
+        if(journaling){
+            Collections.sort(candidates, Comparator.comparingDouble(Candidate::getJournalEntry));
+        }
 
         if(candidates.size() > 0){
             return candidates.get(0);

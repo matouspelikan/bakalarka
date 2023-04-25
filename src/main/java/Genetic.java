@@ -1,20 +1,16 @@
-import java.security.NoSuchAlgorithmException;
 import java.util.*;
 import java.util.stream.Collectors;
 
 public class Genetic {
-
-
-
     public static Random random = new Random(0);
     public static Comparator<Individual> comparator;
-
 
     public Config config;
     public Double[][] matrix2;
     public Entry[][] entries;
     List<Edge> requiredEdges;
-    public int k = 3;
+    public int kTournament = 3;
+    public int maxDuplicates = 2;
 
     public Genetic(Config config, Double[][] matrix2, Entry[][] entries, List<Edge> requiredEdges){
         this.config = config;
@@ -42,43 +38,94 @@ public class Genetic {
         };
     }
 
-    public void evolution(int popSize, int maxGen, double probCross, double probMutation){
+    public Individual createIndividual(Map<Node, Map<Node, AnalysisNode>> journal){
+        List<Edge> newPriorityList = Main.deepCopy(requiredEdges);
+        Collections.shuffle(newPriorityList, new Random(random.nextInt()));
+        Individual individual = new Individual(newPriorityList);
+        Evaluation evaluation = Main.evaluatePriorityList(individual.priorityList, config, journal, false);
+        individual.evaluation = evaluation;
+        return individual;
+    }
+
+    public List<Individual> createInitialPopulation(int popSize, Map<Node, Map<Node, AnalysisNode>> journal){
+        Map<Evaluation, Integer> counts = new HashMap<>();
+
+        List<Individual> population = new ArrayList<>();
+        int size = 0;
+        int iteration = 0;
+        while(size < popSize){
+            iteration++;
+            if(iteration > popSize*1000){
+                throw new RuntimeException();
+            }
+            Individual newIndividual = createIndividual(journal);
+            if(counts.containsKey(newIndividual.evaluation)){
+                int count = counts.get(newIndividual.evaluation);
+                if(count < maxDuplicates){
+                    population.add(newIndividual);
+                    size++;
+                    counts.put(newIndividual.evaluation, count + 1);
+                }
+                else{
+                    //too many duplicates
+                }
+            }
+            else{
+                population.add(newIndividual);
+                size++;
+                counts.put(newIndividual.evaluation, 1);
+            }
+        }
+        return population;
+    }
+
+    public void evolution(int popSize, int maxGen, double probCross, double probMutation, int M, int k, double N){
         List<Individual> population = new ArrayList<>();
 
         Map<Node, Map<Node, AnalysisNode>> journal = new HashMap<>();
 
-        for (int i = 0; i < popSize; i++) {
-//            List<Edge> newPriorityList = new ArrayList<>(List.copyOf(this.requiredEdges));
-            List<Edge> newPriorityList = Main.deepCopy(requiredEdges);
-            Collections.shuffle(newPriorityList, new Random(random.nextInt()));
-            Individual individual = new Individual(newPriorityList);
-            Evaluation evaluation = Main.evaluatePriorityList(individual.priorityList, config, journal);
-            individual.evaluation = evaluation;
-            population.add(individual);
-        }
+//        for (int i = 0; i < popSize; i++) {
+////            List<Edge> newPriorityList = new ArrayList<>(List.copyOf(this.requiredEdges));
+//
+//            population.add(createIndividual(journal));
+//        }
+        population = createInitialPopulation(popSize, journal);
 
 
         System.out.println("\nstart\n");
-//        System.out.println("Population test");
-//        System.out.println(population.get(0));
-//        population.get(0).mutate();
-//        System.out.println(population.get(0));
-//
-//        System.out.println(population.get(1));
-//        System.out.println(population.get(0).crossWith(population.get(1)));
-
-//        if(true) return;
 
         comparison1(population, config.vehicles);
         printPopulation(population);
 
+        boolean journaling = false;
+
         for (int i = 0; i < maxGen; i++) {
-            if(false && i>20 && (i%3 == 0)){
+            journaling = false;
+            if(i > M && (i % k == 0)){
+                System.out.println("journaling");
                 journal = new HashMap<>();
-                analyzePopulation(population, journal);
+                journaling = true;
+                analyzePopulation(population, journal, N);
+            }
+//            journaling = false;
+            for (int j = 0; j < population.size(); j++) {
+                for (int l = 0; l < 10; l++) {
+                    for (int m = 1; m < config.vehicles; m++) {
+//                        pathScanningWrap(population.get(j), journal, m, true);
+                    }
+                }
             }
 
+            System.out.print(i + ": ");
             printPopulation(population);
+
+            double sum = 0;
+            int count = 0;
+            for (int j = 0; j < population.size(); j++) {
+                sum += population.get(j).evaluation.cost;
+                count++;
+            }
+            System.out.println("population average: " + sum/count + " best: " + population.get(0).evaluation.cost);
 
             List<Individual> interPop = new ArrayList<>();
 
@@ -115,25 +162,39 @@ public class Genetic {
                     child2.mutate();
                 }
 
-                Evaluation evaluation1 = Main.evaluatePriorityList(child1.priorityList, config, journal);
+                Evaluation evaluation1 = Main.evaluatePriorityList(child1.priorityList, config, journal, journaling);
                 child1.evaluation = evaluation1;
                 for(Route r : child1.evaluation.routes){
 //                    r.twoOptWrap();
 //                    r.singleInsertWrap();
                 }
 
-                Evaluation evaluation2 = Main.evaluatePriorityList(child2.priorityList, config, journal);
+                Evaluation evaluation2 = Main.evaluatePriorityList(child2.priorityList, config, journal, journaling);
                 child2.evaluation = evaluation2;
                 for (Route r : child2.evaluation.routes){
 //                    r.twoOptWrap();
 //                    r.singleInsertWrap();
+
                 }
 
-                if(comparator.compare(child1, parent1) < 0){
+                for (int j = 0; j < 10; j++) {
+                    for (int l = 2; l < 4; l++) {
+                        pathScanningWrap(child1, journal, l, false);
+                    }
+                }
+                for (int j = 0; j < 10; j++) {
+                    for (int l = 2; l < 4; l++) {
+                        pathScanningWrap(child2, journal, l, false);
+                    }
+                }
+//                pathScanningWrap(child1, journal, 3, false);
+//                pathScanningWrap(child2, journal, 3, false);
+
+                if(true || comparator.compare(child1, parent1) < 0){
                     interPop.add(child1);
                     interPopSize++;
                 }
-                if(comparator.compare(child2, parent2) < 0){
+                if(true || comparator.compare(child2, parent2) < 0){
                     interPop.add(child2);
                     interPopSize++;
                 }
@@ -147,8 +208,10 @@ public class Genetic {
             int originalSize = population.size();
             population.addAll(interPop);
             comparison1(population, config.vehicles);
-            population.subList(originalSize, population.size()).clear();
-
+            List<Individual> nonDuplicatedPopulation = deleteDuplicates(population);
+//            population.subList(originalSize, population.size()).clear();
+            nonDuplicatedPopulation.subList(originalSize, nonDuplicatedPopulation.size()).clear();
+            population = nonDuplicatedPopulation;
 
 //            System.out.println(population.size());
 
@@ -234,15 +297,37 @@ public class Genetic {
 //        }
     }
 
+    public List<Individual> deleteDuplicates(List<Individual> population){
+        List<Individual> newPopulation = new ArrayList<>(); //without duplicates
+        Map<Evaluation, Integer> counts = new HashMap<>();
+        for(Individual individual : population){
+            if(counts.containsKey(individual.evaluation)){
+                int count = counts.get(individual.evaluation);
+                if(count < maxDuplicates){
+                    newPopulation.add(individual);
+                    counts.put(individual.evaluation, count+1);
+                }
+                else{
+                    //too many of same evaluation
+                }
+            }
+            else{
+                newPopulation.add(individual);
+                counts.put(individual.evaluation, 1);
+            }
+        }
+        return newPopulation;
+    }
+
     private void comparison1(List<Individual> population, int maxVehicles) {
         Collections.sort(population, comparator);
     }
 
     public Individual tournamentSelection(List<Individual> population, int maxVehicles){
-        if(true)
-            return population.get(random.nextInt(population.size()));
+//        if(true)
+//            return population.get(random.nextInt(population.size()));
         List<Individual> subset = new ArrayList<>();
-        for (int i = 0; i < this.k; i++) {
+        for (int i = 0; i < this.kTournament; i++) {
             subset.add(population.get(random.nextInt(population.size())));
         }
 
@@ -259,16 +344,30 @@ public class Genetic {
         System.out.println();
     }
 
-    public void pathScanningWrap(Individual individual,Map<Node, Map<Node, AnalysisNode>> journal){
+    public void pathScanningWrap(Individual individual,Map<Node, Map<Node, AnalysisNode>> journal, int limit, boolean elite){
         List<Route> routes = individual.evaluation.routes;
-        Collections.shuffle(routes, new Random());
-        List<Route> subRoutes = routes.stream().limit(3).collect(Collectors.toList());
+        Collections.shuffle(routes, new Random(0));
+        List<Route> subRoutes = routes.stream().limit(limit).collect(Collectors.toList());
         double pre = Main.evaluateRoutes(subRoutes, config);
         Evaluation evaluation = pathScanning(subRoutes, journal);
-        if(evaluation.cost < pre){
-            System.out.println("improvement pathscanning");
-            System.out.println(pre);
-            System.out.println(evaluation.cost);
+        if(evaluation.cost < pre && evaluation.vehicleCount <= individual.evaluation.vehicleCount){
+//            if(elite)
+//                System.out.println("improvement pathscanning");
+//            System.out.println(pre);
+//            System.out.println(evaluation.cost);
+            int rpre = Main.evaluateRoutes(routes, config);
+            for(Route r : subRoutes){
+                routes.remove(r);
+            }
+            routes.addAll(evaluation.routes);
+            int rpost = Main.evaluateRoutes(routes, config);
+
+            individual.evaluation.cost = rpost;
+            individual.evaluation.vehicleCount = routes.size();
+
+            if(pre - evaluation.cost != rpre - rpost){
+                throw new RuntimeException();
+            }
         }
 //        pathScanning(routes.stream().limit(3).collect(Collectors.toList()));
     }
@@ -282,18 +381,17 @@ public class Genetic {
                 element = element.next;
             }
         }
-        Collections.shuffle(allEdges);
+        Collections.shuffle(allEdges, new Random(0));
 //        System.out.println("difference");
 //        System.out.println(routes.size());
 //        System.out.println(Main.evaluateRoutes(routes, config));
 //        System.out.println(Main.evaluatePriorityList(allEdges, config));
-        return Main.evaluatePriorityList(allEdges, config, journal);
+        return Main.evaluatePriorityList(allEdges, config, journal, false);
     }
 
-    public void analyzePopulation(List<Individual> population, Map<Node, Map<Node, AnalysisNode>> journal){
+    public void analyzePopulation(List<Individual> population, Map<Node, Map<Node, AnalysisNode>> journal, double N){
 //        Map<Node, Map<Node, AnalysisNode>> journal = new HashMap<>();
-
-        int sizeWorthy = population.size()/6;
+        int sizeWorthy = (int)(population.size()*N);
         List<Individual> populationWorthy = new ArrayList<>(population.stream().limit(sizeWorthy).toList());
         for (Individual individual : populationWorthy) {
             analyzeIndividual(individual, journal);

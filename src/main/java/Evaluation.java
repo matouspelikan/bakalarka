@@ -1,4 +1,5 @@
 import java.util.List;
+import java.util.Objects;
 
 public class Evaluation {
 
@@ -18,5 +19,18 @@ public class Evaluation {
                 "cost=" + cost +
                 ", vehC=" + vehicleCount +
                 '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Evaluation that = (Evaluation) o;
+        return Double.compare(that.cost, cost) == 0 && vehicleCount == that.vehicleCount;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(cost, vehicleCount);
     }
 }
