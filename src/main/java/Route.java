@@ -387,8 +387,8 @@ public class Route {
             for (int j = 0; j < len; j++) {
                 if(i == j) continue;
                 if((diff = twoOpt(i, j)) < 0){
-                    System.out.println("improvement twoopt " + diff);
-                    System.out.println(this);
+//                    System.out.println("improvement twoopt " + diff);
+//                    System.out.println(this);
 //                    System.out.println(i + " " + j);
                 }
             }
@@ -430,15 +430,19 @@ public class Route {
 
     public void singleInsertWrap(){
 //        System.out.println("singleinsert");
+
+
+
         int len = length();
         double diff;
         for (int i = 0; i < len; i++) {
             for (int j = 0; j < len; j++) {
                 if(i == j) continue;
                 if((diff = singleInsert(i, j)) < 0){
-                    System.out.println("improvement single " + diff);
+
+//                    System.out.println("improvement single " + diff);
 //                    System.out.println(this);
-                    System.out.println(i + " " + j + "  : " + len);
+//                    System.out.println(i + " " + j + "  : " + len);
                 }
             }
         }
@@ -460,6 +464,13 @@ public class Route {
         diff += matrix[e2P][e1.previousLink.number] + matrix[e1.nextLink.number][e2N];
 
         return diff;
+    }
+
+    public void singleInsertModify(int first, int second){
+        Element e1 = get(first);
+        Element e2 = get(second);
+
+
     }
 
     public int elementToNumberNext(Element element){

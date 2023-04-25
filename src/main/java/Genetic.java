@@ -101,10 +101,16 @@ public class Genetic {
 
         for (int i = 0; i < maxGen; i++) {
             journaling = false;
+            if(i == M){
+                System.out.println("first journal");
+                journaling = true;
+                analyzePopulation(population, journal, N);
+            }
+
             if(i > M && (i % k == 0)){
+                journaling = true;
                 System.out.println("journaling");
                 journal = new HashMap<>();
-                journaling = true;
                 analyzePopulation(population, journal, N);
             }
 //            journaling = false;
@@ -136,9 +142,9 @@ public class Genetic {
 
             int interPopSize = 0;
             int iteration = 0;
-            while (interPopSize < popSize/4) {
+            while (interPopSize < popSize) {
                 iteration++;
-                if(iteration > popSize*4) break;
+//                if(iteration > popSize*4) break;
 
                 Individual parent1 = tournamentSelection(population, config.vehicles);
                 Individual parent2 = tournamentSelection(population, config.vehicles);
@@ -165,25 +171,26 @@ public class Genetic {
                 Evaluation evaluation1 = Main.evaluatePriorityList(child1.priorityList, config, journal, journaling);
                 child1.evaluation = evaluation1;
                 for(Route r : child1.evaluation.routes){
-//                    r.twoOptWrap();
-//                    r.singleInsertWrap();
+//                    System.out.println("evall " + evaluation1);
+                    r.twoOptWrap();
+                    r.singleInsertWrap();
                 }
 
                 Evaluation evaluation2 = Main.evaluatePriorityList(child2.priorityList, config, journal, journaling);
                 child2.evaluation = evaluation2;
                 for (Route r : child2.evaluation.routes){
-//                    r.twoOptWrap();
-//                    r.singleInsertWrap();
-
+//                    System.out.println("evall " + evaluation2);
+                    r.twoOptWrap();
+                    r.singleInsertWrap();
                 }
 
                 for (int j = 0; j < 10; j++) {
-                    for (int l = 2; l < 4; l++) {
+                    for (int l = 2; l < child1.evaluation.vehicleCount; l++) {
                         pathScanningWrap(child1, journal, l, false);
                     }
                 }
                 for (int j = 0; j < 10; j++) {
-                    for (int l = 2; l < 4; l++) {
+                    for (int l = 2; l < child2.evaluation.vehicleCount; l++) {
                         pathScanningWrap(child2, journal, l, false);
                     }
                 }
@@ -422,7 +429,7 @@ public class Genetic {
             if(subJournal.containsKey(element.previous.nextLink)){
                 AnalysisNode analysisNode = subJournal.get(element.previous.nextLink);
                 analysisNode.count += 1;
-                analysisNode.sum += evaluation.cost;
+                analysisNode.sum += evaluation.cost * evaluation.vehicleCount;
             }
             else{
                 AnalysisNode analysisNode = new AnalysisNode(evaluation.cost);
@@ -441,7 +448,7 @@ public class Genetic {
             if(subJournal.containsKey(element.next.previousLink)){
                 AnalysisNode analysisNode = subJournal.get(element.next.previousLink);
                 analysisNode.count += 1;
-                analysisNode.sum += evaluation.cost;
+                analysisNode.sum += evaluation.cost * evaluation.vehicleCount;
             }
             else{
                 AnalysisNode analysisNode = new AnalysisNode(evaluation.cost);
