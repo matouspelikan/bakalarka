@@ -387,9 +387,7 @@ public class Route {
             for (int j = 0; j < len; j++) {
                 if(i == j) continue;
                 if((diff = twoOpt(i, j)) < 0){
-//                    System.out.println("improvement twoopt " + diff);
-//                    System.out.println(this);
-//                    System.out.println(i + " " + j);
+//                    System.out.println("improvement twoopt " + diff + " " + i + " " + j);
                 }
             }
         }
@@ -404,45 +402,45 @@ public class Route {
         Element e1 = get(first);
         Element e2 = get(second);
 
-
         double diff = - e1.nextDistance - e2.nextDistance;
         diff += matrix[e1.nextLink.number][e2.nextLink.number];
 
         int e1N = elementToNumberNext(e1.next);
-//        Element e1n = e1.next;
-//        if(e1n != null)
-//            e1N = e1n.previousLink.number;
-//        else
-//            e1N = 1;
 
         int e2N = elementToNumberNext(e2.next);
-//        Element e2n = e2.next;
-//        if(e2n != null)
-//            e2N = e2n.previousLink.number;
-//        else
-//            e2N = 1;
 
         diff += matrix[e1N][e2N];
 
-//        System.out.println(diff);
         return diff;
     }
 
+    public void twoOptApply(int first, int second){
+        Element e1 = get(first);
+        Element e2 = get(second);
+
+
+    }
+
     public void singleInsertWrap(){
-//        System.out.println("singleinsert");
-
-
-
         int len = length();
         double diff;
         for (int i = 0; i < len; i++) {
             for (int j = 0; j < len; j++) {
                 if(i == j) continue;
+                if(Math.abs(i - j) == 1) continue;
+//                System.out.println("next iter " + i + " " + j + " " + this.hashCode());
                 if((diff = singleInsert(i, j)) < 0){
 
+                    double score = Main.evaluateRoute(this, matrix);
 //                    System.out.println("improvement single " + diff);
-//                    System.out.println(this);
 //                    System.out.println(i + " " + j + "  : " + len);
+                    singleInsertApply(i, j);
+
+                    double improved = Main.evaluateRoute(this, matrix);
+                    if(improved != score + diff) throw new RuntimeException();
+                    if(length() != len) throw new RuntimeException();
+//                    System.out.println(this);
+
                 }
             }
         }
@@ -466,12 +464,98 @@ public class Route {
         return diff;
     }
 
-    public void singleInsertModify(int first, int second){
+    public void singleInsertApply(int first, int second){
         Element e1 = get(first);
         Element e2 = get(second);
 
+        Element e1Prev = e1.previous;
+        Node e1PrevLink = e1.previousLink;
+        Element e1Next = e1.next;
+        Node e1NextLink = e1.nextLink;
+
+        Element e2Prev = e2.previous;
+        Node e2PrevLink = e2.previousLink;
+        Element e2Next = e2.next;
+        Node e2NextLink = e2.nextLink;
+
+        if(e1Prev != null){
+            e1.previous.next = e2;
+            e1.previous.nextDistance = matrix[e1Prev.nextLink.number][e2PrevLink.number];
+        }
+        e1.previous = e2Prev;
+        int e1P = elementToNumberPrev(e2Prev);
+        e1.previousDistance = matrix[e1PrevLink.number][e1P];
+
+        if(e1Next != null){
+            e1.next.previous = e2;
+            e1.next.previousDistance = matrix[e1Next.previousLink.number][e2NextLink.number];
+        }
+        e1.next = e2Next;
+        int e1N = elementToNumberNext(e2Next);
+        e1.nextDistance = matrix[e1NextLink.number][e1N];
+
+        if(e2Prev != null){
+            e2.previous.next = e1;
+            e2.previous.nextDistance = matrix[e2Prev.nextLink.number][e1PrevLink.number];
+        }
+        e2.previous = e1Prev;
+        int e2P = elementToNumberPrev(e1Prev);
+        e2.previousDistance = matrix[e2PrevLink.number][e2P];
+
+        if(e2Next != null){
+            e2.next.previous = e1;
+            e2.next.previousDistance = matrix[e2Next.previousLink.number][e1NextLink.number];
+        }
+        e2.next = e1Next;
+        int e2N = elementToNumberNext(e1Next);
+        e2.nextDistance = matrix[e2NextLink.number][e2N];
+
+        if(tail == e1){
+            tail = e2;
+        }
+        else if(tail == e2){
+            tail = e1;
+        }
+
+        if(head == e1){
+            head = e2;
+        }
+        else if(head == e2){
+            head = e1;
+        }
 
     }
+
+    public void singleReverseWrap(){
+        int len = length();
+
+        double diff;
+        for (int i = 0; i < len; i++) {
+            if((diff = singleReverse(i)) < 0){
+                System.out.println("single reverse improvement " + diff);
+            }
+        }
+
+    }
+
+    public double singleReverse(int index){
+        Element e = get(index);
+
+        double diff = - e.previousDistance - e.nextDistance;
+
+        int eN = elementToNumberNext(e.next);
+        int eP = elementToNumberPrev(e.previous);
+
+        diff += matrix[eP][e.nextLink.number] + matrix[e.previousLink.number][eN];
+
+        return diff;
+    }
+
+    public void singleReverseApply(int index){
+
+    }
+
+
 
     public int elementToNumberNext(Element element){
         if(element != null)
@@ -583,6 +667,7 @@ public class Route {
         while (el != null){
             count++;
             el = el.next;
+//            System.out.println(count);
         }
         return count;
     }

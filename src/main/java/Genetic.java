@@ -113,7 +113,7 @@ public class Genetic {
                 journal = new HashMap<>();
                 analyzePopulation(population, journal, N);
             }
-//            journaling = false;
+            journaling = false;
             for (int j = 0; j < population.size(); j++) {
                 for (int l = 0; l < 10; l++) {
                     for (int m = 1; m < config.vehicles; m++) {
@@ -174,6 +174,8 @@ public class Genetic {
 //                    System.out.println("evall " + evaluation1);
                     r.twoOptWrap();
                     r.singleInsertWrap();
+//                    r.singleReverseWrap();
+
                 }
 
                 Evaluation evaluation2 = Main.evaluatePriorityList(child2.priorityList, config, journal, journaling);
@@ -182,15 +184,17 @@ public class Genetic {
 //                    System.out.println("evall " + evaluation2);
                     r.twoOptWrap();
                     r.singleInsertWrap();
+//                    r.singleReverseWrap();
+
                 }
 
                 for (int j = 0; j < 10; j++) {
-                    for (int l = 2; l < child1.evaluation.vehicleCount; l++) {
+                    for (int l = 2; l < 4; l++) {
                         pathScanningWrap(child1, journal, l, false);
                     }
                 }
                 for (int j = 0; j < 10; j++) {
-                    for (int l = 2; l < child2.evaluation.vehicleCount; l++) {
+                    for (int l = 2; l < 4; l++) {
                         pathScanningWrap(child2, journal, l, false);
                     }
                 }
