@@ -189,18 +189,41 @@ public class Genetic {
                 }
 
                 singleInsertMultipleWrap(child1);
+                singleInsertMultipleWrap(child2);
+
 
 
                 for (int j = 0; j < 10; j++) {
                     for (int l = 2; l < 4; l++) {
-//                        pathScanningWrap(child1, journal, l, false);
+                        pathScanningWrap(child1, journal, l, false);
                     }
                 }
                 for (int j = 0; j < 10; j++) {
                     for (int l = 2; l < 4; l++) {
-//                        pathScanningWrap(child2, journal, l, false);
+                        pathScanningWrap(child2, journal, l, false);
                     }
                 }
+
+
+
+                if((child1.evaluation.cost < 316 && child1.evaluation.vehicleCount<=5) || (child2.evaluation.cost < 316 && child2.evaluation.vehicleCount <= 5)){
+
+//                    for (Route r : child1.evaluation.routes){
+//                        System.out.println(r.active);
+//                        System.out.println(r.length());
+//                    }
+//
+//                    for (Route r : child2.evaluation.routes){
+//                        System.out.println(r.active);
+//                        System.out.println(r.length());
+//                    }
+
+//                    throw new RuntimeException();
+
+
+                }
+
+
 //                pathScanningWrap(child1, journal, 3, false);
 //                pathScanningWrap(child2, journal, 3, false);
 
@@ -358,6 +381,37 @@ public class Genetic {
         System.out.println();
     }
 
+    public void twoOptMultipleWrap(Individual individual){
+        List<Route> routes = individual.evaluation.routes;
+
+        double diff;
+        for (int i = 0; i < routes.size(); i++) {
+            Route route = routes.get(i);
+            int len = route.length();
+            for (int j = 0; j < routes.size(); j++) {
+                if (i == j) continue;
+                Route otherRoute = routes.get(j);
+                int otherRouteLength = otherRoute.length();
+                for (int k = 0; k < len; k++) {
+                    for (int l = 0; l < otherRouteLength; l++) {
+                        if(k >= route.length()) break;
+                        if(l >= otherRoute.length()) break;
+                        if((diff = singleInsertMultiple(route, k, otherRoute, l)) < 0){
+
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    public double twoOptMultiple(Route r1, int index1, Route r2, int index2){
+        Element e1 = r1.get(index1);
+        Element e2 = r2.get(index2);
+
+        return 0;
+    }
+
     public void singleInsertMultipleWrap(Individual individual){
         List<Route> routes = individual.evaluation.routes;
 
@@ -373,6 +427,9 @@ public class Genetic {
                     for (int l = 0; l < otherRouteLength; l++) {
                         if(k >= route.length()) break;
                         if(l >= otherRoute.length()) break;
+                        if(!route.active || !otherRoute.active){
+                            System.out.println("ahaaaa");
+                        }
 //                        System.out.println(k + " " + route.length() + " | " + l + " " + otherRouteLength);
                         if((diff = singleInsertMultiple(route, k, otherRoute, l)) < 0){
 //                            System.out.println("singleInsertMultiple diff " + diff + " | " + k + " " + len + " | " + l + " " + otherRouteLength);
@@ -392,11 +449,25 @@ public class Genetic {
             }
         }
 
+
+        List<Route> routesToDelete = new ArrayList<>();
+        for(Route r : routes){
+            if(!r.active){
+                routesToDelete.add(r);
+            }
+        }
+
+        individual.evaluation.routes.removeAll(routesToDelete);
+        individual.evaluation.vehicleCount = individual.evaluation.routes.size();
     }
 
     public double singleInsertMultiple(Route r1, int index1, Route r2, int index2){
         Element e1 = r1.get(index1);
         Element e2 = r2.get(index2);
+
+        if(r2.capacityLeft < e1.candidate.edge.demand){
+            return 1.0;
+        }
 
         double diff = - e1.previousDistance - e1.nextDistance;
         int e1P = Route.elementToNumberPrev(e1.previous);
@@ -440,9 +511,11 @@ public class Genetic {
         }
 
 
-
-
-        e1.candidate.edge.component = r2;
+        //TODO doublecheck
+        Candidate candidate = new Candidate(e1.candidate.edge, e1.previousLink, e2.nextLink, matrix2[e2.nextLink.number][e1.previousLink.number]);
+        candidate.edge.component = r2;
+        e1.candidate = candidate;
+//        e1.candidate.edge.component = r2;
 
         Element e2Prev = e2.previous;
         Element e2Next = e2.next;
@@ -463,12 +536,18 @@ public class Genetic {
         e1.next = e2Next;
         int e2N = Route.elementToNumberNext(e2Next);
         e1.nextDistance = matrix2[e1.nextLink.number][e2N];
+
+        r2.capacityTaken += e1.candidate.edge.demand;
+        r2.capacityLeft -= e1.candidate.edge.demand;
+
+        r1.capacityTaken -= e1.candidate.edge.demand;
+        r1.capacityLeft += e1.candidate.edge.demand;
     }
 
     public void pathScanningWrap(Individual individual,Map<Node, Map<Node, AnalysisNode>> journal, int limit, boolean elite){
         List<Route> routes = individual.evaluation.routes;
         Collections.shuffle(routes, new Random(0));
-        List<Route> subRoutes = routes.stream().limit(limit).collect(Collectors.toList());
+        List<Route> subRoutes = routes.stream().filter(r -> r.active).limit(limit).collect(Collectors.toList());
         double pre = Main.evaluateRoutes(subRoutes, config);
         Evaluation evaluation = pathScanning(subRoutes, journal);
         if(evaluation.cost < pre && evaluation.vehicleCount <= individual.evaluation.vehicleCount){

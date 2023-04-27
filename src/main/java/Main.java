@@ -373,7 +373,7 @@ public class Main {
     }
 
     public static Config readGDB() throws IOException {
-        FileReader fileReader = new FileReader("C:\\Users\\Asus\\ownCloud\\cvut\\carp\\carpbak\\src\\main\\resources\\egl\\egl-e1-A.dat");
+        FileReader fileReader = new FileReader("C:\\Users\\Asus\\ownCloud\\cvut\\carp\\carpbak\\src\\main\\resources\\gdb\\gdb1.dat");
         BufferedReader bufferedReader = new BufferedReader(fileReader);
 
         String line;
