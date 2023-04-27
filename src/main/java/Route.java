@@ -510,7 +510,7 @@ public class Route {
                 if(i == j) continue;
                 if(i > j) continue;
                 if((diff = twoOpt(i, j)) < 0){
-                    System.out.println("improvement twoopt " + diff + " " + i + " " + j + " len: " + len);
+//                    System.out.println("improvement twoopt " + diff + " " + i + " " + j + " len: " + len);
                     double evalBefore = Main.evaluateRoute(this, matrix);
                     twoOptApply(i, j);
                     double evalAfter = Main.evaluateRoute(this, matrix);
@@ -568,7 +568,7 @@ public class Route {
         e1Next.previous = null;
         head = e1;
         this.mergeRouteF(candidate, e2);
-        System.out.println(e1.nextLink);
+//        System.out.println(e1.nextLink);
 
         head.next = e2Next;
         int e2N = elementToNumberNext(e2Next);
@@ -600,6 +600,7 @@ public class Route {
             for (int j = 0; j < len; j++) {
                 if(i == j) continue;
                 if(Math.abs(i - j) == 1) continue;
+                if(i > j) continue;
 //                System.out.println("next iter " + i + " " + j + " " + this.hashCode());
                 if((diff = singleInsert(i, j)) < 0){
 
@@ -731,12 +732,12 @@ public class Route {
 
 
 
-    public int elementToNumberNext(Element element){
+    public static int elementToNumberNext(Element element){
         if(element != null)
             return element.previousLink.number;
         return 1;
     }
-    public int  elementToNumberPrev(Element element){
+    public static int  elementToNumberPrev(Element element){
         if(element != null)
             return element.nextLink.number;
         return 1;

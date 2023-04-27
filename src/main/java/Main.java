@@ -124,6 +124,8 @@ public class Main {
     }
 
     public static double evaluateRoute(Route route, Double[][] matrix){
+        if(route.tail == null) return 0.0;
+
         Element element = route.tail;
         double cost = 0;
         while(element != null){
@@ -371,7 +373,7 @@ public class Main {
     }
 
     public static Config readGDB() throws IOException {
-        FileReader fileReader = new FileReader("C:\\Users\\Asus\\ownCloud\\cvut\\carp\\carpbak\\src\\main\\resources\\gdb\\gdb13.dat");
+        FileReader fileReader = new FileReader("C:\\Users\\Asus\\ownCloud\\cvut\\carp\\carpbak\\src\\main\\resources\\egl\\egl-e1-A.dat");
         BufferedReader bufferedReader = new BufferedReader(fileReader);
 
         String line;

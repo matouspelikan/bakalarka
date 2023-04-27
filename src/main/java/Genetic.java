@@ -188,6 +188,9 @@ public class Genetic {
 
                 }
 
+                singleInsertMultipleWrap(child1);
+
+
                 for (int j = 0; j < 10; j++) {
                     for (int l = 2; l < 4; l++) {
 //                        pathScanningWrap(child1, journal, l, false);
@@ -353,6 +356,113 @@ public class Genetic {
             System.out.print(" ");
         }
         System.out.println();
+    }
+
+    public void singleInsertMultipleWrap(Individual individual){
+        List<Route> routes = individual.evaluation.routes;
+
+        double diff;
+        for (int i = 0; i < routes.size(); i++) {
+            Route route = routes.get(i);
+            int len = route.length();
+            for (int j = 0; j < routes.size(); j++) {
+                if (i == j) continue;
+                Route otherRoute = routes.get(j);
+                int otherRouteLength = otherRoute.length();
+                for (int k = 0; k < len; k++) {
+                    for (int l = 0; l < otherRouteLength; l++) {
+                        if(k >= route.length()) break;
+                        if(l >= otherRoute.length()) break;
+//                        System.out.println(k + " " + route.length() + " | " + l + " " + otherRouteLength);
+                        if((diff = singleInsertMultiple(route, k, otherRoute, l)) < 0){
+//                            System.out.println("singleInsertMultiple diff " + diff + " | " + k + " " + len + " | " + l + " " + otherRouteLength);
+
+                            double r1before = Main.evaluateRoute(route, matrix2);
+                            double r2before = Main.evaluateRoute(otherRoute, matrix2);
+
+                            singleInsertMultipleApply(route, k, otherRoute, l);
+
+                            double r1after = Main.evaluateRoute(route, matrix2);
+                            double r2after = Main.evaluateRoute(otherRoute, matrix2);
+
+                            if(r1after + r2after != r1before + r2before + diff) throw new RuntimeException();
+                        }
+                    }
+                }
+            }
+        }
+
+    }
+
+    public double singleInsertMultiple(Route r1, int index1, Route r2, int index2){
+        Element e1 = r1.get(index1);
+        Element e2 = r2.get(index2);
+
+        double diff = - e1.previousDistance - e1.nextDistance;
+        int e1P = Route.elementToNumberPrev(e1.previous);
+        int e1N = Route.elementToNumberNext(e1.next);
+        diff += matrix2[e1P][e1N];
+
+        diff -= e2.nextDistance;
+        diff += matrix2[e2.nextLink.number][e1.previousLink.number];
+        int e2N = Route.elementToNumberNext(e2.next);
+        diff += matrix2[e1.nextLink.number][e2N];
+
+        return diff;
+    }
+
+    public void singleInsertMultipleApply(Route r1, int index1, Route r2, int index2){
+        Element e1 = r1.get(index1);
+        Element e2 = r2.get(index2);
+
+        Element e1Prev = e1.previous;
+        Element e1Next = e1.next;
+
+        if(e1Prev != null){
+            e1.previous.next = e1Next;
+            int e1N = Route.elementToNumberNext(e1Next);
+            e1.previous.nextDistance = matrix2[e1.previous.nextLink.number][e1N];
+        }
+        else{
+            r1.tail = e1Next;
+            if(r1.tail == null){ //TODO route zaníká, asi početřeno
+                r1.active = false;
+            }
+        }
+
+        if(e1Next != null){
+            e1.next.previous = e1Prev;
+            int e1P = Route.elementToNumberPrev(e1Prev);
+            e1.next.previousDistance = matrix2[e1.next.previousLink.number][e1P];
+        }
+        else{
+            r1.head = e1.previous;
+        }
+
+
+
+
+        e1.candidate.edge.component = r2;
+
+        Element e2Prev = e2.previous;
+        Element e2Next = e2.next;
+
+        e2.next = e1;
+        e2.nextDistance = matrix2[e2.nextLink.number][e1.previousLink.number];
+
+        e1.previous = e2;
+        e1.previousDistance = e2.nextDistance;
+
+        if(e2Next != null){
+            e2Next.previous = e1;
+            e2Next.previousDistance = matrix2[e2Next.previousLink.number][e1.nextLink.number];
+        }
+        else{
+            r2.head = e1;
+        }
+        e1.next = e2Next;
+        int e2N = Route.elementToNumberNext(e2Next);
+        e1.nextDistance = matrix2[e1.nextLink.number][e2N];
     }
 
     public void pathScanningWrap(Individual individual,Map<Node, Map<Node, AnalysisNode>> journal, int limit, boolean elite){
