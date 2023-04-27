@@ -190,12 +190,12 @@ public class Genetic {
 
                 for (int j = 0; j < 10; j++) {
                     for (int l = 2; l < 4; l++) {
-                        pathScanningWrap(child1, journal, l, false);
+//                        pathScanningWrap(child1, journal, l, false);
                     }
                 }
                 for (int j = 0; j < 10; j++) {
                     for (int l = 2; l < 4; l++) {
-                        pathScanningWrap(child2, journal, l, false);
+//                        pathScanningWrap(child2, journal, l, false);
                     }
                 }
 //                pathScanningWrap(child1, journal, 3, false);

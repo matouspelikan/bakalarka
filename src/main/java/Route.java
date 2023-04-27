@@ -20,6 +20,8 @@ public class Route {
 
     public boolean active = true;
 
+    public boolean twoopted = false;
+
 
     public Route(){
     }
@@ -245,18 +247,10 @@ public class Route {
         this.capacityTaken += candidate.edge.component.capacityTaken;
         this.capacityLeft -= (candidate.edge.component.capacityTaken);
 
-
         if(this.capacityLeft < 0) throw new RuntimeException();
         candidate.edge.component.active = false;
 
         Element element = getEnd(candidate);
-
-//        System.out.println(candidate);
-//        System.out.println("tail/head");
-//        System.out.println(element.candidate);
-//        System.out.println(element);
-//        System.out.println(element.previous);
-//        System.out.println(element.next);
 
         boolean forward = true;
         if(element.next == null){
@@ -372,7 +366,135 @@ public class Route {
             tail.previousLink = tail.candidate.edge.otherNode(tail.nextLink);
         }
         else{
+            throw new RuntimeException();
+        }
+    }
 
+    public void mergeRouteF(Candidate candidate, Element element){
+//        this.capacityTaken += candidate.edge.component.capacityTaken;
+//        this.capacityLeft -= (candidate.edge.component.capacityTaken);
+//
+//        if(this.capacityLeft < 0) throw new RuntimeException();
+//        candidate.edge.component.active = false;
+
+//        Element element = getEnd(candidate);
+
+        element.candidate = candidate;
+
+        boolean forward = true;
+        if(element.next == null){
+            forward = false;
+        }
+        else if(element.previous == null){
+            forward = true;
+        }
+        else{
+            throw new RuntimeException();
+        }
+
+        if(head.candidate.edge.hasNode(candidate.fromNode.number) && (head.nextLink.number == candidate.fromNode.number)){
+            head.next = element;
+            head.nextDistance = element.candidate.distance;
+            head.nextLink = element.candidate.fromNode;
+
+            Element HEAD = head;
+
+            Element elementIterLast = head;
+            Element elementIter = element;
+            Element elementIterNext = null;
+            while (elementIter != null) {
+                head = elementIter;
+                elementIter.candidate.edge.component = this;
+                if(forward){
+                    //TODO asi nemusim delat vubec nic
+                    elementIterNext = elementIter.next;
+                    if(elementIterNext != null){
+
+                    }
+                }
+                else{
+                    elementIterNext = elementIter.previous;
+                    elementIter.previous = elementIterLast;
+
+                    double previousDistance = elementIter.previousDistance;
+                    elementIter.previousDistance = elementIterLast.nextDistance;
+
+                    Node previousLink = elementIter.previousLink;
+                    elementIter.previousLink = elementIter.candidate.edge.otherNode(elementIter.previousLink);
+                    elementIter.previousLink = elementIter.nextLink;
+
+                    if(elementIterNext != null){
+                        elementIter.next = elementIterNext;
+//                        elementIter.nextDistance = elementIter.previousDistance; //TODO konflikt
+                        elementIter.nextDistance = previousDistance;
+//                        elementIter.nextLink = elementIter.previousLink;
+                        elementIter.nextLink = previousLink;
+                    }
+                    else{
+                        elementIter.next = null;
+                        elementIter.nextDistance = 0;
+                        elementIter.nextLink = previousLink; //TODO tohle se mi vyresi samo na konci
+                    }
+                }
+
+                elementIterLast = elementIter;
+//                elementIter.next = elementIterNext;
+                elementIter = elementIterNext;
+            }
+
+            element.previous = HEAD;
+            element.previousDistance = element.candidate.distance;
+            element.previousLink = element.candidate.toNode;
+            head.nextLink = head.candidate.edge.otherNode(head.previousLink);
+        }
+        else if(tail.candidate.edge.hasNode(candidate.fromNode.number) && tail.previousLink.number == candidate.fromNode.number){
+//            if (true) throw new RuntimeException();
+            tail.previous = element;
+            tail.previousDistance = element.candidate.distance;
+            tail.previousLink = element.candidate.fromNode;
+
+            Element TAIL = tail;
+
+            Element elementIterLast = tail;
+            Element elementIter = element;
+            Element elementIterNext = null;
+            while (elementIter != null) {
+                tail = elementIter;
+                elementIter.candidate.edge.component = this;
+                if(forward){
+                    elementIterNext = elementIter.next;
+                    elementIter.next = elementIterLast;
+
+                    double nextDistance = elementIter.nextDistance;
+                    elementIter.nextDistance = elementIterLast.previousDistance;
+
+                    Node nextLink = elementIter.nextLink;
+                    elementIter.nextLink = elementIter.previousLink;
+
+                    if(elementIterNext != null){
+                        elementIter.previous = elementIterNext;
+                        elementIter.previousDistance = nextDistance;
+                        elementIter.previousLink = nextLink;
+                    }
+                    else{
+                        elementIter.previous = null;
+                        elementIter.previousDistance = 0;
+                        elementIter.previousLink = nextLink;
+                    }
+                }
+                else{
+                    elementIterNext = elementIter.previous;//samo se vyresi
+                }
+                elementIterLast = elementIter;
+                elementIter = elementIterNext;
+            }
+
+            element.next = TAIL;
+            element.nextDistance = element.candidate.distance;
+            element.nextLink = element.candidate.toNode;
+            tail.previousLink = tail.candidate.edge.otherNode(tail.nextLink);
+        }
+        else{
             throw new RuntimeException();
         }
     }
@@ -383,11 +505,17 @@ public class Route {
 //        System.out.println("twoopt");
         int len = length();
         double diff;
-        for (int i = 0; i < len; i++) {
-            for (int j = 0; j < len; j++) {
+        for (int i = 0; i < len - 1; i++) {
+            for (int j = 0; j < len - 1; j++) {
                 if(i == j) continue;
+                if(i > j) continue;
                 if((diff = twoOpt(i, j)) < 0){
-//                    System.out.println("improvement twoopt " + diff + " " + i + " " + j);
+                    System.out.println("improvement twoopt " + diff + " " + i + " " + j + " len: " + len);
+                    double evalBefore = Main.evaluateRoute(this, matrix);
+                    twoOptApply(i, j);
+                    double evalAfter = Main.evaluateRoute(this, matrix);
+                    if(evalAfter != evalBefore + diff) throw new RuntimeException();
+                    this.twoopted = true;
                 }
             }
         }
@@ -418,6 +546,50 @@ public class Route {
         Element e1 = get(first);
         Element e2 = get(second);
 
+        Element HEAD = head;
+
+//        Element ite = tail;
+//        while(ite != null){
+//            System.out.println(ite.previousLink + " " + ite.previousDistance);
+//            System.out.println(ite + " " + ite.candidate.edge.cost);
+//            System.out.println(ite.nextLink + " " + ite.nextDistance);
+//            System.out.println();
+//            ite = ite.next;
+//        }
+
+        Element e1Next = e1.next;
+        Element e2Next = e2.next;
+
+        e1.next = null;
+        e2.next = null;
+
+        Candidate candidate = new Candidate(e2.candidate.edge, e2.nextLink, e1.nextLink, matrix[e1.nextLink.number][e2.nextLink.number]);
+
+        e1Next.previous = null;
+        head = e1;
+        this.mergeRouteF(candidate, e2);
+        System.out.println(e1.nextLink);
+
+        head.next = e2Next;
+        int e2N = elementToNumberNext(e2Next);
+        head.nextDistance = matrix[head.nextLink.number][e2N];
+        if(e2Next != null){
+            e2Next.previous = head;
+            e2Next.previousDistance = head.nextDistance;
+        }
+        head = HEAD;
+
+
+//        ite = tail;
+//        while(ite != null){
+//            System.out.println(ite.previousLink + " " + ite.previousDistance);
+//            System.out.println(ite + " " + ite.candidate.edge.cost);
+//            System.out.println(ite.nextLink + " " + ite.nextDistance);
+//            System.out.println();
+//            ite = ite.next;
+//        }
+
+//        throw new RuntimeException();
 
     }
 
@@ -430,6 +602,8 @@ public class Route {
                 if(Math.abs(i - j) == 1) continue;
 //                System.out.println("next iter " + i + " " + j + " " + this.hashCode());
                 if((diff = singleInsert(i, j)) < 0){
+
+
 
                     double score = Main.evaluateRoute(this, matrix);
 //                    System.out.println("improvement single " + diff);

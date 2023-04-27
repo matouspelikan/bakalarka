@@ -112,7 +112,11 @@ public class Main {
                 //TODO vrat se zpet do depot, NEMUSIM RESIT
             }
             else{
+                Element el = route.head;
+                Node n = el.nextLink;
                 route.mergeRouteE(selectedCandidate);
+                Node n2 = el.nextLink;
+                if(n.number != n2.number) throw new RuntimeException();
             }
         }
 
