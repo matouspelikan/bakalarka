@@ -707,7 +707,7 @@ public class Route {
         double diff;
         for (int i = 0; i < len; i++) {
             if((diff = singleReverse(i)) < 0){
-                System.out.println("single reverse improvement " + diff);
+//                System.out.println("single reverse improvement " + diff);
             }
         }
 

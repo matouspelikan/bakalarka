@@ -2,26 +2,24 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class Genetic {
-    public static Random random = new Random(2);
+    public static Random random = new Random(0);
     public static Comparator<Individual> comparator;
 
     public Config config;
-    public Double[][] matrix2;
-    public Entry[][] entries;
+    public Double[][] matrix;  //matice vzdáleností
     List<Edge> requiredEdges;
     public int kTournament = 3;
     public int maxDuplicates = 2;
 
-    public Genetic(Config config, Double[][] matrix2, Entry[][] entries, List<Edge> requiredEdges){
+    public Genetic(Config config, Double[][] matrix, List<Edge> requiredEdges){
         this.config = config;
-        this.matrix2 = matrix2;
-        this.entries = entries;
+        this.matrix = matrix;
         this.requiredEdges = requiredEdges;
+
 
         comparator = new Comparator<Individual>() {
             @Override
             public int compare(Individual o1, Individual o2) {
-//                return Double.compare(o1.fitness(), o2.fitness());
                 if(o1.evaluation.vehicleCount <= config.vehicles && o2.evaluation.vehicleCount <= config.vehicles){
                     return Double.compare(o1.evaluation.cost, o2.evaluation.cost);
                 }
@@ -36,6 +34,140 @@ public class Genetic {
                 }
             }
         };
+    }
+
+    public void evolution(int popSize, int maxGen, double probCross, double probMutation, int M, int k, double N){
+        List<Individual> population = new ArrayList<>();
+
+        Map<Node, Map<Node, AnalysisNode>> journal = new HashMap<>();
+
+        population = createInitialPopulation(popSize, journal);
+
+        sortPopulation(population);
+
+        printPopulation(population);
+
+        boolean journaling = false;
+
+        for (int i = 0; i < maxGen; i++) {
+
+            journaling = false;
+            if(i == M){
+//                System.out.println("first journal");
+                journaling = true;
+                analyzePopulation(population, journal, N);
+            }
+
+            if(i > M && (i % k == 0)){
+                journaling = true;
+//                System.out.println("journaling");
+                journal = new HashMap<>();
+                analyzePopulation(population, journal, N);
+            }
+            journaling = false;
+
+
+            System.out.print(i + ": ");
+            printPopulation(population);
+
+            double sum = 0;
+            int count = 0;
+            for (int j = 0; j < population.size(); j++) {
+                sum += population.get(j).evaluation.cost;
+                count++;
+            }
+            System.out.println("population average: " + sum/count + " best: " + population.get(0).evaluation.cost);
+
+            List<Individual> interPop = new ArrayList<>();
+            int interPopSize = 0;
+            while (interPopSize < popSize) {
+                Individual parent1 = tournamentSelection(population, config.vehicles);
+                Individual parent2 = tournamentSelection(population, config.vehicles);
+
+                Individual child1 = null;
+                Individual child2 = null;
+
+                if(random.nextDouble() < probCross){
+                    child1 = new Individual(parent1.crossWith2(parent2));
+                    child2 = new Individual(parent2.crossWith2(parent1));
+                    if(random.nextDouble() < probMutation){
+                        child1.mutate();
+                        child2.mutate();
+                    }
+                }
+                else{
+                    child1 = new Individual(parent1.priorityList);
+                    child2 = new Individual(parent2.priorityList);
+
+                    child1.mutate();
+                    child2.mutate();
+                }
+
+                Evaluation evaluation1 = Main.evaluatePriorityList(child1.priorityList, config, journal, journaling);
+                child1.evaluation = evaluation1;
+
+
+                Evaluation evaluation2 = Main.evaluatePriorityList(child2.priorityList, config, journal, journaling);
+                child2.evaluation = evaluation2;
+
+
+                //single route local optimization
+                for(Route r : child1.evaluation.routes){
+                    r.twoOptWrap();
+                    r.singleInsertWrap();
+                    r.singleReverseWrap();
+                }
+                for (Route r : child2.evaluation.routes){
+                    r.twoOptWrap();
+                    r.singleInsertWrap();
+                    r.singleReverseWrap();
+
+                }
+
+
+                //multiple route local optimization
+                singleInsertMultipleWrap(child1);
+                singleInsertMultipleWrap(child2);
+//
+                twoOptMultipleWrap(child1);
+                twoOptMultipleWrap(child2);
+
+
+                for (int j = 0; j < 10; j++) {
+                    for (int l = 2; l < 4; l++) {
+                        pathScanningWrap(child1, journal, l, false);
+                    }
+                }
+                for (int j = 0; j < 10; j++) {
+                    for (int l = 2; l < 4; l++) {
+                        pathScanningWrap(child2, journal, l, false);
+                    }
+                }
+
+
+                interPop.add(child1);
+                interPopSize++;
+
+                interPop.add(child2);
+                interPopSize++;
+            }
+
+            int originalSize = population.size();
+            population.addAll(interPop);
+            sortPopulation(population);
+            List<Individual> nonDuplicatedPopulation = deleteDuplicates(population);
+//            population.subList(originalSize, population.size()).clear();
+            nonDuplicatedPopulation.subList(originalSize, nonDuplicatedPopulation.size()).clear();
+            population = nonDuplicatedPopulation;
+
+            if (originalSize != population.size()) throw new RuntimeException();
+
+        }
+
+        System.out.println();
+        printPopulation(population);
+
+//        System.out.println(journal);
     }
 
     public Individual createIndividual(Map<Node, Map<Node, AnalysisNode>> journal){
@@ -79,262 +211,7 @@ public class Genetic {
         return population;
     }
 
-    public void evolution(int popSize, int maxGen, double probCross, double probMutation, int M, int k, double N){
-        List<Individual> population = new ArrayList<>();
 
-        Map<Node, Map<Node, AnalysisNode>> journal = new HashMap<>();
-
-//        for (int i = 0; i < popSize; i++) {
-////            List<Edge> newPriorityList = new ArrayList<>(List.copyOf(this.requiredEdges));
-//
-//            population.add(createIndividual(journal));
-//        }
-        population = createInitialPopulation(popSize, journal);
-
-
-        System.out.println("\nstart\n");
-
-        comparison1(population, config.vehicles);
-        printPopulation(population);
-
-        boolean journaling = false;
-
-        for (int i = 0; i < maxGen; i++) {
-            journaling = false;
-            if(i == M){
-                System.out.println("first journal");
-                journaling = true;
-                analyzePopulation(population, journal, N);
-            }
-
-            if(i > M && (i % k == 0)){
-                journaling = true;
-                System.out.println("journaling");
-                journal = new HashMap<>();
-                analyzePopulation(population, journal, N);
-            }
-            journaling = false;
-            for (int j = 0; j < population.size(); j++) {
-                for (int l = 0; l < 10; l++) {
-                    for (int m = 1; m < config.vehicles; m++) {
-//                        pathScanningWrap(population.get(j), journal, m, true);
-                    }
-                }
-            }
-
-            System.out.print(i + ": ");
-            printPopulation(population);
-
-            double sum = 0;
-            int count = 0;
-            for (int j = 0; j < population.size(); j++) {
-                sum += population.get(j).evaluation.cost;
-                count++;
-            }
-            System.out.println("population average: " + sum/count + " best: " + population.get(0).evaluation.cost);
-
-            List<Individual> interPop = new ArrayList<>();
-
-            for (int j = 0; j < popSize; j++) {
-                Individual individual = population.get(j);
-                individual.parent = false;
-            }
-
-            int interPopSize = 0;
-            int iteration = 0;
-            while (interPopSize < popSize) {
-                iteration++;
-//                if(iteration > popSize*4) break;
-
-                Individual parent1 = tournamentSelection(population, config.vehicles);
-                Individual parent2 = tournamentSelection(population, config.vehicles);
-
-                Individual child1 = null;
-                Individual child2 = null;
-
-                if(random.nextDouble() < probCross){
-                    child1 = new Individual(parent1.crossWith2(parent2));
-                    child2 = new Individual(parent2.crossWith2(parent1));
-                    if(random.nextDouble() < probMutation){
-                        child1.mutate();
-                        child2.mutate();
-                    }
-                }
-                else{
-                    child1 = new Individual(parent1.priorityList);
-                    child2 = new Individual(parent2.priorityList);
-
-                    child1.mutate();
-                    child2.mutate();
-                }
-
-                Evaluation evaluation1 = Main.evaluatePriorityList(child1.priorityList, config, journal, journaling);
-                child1.evaluation = evaluation1;
-                for(Route r : child1.evaluation.routes){
-//                    System.out.println("evall " + evaluation1);
-                    r.twoOptWrap();
-                    r.singleInsertWrap();
-//                    r.singleReverseWrap();
-
-                }
-
-                Evaluation evaluation2 = Main.evaluatePriorityList(child2.priorityList, config, journal, journaling);
-                child2.evaluation = evaluation2;
-                for (Route r : child2.evaluation.routes){
-//                    System.out.println("evall " + evaluation2);
-                    r.twoOptWrap();
-                    r.singleInsertWrap();
-//                    r.singleReverseWrap();
-
-                }
-
-                singleInsertMultipleWrap(child1);
-                singleInsertMultipleWrap(child2);
-
-                twoOptMultipleWrap(child1);
-                twoOptMultipleWrap(child2);
-
-
-                for (int j = 0; j < 10; j++) {
-                    for (int l = 2; l < 4; l++) {
-                        pathScanningWrap(child1, journal, l, false);
-                    }
-                }
-                for (int j = 0; j < 10; j++) {
-                    for (int l = 2; l < 4; l++) {
-                        pathScanningWrap(child2, journal, l, false);
-                    }
-                }
-
-
-
-                if((child1.evaluation.cost < 316 && child1.evaluation.vehicleCount<=5) || (child2.evaluation.cost < 316 && child2.evaluation.vehicleCount <= 5)){
-
-//                    for (Route r : child1.evaluation.routes){
-//                        System.out.println(r.active);
-//                        System.out.println(r.length());
-//                    }
-//
-//                    for (Route r : child2.evaluation.routes){
-//                        System.out.println(r.active);
-//                        System.out.println(r.length());
-//                    }
-
-//                    throw new RuntimeException();
-
-
-                }
-
-
-//                pathScanningWrap(child1, journal, 3, false);
-//                pathScanningWrap(child2, journal, 3, false);
-
-                if(true || comparator.compare(child1, parent1) < 0){
-                    interPop.add(child1);
-                    interPopSize++;
-                }
-                if(true || comparator.compare(child2, parent2) < 0){
-                    interPop.add(child2);
-                    interPopSize++;
-                }
-            }
-
-            for (int j = 0; j < popSize; j++) {
-                Individual individual = population.get(j);
-                individual.parent = true;
-            }
-
-            int originalSize = population.size();
-            population.addAll(interPop);
-            comparison1(population, config.vehicles);
-            List<Individual> nonDuplicatedPopulation = deleteDuplicates(population);
-//            population.subList(originalSize, population.size()).clear();
-            nonDuplicatedPopulation.subList(originalSize, nonDuplicatedPopulation.size()).clear();
-            population = nonDuplicatedPopulation;
-
-//            System.out.println(population.size());
-
-            if (originalSize != population.size()) throw new RuntimeException();
-
-        }
-
-        System.out.println();
-        printPopulation(population);
-
-
-//        for (int i = 0; i < popSize; i++) {
-//            Individual individual = population.get(i);
-//            for(Route r : individual.evaluation.routes){
-//                r.singleInsertWrap();
-//                r.twoOptWrap();
-//            }
-//
-//        }
-        System.out.println(journal);
-
-//        Individual in = population.get(0);
-//        System.out.println(in);
-//        System.out.println("all routes");
-//        for(Route route: in.evaluation.routes) {
-//            System.out.println(route);
-//        }
-//        System.out.println("\n\n");
-//
-//        for(Route route: in.evaluation.routes){
-//            System.out.println("new route");
-//            System.out.println(route);
-//            Element element = route.tail;
-//            while(element != null){
-//                System.out.println("\t\tnew element");
-//                System.out.println(element.previousLink + " " + element.previousDistance);
-//                System.out.println(element.candidate.edge);
-//                System.out.println(element.nextLink + " " + element.nextDistance);
-//                element = element.next;
-//            }
-//        }
-//
-//        Individual in1 = population.get(1);
-//        System.out.println(in1);
-//
-//        System.out.println(in.evaluation.routes.get(0).tail);
-//        System.out.println(in1.evaluation.routes.get(0).tail);
-//
-//        System.out.println(in.evaluation.routes.get(0).tail.candidate.edge.leftNode == in1.evaluation.routes.get(0).tail.candidate.edge.leftNode);
-//        System.out.println(in.evaluation.routes.get(0).tail.candidate.edge == in1.evaluation.routes.get(0).tail.candidate.edge);
-//        System.out.println(in.evaluation.routes.get(0).tail.candidate.edge.equals(in1.evaluation.routes.get(0).tail.candidate.edge));
-
-
-
-//        List<Route> _routes = in.evaluation.routes;
-//        Collections.sort(_routes, new Comparator<Route>() {
-//            @Override
-//            public int compare(Route o1, Route o2) {
-//                return Integer.compare(o1.length(), o2.length());
-//            }
-//        });
-//        for(Route r: _routes){
-//            System.out.println(r.length() + " cost: " + Main.evaluateRoute(r, config.matrix) + " taken: " + r.capacityTaken + " left: " + r.capacityLeft);
-//        }
-
-//        for (Individual inn: population){
-//            System.out.println(inn);
-//            for (int i = 0; i < 100; i++) {
-//                pathScanningWrap(inn, journal);
-//            }
-//            for(Route r : inn.evaluation.routes){
-//                r.singleInsertWrap();
-//                r.twoOptWrap();
-//            }
-//        }
-
-//        for(Route r : in.evaluation.routes){
-//            System.out.println(r);
-//            System.out.println(Main.evaluateRoute(r, config.matrix));
-//            System.out.println(r.length());
-////            r.twoOpt();
-//            r.twoOptWrap();
-//        }
-    }
 
     public List<Individual> deleteDuplicates(List<Individual> population){
         List<Individual> newPopulation = new ArrayList<>(); //without duplicates
@@ -358,7 +235,7 @@ public class Genetic {
         return newPopulation;
     }
 
-    private void comparison1(List<Individual> population, int maxVehicles) {
+    private void sortPopulation(List<Individual> population) {
         Collections.sort(population, comparator);
     }
 
@@ -370,7 +247,7 @@ public class Genetic {
             subset.add(population.get(random.nextInt(population.size())));
         }
 
-        comparison1(subset, maxVehicles);
+        sortPopulation(subset);
 
         return subset.get(0);
     }
@@ -410,12 +287,12 @@ public class Genetic {
 //                            Element r2Head = otherRoute.head;
 
                             int demandBefore = route.demand() + otherRoute.demand();
-                            double evalBefore = Main.evaluateRoute(route, matrix2) + Main.evaluateRoute(otherRoute, matrix2);
+                            double evalBefore = Main.evaluateRoute(route, matrix) + Main.evaluateRoute(otherRoute, matrix);
 
                             twoOptMultipleApply(route, k, otherRoute, l);
 
                             int demandAfter = route.demand() + otherRoute.demand();
-                            double evalAfter = Main.evaluateRoute(route, matrix2) + Main.evaluateRoute(otherRoute, matrix2);
+                            double evalAfter = Main.evaluateRoute(route, matrix) + Main.evaluateRoute(otherRoute, matrix);
 
                             if(demandBefore != demandAfter) throw new RuntimeException();
                             if(evalAfter != evalBefore + diff) throw new RuntimeException();
@@ -470,8 +347,8 @@ public class Genetic {
         int e1N = Route.elementToNumberNext(e1.next);
         int e2N = Route.elementToNumberNext(e2.next);
 
-        diff += matrix2[e1.nextLink.number][e2N];
-        diff += matrix2[e2.nextLink.number][e1N];
+        diff += matrix[e1.nextLink.number][e2N];
+        diff += matrix[e2.nextLink.number][e1N];
 
         return diff;
     }
@@ -504,7 +381,7 @@ public class Genetic {
         r1.head = e1;
 
         if(e2Next == null){
-            e1.nextDistance = matrix2[e1.nextLink.number][1];
+            e1.nextDistance = matrix[e1.nextLink.number][1];
         }
         else{
             e2Next.previous = null;
@@ -522,7 +399,7 @@ public class Genetic {
                 it = it.next;
             }
 
-            Candidate candidate = new Candidate(e2Next.candidate.edge, e2Next.previousLink, e1.nextLink, matrix2[e1.nextLink.number][e2Next.previousLink.number]);
+            Candidate candidate = new Candidate(e2Next.candidate.edge, e2Next.previousLink, e1.nextLink, matrix[e1.nextLink.number][e2Next.previousLink.number]);
 //            r1.mergeRouteF(candidate, e2Next);
 
             r1.mergeRouteE(candidate);
@@ -534,7 +411,7 @@ public class Genetic {
         r2.head = e2;
 
         if(e1Next == null){
-            e2.nextDistance = matrix2[e2.nextLink.number][1];
+            e2.nextDistance = matrix[e2.nextLink.number][1];
         }
         else{
             e1Next.previous = null;
@@ -552,7 +429,7 @@ public class Genetic {
                 it = it.next;
             }
 
-            Candidate candidate = new Candidate(e1Next.candidate.edge, e1Next.previousLink, e2.nextLink, matrix2[e1Next.previousLink.number][e2.nextLink.number]);
+            Candidate candidate = new Candidate(e1Next.candidate.edge, e1Next.previousLink, e2.nextLink, matrix[e1Next.previousLink.number][e2.nextLink.number]);
 
 //            r2.mergeRouteF(candidate, e1Next);
             r2.mergeRouteE(candidate);
@@ -587,13 +464,13 @@ public class Genetic {
                         if((diff = singleInsertMultiple(route, k, otherRoute, l)) < 0){
 //                            System.out.println("singleInsertMultiple diff " + diff + " | " + k + " " + len + " | " + l + " " + otherRouteLength);
 
-                            double r1before = Main.evaluateRoute(route, matrix2);
-                            double r2before = Main.evaluateRoute(otherRoute, matrix2);
+                            double r1before = Main.evaluateRoute(route, matrix);
+                            double r2before = Main.evaluateRoute(otherRoute, matrix);
 
                             singleInsertMultipleApply(route, k, otherRoute, l);
 
-                            double r1after = Main.evaluateRoute(route, matrix2);
-                            double r2after = Main.evaluateRoute(otherRoute, matrix2);
+                            double r1after = Main.evaluateRoute(route, matrix);
+                            double r2after = Main.evaluateRoute(otherRoute, matrix);
 
                             if(r1after + r2after != r1before + r2before + diff) throw new RuntimeException();
                         }
@@ -625,12 +502,12 @@ public class Genetic {
         double diff = - e1.previousDistance - e1.nextDistance;
         int e1P = Route.elementToNumberPrev(e1.previous);
         int e1N = Route.elementToNumberNext(e1.next);
-        diff += matrix2[e1P][e1N];
+        diff += matrix[e1P][e1N];
 
         diff -= e2.nextDistance;
-        diff += matrix2[e2.nextLink.number][e1.previousLink.number];
+        diff += matrix[e2.nextLink.number][e1.previousLink.number];
         int e2N = Route.elementToNumberNext(e2.next);
-        diff += matrix2[e1.nextLink.number][e2N];
+        diff += matrix[e1.nextLink.number][e2N];
 
         return diff;
     }
@@ -645,7 +522,7 @@ public class Genetic {
         if(e1Prev != null){
             e1.previous.next = e1Next;
             int e1N = Route.elementToNumberNext(e1Next);
-            e1.previous.nextDistance = matrix2[e1.previous.nextLink.number][e1N];
+            e1.previous.nextDistance = matrix[e1.previous.nextLink.number][e1N];
         }
         else{
             r1.tail = e1Next;
@@ -657,7 +534,7 @@ public class Genetic {
         if(e1Next != null){
             e1.next.previous = e1Prev;
             int e1P = Route.elementToNumberPrev(e1Prev);
-            e1.next.previousDistance = matrix2[e1.next.previousLink.number][e1P];
+            e1.next.previousDistance = matrix[e1.next.previousLink.number][e1P];
         }
         else{
             r1.head = e1.previous;
@@ -665,7 +542,7 @@ public class Genetic {
 
 
         //TODO doublecheck
-        Candidate candidate = new Candidate(e1.candidate.edge, e1.previousLink, e2.nextLink, matrix2[e2.nextLink.number][e1.previousLink.number]);
+        Candidate candidate = new Candidate(e1.candidate.edge, e1.previousLink, e2.nextLink, matrix[e2.nextLink.number][e1.previousLink.number]);
         candidate.edge.component = r2;
         e1.candidate = candidate;
 //        e1.candidate.edge.component = r2;
@@ -674,21 +551,21 @@ public class Genetic {
         Element e2Next = e2.next;
 
         e2.next = e1;
-        e2.nextDistance = matrix2[e2.nextLink.number][e1.previousLink.number];
+        e2.nextDistance = matrix[e2.nextLink.number][e1.previousLink.number];
 
         e1.previous = e2;
         e1.previousDistance = e2.nextDistance;
 
         if(e2Next != null){
             e2Next.previous = e1;
-            e2Next.previousDistance = matrix2[e2Next.previousLink.number][e1.nextLink.number];
+            e2Next.previousDistance = matrix[e2Next.previousLink.number][e1.nextLink.number];
         }
         else{
             r2.head = e1;
         }
         e1.next = e2Next;
         int e2N = Route.elementToNumberNext(e2Next);
-        e1.nextDistance = matrix2[e1.nextLink.number][e2N];
+        e1.nextDistance = matrix[e1.nextLink.number][e2N];
 
         r2.capacityTaken += e1.candidate.edge.demand;
         r2.capacityLeft -= e1.candidate.edge.demand;

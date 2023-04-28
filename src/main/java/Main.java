@@ -16,66 +16,99 @@ public class Main {
             throw new RuntimeException(e);
         }
 
-//        Double[][] matrix = floydWarshall(config.nodes);
         List<Object> matrices = floydWarshall(config.nodes);
         Double[][] matrix = (Double[][]) matrices.get(0);
-        Double[][] matrix2 = (Double[][]) matrices.get(1);
         config.matrix = matrix;
         Route.matrix = matrix;
 
-        Entry[][] entries = createEntries(matrix2, config.nodes);
-        System.out.println(Arrays.asList(entries[3]));
-
-        Map<Integer, List<Edge>> edgeMap = config.edgeMap;
-        System.out.println("Edge map:");
-        System.out.println(edgeMap.get(7));
-
         List<Edge> requiredEdges = config.edges.stream().filter(e -> e.required).collect(Collectors.toList());
-        System.out.println("original: ");
-        System.out.println(requiredEdges);
 
-//        List<Edge> r1 = new ArrayList<>(List.copyOf(requiredEdges));
-//        Collections.shuffle(r1, new Random(0));
-//        System.out.println("r1: ");
-//        System.out.println(r1);
-//        System.out.println(evaluatePriorityList(r1, entries, config, matrix));
-//        System.out.println("result:");
-//        Route rrr = r1.get(0).component;
-//        System.out.println(rrr);
-//
-//
-//        List<Edge> r2 = new ArrayList<>(List.copyOf(requiredEdges));
-//        r2 = deepCopy(requiredEdges);
-//        Collections.shuffle(r2, new Random(0));
-//        System.out.println("r2: ");
-//        System.out.println(r2);
-//        System.out.println(evaluatePriorityList(r2, entries, config, matrix));
-//        System.out.println("result:");
-//        System.out.println(rrr);
-//        System.out.println(rrr.tail.candidate.edge);
-//        System.out.println(rrr.tail.candidate.edge.component == rrr); //must be true
-//
-//        System.out.println("\n\n\n");
-//
-//        Edge e1 = r1.get(0);
-//        Edge e2 = r2.get(0);
-//
-//        System.out.println(e1);
-//        System.out.println(e2);
-//
-//        System.out.println(e1.equals(e2));
-//        System.out.println(e1 == e2); //must be false
-//        System.out.println(e1.component == e2.component); //must be false
-//
-//        System.out.println(evaluatePriorityList(r2, entries, config, matrix));
-//        System.out.println(evaluatePriorityList(r1, entries, config, matrix));
-
-
-//        System.out.println(evaluatePriorityList(requiredEdges, entries, config, matrix2));
-
-        Genetic genetic = new Genetic(config, matrix, entries, requiredEdges);
+        Genetic genetic = new Genetic(config, matrix, requiredEdges);
         genetic.evolution(100, 800, 0.9, 0.5, 10, 2, 0.2);
     }
+
+    public static Config readGDB() throws IOException {
+        FileReader fileReader = new FileReader("C:\\Users\\Asus\\ownCloud\\cvut\\carp\\carpbak\\src\\main\\resources\\egl\\egl-e1-A.dat");
+        BufferedReader bufferedReader = new BufferedReader(fileReader);
+
+        String line;
+        Pattern patternDigit = Pattern.compile("\\d+");
+
+        //NOMBRE
+        line = bufferedReader.readLine();
+
+        //COMENTARIO
+        line = bufferedReader.readLine();
+
+        //VERTICES
+        line = bufferedReader.readLine();
+
+        //ARISTAS_REQ
+        line = bufferedReader.readLine();
+        Matcher requiredCountMatch = patternDigit.matcher(line);
+        if(!requiredCountMatch.find()) throw new RuntimeException("required edges regex failed");
+        int requiredCount = Integer.parseInt(requiredCountMatch.group());
+        System.out.println(requiredCount);
+
+        //ARISTAS_NOREQ
+        line = bufferedReader.readLine();
+        Matcher optionalCountMatch = patternDigit.matcher(line);
+        if(!optionalCountMatch.find()) throw new RuntimeException("optional edges regex failed");
+        int optionalCount = Integer.parseInt(optionalCountMatch.group());
+        System.out.println(optionalCount);
+
+        //VEHICULOS
+        line = bufferedReader.readLine();
+        Matcher vehiclesMatch = patternDigit.matcher(line);
+        if(!vehiclesMatch.find()) throw new RuntimeException();
+        int vehicles = Integer.parseInt(vehiclesMatch.group());
+        System.out.println(vehicles);
+
+        //CAPACIDAD
+        line = bufferedReader.readLine();
+        Matcher capacityMatch = patternDigit.matcher(line);
+        if(!capacityMatch.find()) throw  new RuntimeException();
+        int capacity = Integer.parseInt(capacityMatch.group());
+        System.out.println(capacity);
+
+        //TIPO_COSTES_ARISTAS
+        line = bufferedReader.readLine();
+
+        //COSTE_TOTAL_REQ
+        line = bufferedReader.readLine();
+
+        //LISTA_ARISTAS_REQ
+        line = bufferedReader.readLine();
+
+        Pattern patternRequired = Pattern.compile("\\( (\\d+), (\\d+)\\)\\s+coste\\s+(\\d+)\\s+demanda\\s+(\\d+)");
+        Pattern patternOptional = Pattern.compile("\\( (\\d+), (\\d+)\\)\\s+coste\\s+(\\d+)");
+
+        List<Node> nodes = new ArrayList<>();
+
+//        while((line = bufferedReader.readLine()) != null){
+        for (int i = 0; i < requiredCount; i++) {
+            line = bufferedReader.readLine();
+            processEdge(line, patternRequired, nodes, true);
+        }
+
+        if (optionalCount > 0){
+            bufferedReader.readLine();
+            for (int i = 0; i < optionalCount; i++) {
+                line = bufferedReader.readLine();
+                processEdge(line, patternOptional, nodes, false);
+            }
+        }
+
+        line = bufferedReader.readLine();
+        Matcher depotMatcher = patternDigit.matcher(line);
+        if(!depotMatcher.find()) throw new RuntimeException("invalid input, depot number not found at the end");
+        int depot = Integer.parseInt(depotMatcher.group());
+
+        List<Edge> edges = makeEdges(nodes);
+
+        return new Config(nodes, edges, depot, vehicles, capacity);
+    }
+
 
     public static Evaluation evaluatePriorityList(List<Edge> priority, Config config, Map<Node, Map<Node,
             AnalysisNode>> journal, boolean journaling){
@@ -370,88 +403,6 @@ public class Main {
 
     public static Node getNode(List<Node> nodes, int number){
         return nodes.stream().filter(n -> n.number == number).findFirst().get();
-    }
-
-    public static Config readGDB() throws IOException {
-        FileReader fileReader = new FileReader("C:\\Users\\Asus\\ownCloud\\cvut\\carp\\carpbak\\src\\main\\resources\\egl\\egl-s4-A.dat");
-        BufferedReader bufferedReader = new BufferedReader(fileReader);
-
-        String line;
-        Pattern patternDigit = Pattern.compile("\\d+");
-
-        //NOMBRE
-        line = bufferedReader.readLine();
-
-        //COMENTARIO
-        line = bufferedReader.readLine();
-
-        //VERTICES
-        line = bufferedReader.readLine();
-
-        //ARISTAS_REQ
-        line = bufferedReader.readLine();
-        Matcher requiredCountMatch = patternDigit.matcher(line);
-        if(!requiredCountMatch.find()) throw new RuntimeException("required edges regex failed");
-        int requiredCount = Integer.parseInt(requiredCountMatch.group());
-        System.out.println(requiredCount);
-
-        //ARISTAS_NOREQ
-        line = bufferedReader.readLine();
-        Matcher optionalCountMatch = patternDigit.matcher(line);
-        if(!optionalCountMatch.find()) throw new RuntimeException("optional edges regex failed");
-        int optionalCount = Integer.parseInt(optionalCountMatch.group());
-        System.out.println(optionalCount);
-
-        //VEHICULOS
-        line = bufferedReader.readLine();
-        Matcher vehiclesMatch = patternDigit.matcher(line);
-        if(!vehiclesMatch.find()) throw new RuntimeException();
-        int vehicles = Integer.parseInt(vehiclesMatch.group());
-        System.out.println(vehicles);
-
-        //CAPACIDAD
-        line = bufferedReader.readLine();
-        Matcher capacityMatch = patternDigit.matcher(line);
-        if(!capacityMatch.find()) throw  new RuntimeException();
-        int capacity = Integer.parseInt(capacityMatch.group());
-        System.out.println(capacity);
-
-        //TIPO_COSTES_ARISTAS
-        line = bufferedReader.readLine();
-
-        //COSTE_TOTAL_REQ
-        line = bufferedReader.readLine();
-
-        //LISTA_ARISTAS_REQ
-        line = bufferedReader.readLine();
-
-        Pattern patternRequired = Pattern.compile("\\( (\\d+), (\\d+)\\)\\s+coste\\s+(\\d+)\\s+demanda\\s+(\\d+)");
-        Pattern patternOptional = Pattern.compile("\\( (\\d+), (\\d+)\\)\\s+coste\\s+(\\d+)");
-
-        List<Node> nodes = new ArrayList<>();
-
-//        while((line = bufferedReader.readLine()) != null){
-        for (int i = 0; i < requiredCount; i++) {
-            line = bufferedReader.readLine();
-            processEdge(line, patternRequired, nodes, true);
-        }
-
-        if (optionalCount > 0){
-            bufferedReader.readLine();
-            for (int i = 0; i < optionalCount; i++) {
-                line = bufferedReader.readLine();
-                processEdge(line, patternOptional, nodes, false);
-            }
-        }
-
-        line = bufferedReader.readLine();
-        Matcher depotMatcher = patternDigit.matcher(line);
-        if(!depotMatcher.find()) throw new RuntimeException("invalid input, depot number not found at the end");
-        int depot = Integer.parseInt(depotMatcher.group());
-
-        List<Edge> edges = makeEdges(nodes);
-
-        return new Config(nodes, edges, depot, vehicles, capacity);
     }
 
     public static List<Edge> makeEdges(List<Node> nodes){

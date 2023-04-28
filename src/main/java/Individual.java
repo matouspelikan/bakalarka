@@ -9,8 +9,6 @@ public class Individual {
     public List<Edge> priorityList;
     public Evaluation evaluation;
 
-    public boolean parent = false;
-
     public Individual(List<Edge> priorityList){
         this.priorityList = Main.deepCopy(priorityList);
     }
