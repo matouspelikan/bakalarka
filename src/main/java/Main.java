@@ -475,7 +475,9 @@ public class Main {
     }
 
 
-
+    /**
+     * stezejni metoda, ve ktereho dochazi k vyberu nejvhodnejsiho kandidata na prodlouzeni cesty
+     */
     public static Candidate selectFromRoutes(List<Route> routes, Route route, Double[][] matrix, Map<Node, Map<Node,
             AnalysisNode>> journal, boolean journaling){
         Node outerLeft = route.tail.previousLink;
