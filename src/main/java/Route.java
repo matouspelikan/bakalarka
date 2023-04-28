@@ -836,6 +836,16 @@ public class Route {
         return Arrays.asList(leftNode, rightNode);
     }
 
+    public int demand(){
+        Element el = tail;
+        int demand = 0;
+        while (el != null){
+            demand += el.candidate.edge.demand;
+            el = el.next;
+        }
+        return demand;
+    }
+
     public int length(){
         Element el = tail;
         int count = 0;

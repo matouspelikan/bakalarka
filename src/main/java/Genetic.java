@@ -2,7 +2,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class Genetic {
-    public static Random random = new Random(0);
+    public static Random random = new Random(2);
     public static Comparator<Individual> comparator;
 
     public Config config;
@@ -191,6 +191,8 @@ public class Genetic {
                 singleInsertMultipleWrap(child1);
                 singleInsertMultipleWrap(child2);
 
+                twoOptMultipleWrap(child1);
+                twoOptMultipleWrap(child2);
 
 
                 for (int j = 0; j < 10; j++) {
@@ -394,10 +396,35 @@ public class Genetic {
                 int otherRouteLength = otherRoute.length();
                 for (int k = 0; k < len; k++) {
                     for (int l = 0; l < otherRouteLength; l++) {
-                        if(k >= route.length()) break;
-                        if(l >= otherRoute.length()) break;
-                        if((diff = singleInsertMultiple(route, k, otherRoute, l)) < 0){
+                        int routeLen = route.length();
+                        int otherRouteLen = otherRoute.length();
+                        if(k >= routeLen) break;
+                        if(l >= otherRouteLen) break;
+                        if(k == routeLen - 1 && l == otherRouteLen - 1) break;
 
+//                        System.out.println(k + " " + route.length() + " | " + l + " " + otherRouteLength);
+                        if((diff = twoOptMultiple(route, k, otherRoute, l)) < 0){
+//                            System.out.println("twoOptMultiple diff " + diff);
+
+//                            Element r1Head = route.head;
+//                            Element r2Head = otherRoute.head;
+
+                            int demandBefore = route.demand() + otherRoute.demand();
+                            double evalBefore = Main.evaluateRoute(route, matrix2) + Main.evaluateRoute(otherRoute, matrix2);
+
+                            twoOptMultipleApply(route, k, otherRoute, l);
+
+                            int demandAfter = route.demand() + otherRoute.demand();
+                            double evalAfter = Main.evaluateRoute(route, matrix2) + Main.evaluateRoute(otherRoute, matrix2);
+
+                            if(demandBefore != demandAfter) throw new RuntimeException();
+                            if(evalAfter != evalBefore + diff) throw new RuntimeException();
+
+//                            System.out.println(route.head + " " + r2Head);
+//                            System.out.println(otherRoute.head + " " + r1Head);
+
+
+//                            throw new RuntimeException();
                         }
                     }
                 }
@@ -405,11 +432,137 @@ public class Genetic {
         }
     }
 
+    public double getSubDemand(Element e){
+        double demand = 0;
+        while(e != null){
+            demand += e.candidate.edge.demand;
+            e = e.next;
+        }
+        return demand;
+    }
+
+    public double getSubDemandReverse(Element e){
+        double demand = 0;
+        while(e != null){
+            demand += e.candidate.edge.demand;
+            e = e.previous;
+        }
+        return demand;
+    }
+
+
     public double twoOptMultiple(Route r1, int index1, Route r2, int index2){
         Element e1 = r1.get(index1);
         Element e2 = r2.get(index2);
 
-        return 0;
+        double d1 = getSubDemandReverse(e1);
+        double d12 = getSubDemand(e1.next);
+
+        double d2 = getSubDemandReverse(e2);
+        double d22 = getSubDemand(e2.next);
+
+        if(d1 + d22 > config.capacity || d12 + d2 > config.capacity){
+            return 1.0;
+        }
+
+        double diff = - e1.nextDistance - e2.nextDistance;
+
+        int e1N = Route.elementToNumberNext(e1.next);
+        int e2N = Route.elementToNumberNext(e2.next);
+
+        diff += matrix2[e1.nextLink.number][e2N];
+        diff += matrix2[e2.nextLink.number][e1N];
+
+        return diff;
+    }
+
+    public void twoOptMultipleApply(Route r1, int index1, Route r2, int index2) {
+        Element e1 = r1.get(index1);
+        Element e2 = r2.get(index2);
+
+//        System.out.println("routes eval: " + Main.evaluateRoute(r1, matrix2) + " " + Main.evaluateRoute(r2, matrix2));
+//        System.out.println("demands: " + r1.demand() + " " + r2.demand());
+
+        Element e1Next = e1.next;
+        Element e2Next = e2.next;
+
+        Element r1Head = r1.head;
+
+        double d1 = getSubDemandReverse(e1);
+        double d12 = getSubDemand(e1.next);
+
+        double d2 = getSubDemandReverse(e2);
+        double d22 = getSubDemand(e2.next);
+
+//        if(d1 + d22 > config.capacity || d12 + d2 > config.capacity){
+//            return 1.0;
+//        }
+
+        r1.capacityTaken -= d12;
+        r1.capacityLeft += d12;
+        e1.next = null;
+        r1.head = e1;
+
+        if(e2Next == null){
+            e1.nextDistance = matrix2[e1.nextLink.number][1];
+        }
+        else{
+            e2Next.previous = null;
+
+            Route newRoute = new Route();
+            newRoute.tail = e2Next;
+            newRoute.head = r2.head;
+
+            newRoute.capacityTaken = (int) d22;
+            newRoute.capacityLeft = config.capacity - newRoute.capacityTaken;
+
+            Element it = newRoute.tail;
+            while(it != null){
+                it.candidate.edge.component = newRoute;
+                it = it.next;
+            }
+
+            Candidate candidate = new Candidate(e2Next.candidate.edge, e2Next.previousLink, e1.nextLink, matrix2[e1.nextLink.number][e2Next.previousLink.number]);
+//            r1.mergeRouteF(candidate, e2Next);
+
+            r1.mergeRouteE(candidate);
+        }
+
+        r2.capacityTaken -= d22;
+        r2.capacityLeft += d22;
+        e2.next = null;
+        r2.head = e2;
+
+        if(e1Next == null){
+            e2.nextDistance = matrix2[e2.nextLink.number][1];
+        }
+        else{
+            e1Next.previous = null;
+
+            Route newRoute = new Route();
+            newRoute.tail = e1Next;
+            newRoute.head = r1Head;
+
+            newRoute.capacityTaken = (int)d12;
+            newRoute.capacityLeft = config.capacity - newRoute.capacityTaken;
+
+            Element it = newRoute.tail;
+            while(it != null){
+                it.candidate.edge.component = newRoute;
+                it = it.next;
+            }
+
+            Candidate candidate = new Candidate(e1Next.candidate.edge, e1Next.previousLink, e2.nextLink, matrix2[e1Next.previousLink.number][e2.nextLink.number]);
+
+//            r2.mergeRouteF(candidate, e1Next);
+            r2.mergeRouteE(candidate);
+        }
+//        System.out.println("routes eval: " + Main.evaluateRoute(r1, matrix2) + " " + Main.evaluateRoute(r2, matrix2));
+//        System.out.println("demands: " + r1.demand() + " " + r2.demand());
+//
+
+//        throw new RuntimeException();
+
     }
 
     public void singleInsertMultipleWrap(Individual individual){
