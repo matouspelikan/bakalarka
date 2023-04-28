@@ -210,6 +210,9 @@ public class Genetic {
             count++;
         }
         System.out.println("population average: " + sum/count + " best: " + population.get(0).evaluation.cost);
+
+        population.get(0).printRoutes();
+
     }
 
     public void analyzePopulation(List<Individual> population, Map<Node, Map<Node, AnalysisNode>> journal, double N){
