@@ -46,6 +46,6 @@ public class Node {
 //                "number=" + number +
 //                ", nodes=" + nodes.size() +
 //                '}';
-        return "Node " + number;
+        return "" + number;
     }
 }

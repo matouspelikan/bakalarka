@@ -77,6 +77,24 @@ public class Individual {
         return newPriorityList;
     }
 
+    public void printRoutes(){
+        for(Route r : evaluation.routes){
+            Element el = r.tail;
+            while(el != null){
+                System.out.print("|");
+                System.out.print(el.previousLink);
+//                System.out.print(el.candidate.edge);
+                System.out.print(" ");
+                System.out.print(el.nextLink);
+                System.out.print("| ");
+
+                el = el.next;
+
+            }
+            System.out.println();
+        }
+    }
+
     public void mutate(){
         int indexFrom = random.nextInt(priorityList.size());
         int indexTo = random.nextInt(priorityList.size());
