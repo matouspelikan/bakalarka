@@ -1,5 +1,8 @@
 import java.util.Optional;
 
+/**
+ * obsolete - nepouziva se
+ */
 public class Entry {
     public int toNodeNumber;
     public Node toNode;

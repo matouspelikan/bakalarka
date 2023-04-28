@@ -1,8 +1,12 @@
 import java.util.*;
 
+
+/**
+ * Kazda instance Route reprezentuje jednu cestu zacinajici a koncici v depotu
+ * reliazace pozadovanyho hran pomocí spojového seznamu - zacina a konci v tail/head
+ */
 public class Route {
 
-    public static Random random = new Random(0);
     public static Double[][] matrix;
 
     public List<Edge> edges = new ArrayList<>();
@@ -41,7 +45,6 @@ public class Route {
 
         Candidate base = new Candidate(edge, null, null, 0);
         candidates.add(base);
-
 
         Element element = new Element(base);
         head = element;
@@ -708,6 +711,13 @@ public class Route {
         for (int i = 0; i < len; i++) {
             if((diff = singleReverse(i)) < 0){
 //                System.out.println("single reverse improvement " + diff);
+                double evalBefore = Main.evaluateRoute(this, matrix);
+
+                singleReverseApply(i);
+
+                double evalAfter = Main.evaluateRoute(this, matrix);
+
+                if(evalAfter != evalBefore + diff) throw new RuntimeException();
             }
         }
 
@@ -727,6 +737,25 @@ public class Route {
     }
 
     public void singleReverseApply(int index){
+        Element e = get(index);
+
+        Node eNextLink = e.nextLink;
+        Node ePrevLink = e.previousLink;
+        e.nextLink = e.previousLink;
+        e.previousLink = eNextLink;
+
+        int eN = elementToNumberNext(e.next);
+        int eP = elementToNumberPrev(e.previous);
+
+        e.previousDistance = matrix[eP][eNextLink.number];
+        e.nextDistance = matrix[ePrevLink.number][eN];
+
+        if(e.next != null){
+            e.next.previousDistance = e.nextDistance;
+        }
+        if(e.previous != null){
+            e.previous.nextDistance = e.previousDistance;
+        }
 
     }
 

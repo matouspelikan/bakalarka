@@ -24,18 +24,6 @@ public class Candidate {
         return journalEntry;
     }
 
-    public Double getScore(){
-        return score;
-    }
-
-    public Integer getFromNodeNumber(){
-        return fromNode.number;
-    }
-
-    public Integer getToNodeNumber(){
-        return toNode.number;
-    }
-
     @Override
     public String toString() {
         return edge.toString() + " fromNode: " + this.fromNode.number + " toNode: " + this.toNode.number +

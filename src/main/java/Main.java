@@ -16,14 +16,19 @@ public class Main {
             throw new RuntimeException(e);
         }
 
-        List<Object> matrices = floydWarshall(config.nodes);
-        Double[][] matrix = (Double[][]) matrices.get(0);
+        Double[][] matrix = floydWarshall(config.nodes);
+        Random random = new Random(0);  //SEED
         config.matrix = matrix;
         Route.matrix = matrix;
+        Genetic.matrix = matrix;
+        Genetic.config = config;
+        Individual.config = config;
+        Individual.random = random;
+        Genetic.random = random;
 
         List<Edge> requiredEdges = config.edges.stream().filter(e -> e.required).collect(Collectors.toList());
 
-        Genetic genetic = new Genetic(config, matrix, requiredEdges);
+        Genetic genetic = new Genetic(requiredEdges);
         genetic.evolution(100, 800, 0.9, 0.5, 10, 2, 0.2);
     }
 
@@ -48,28 +53,27 @@ public class Main {
         Matcher requiredCountMatch = patternDigit.matcher(line);
         if(!requiredCountMatch.find()) throw new RuntimeException("required edges regex failed");
         int requiredCount = Integer.parseInt(requiredCountMatch.group());
-        System.out.println(requiredCount);
 
         //ARISTAS_NOREQ
         line = bufferedReader.readLine();
         Matcher optionalCountMatch = patternDigit.matcher(line);
         if(!optionalCountMatch.find()) throw new RuntimeException("optional edges regex failed");
         int optionalCount = Integer.parseInt(optionalCountMatch.group());
-        System.out.println(optionalCount);
+
 
         //VEHICULOS
         line = bufferedReader.readLine();
         Matcher vehiclesMatch = patternDigit.matcher(line);
         if(!vehiclesMatch.find()) throw new RuntimeException();
         int vehicles = Integer.parseInt(vehiclesMatch.group());
-        System.out.println(vehicles);
+
 
         //CAPACIDAD
         line = bufferedReader.readLine();
         Matcher capacityMatch = patternDigit.matcher(line);
         if(!capacityMatch.find()) throw  new RuntimeException();
         int capacity = Integer.parseInt(capacityMatch.group());
-        System.out.println(capacity);
+
 
         //TIPO_COSTES_ARISTAS
         line = bufferedReader.readLine();
@@ -145,11 +149,7 @@ public class Main {
                 //TODO vrat se zpet do depot, NEMUSIM RESIT
             }
             else{
-                Element el = route.head;
-                Node n = el.nextLink;
                 route.mergeRouteE(selectedCandidate);
-                Node n2 = el.nextLink;
-                if(n.number != n2.number) throw new RuntimeException();
             }
         }
 
@@ -265,7 +265,7 @@ public class Main {
         return entries;
     }
 
-    public static List<Object> floydWarshall(List<Node> nodes){
+    public static Double[][] floydWarshall(List<Node> nodes){
         Node[] nodeArray = getNodeArray(nodes);
 
 //        Integer[][] matrix = new Integer[nodes.size()+1][nodes.size()+1];
@@ -351,8 +351,8 @@ public class Main {
             }
         }
 
-//        return matrix;
-        return Arrays.asList(matrix, matrix2);
+        return matrix;
+//        return Arrays.asList(matrix, matrix2);
     }
 
     public static int argMinArray(Double[] array){
@@ -483,6 +483,7 @@ public class Main {
 
         List<Candidate> candidates = new ArrayList<>();
 
+        //podivej se na vsechny ostatni rozpracovane cesty a jejich krajni body, uvaz pouze ty ktere vyhovuji kapacitnim omezenim
         for (Route r :
                 routes) {
             if(!r.active || r == route){
@@ -507,6 +508,9 @@ public class Main {
         }
 
 //        Collections.sort(candidates, Comparator.comparingDouble(Candidate::getScore).thenComparingInt(Candidate::getToNodeNumber).thenComparingInt(Candidate::getFromNodeNumber).thenComparingInt(Candidate::hashCode));
+
+
+        //vybrani nejlepsiho kandidata nejprve podle vzdalenosti, poto podle zaznamu v journal (getJournalEntry())
         if(!journaling){
             Collections.sort(candidates, Comparator.comparingDouble(Candidate::getDistance));
         }
@@ -514,6 +518,7 @@ public class Main {
             Collections.sort(candidates, Comparator.comparingDouble(Candidate::getJournalEntry).thenComparingDouble(Candidate::getDistance));
         }
 
+        //vyber prvniho nejlepsiho
         if(candidates.size() > 0){
             return candidates.get(0);
         }
@@ -533,7 +538,6 @@ public class Main {
             if(subJournal.containsKey(toNode)){
                 AnalysisNode an = subJournal.get(toNode);
                 c.journalEntry = an.sum/an.count;
-//                c.journalEntry = Double.POSITIVE_INFINITY;
             }
             else{
                 c.journalEntry = Double.POSITIVE_INFINITY;

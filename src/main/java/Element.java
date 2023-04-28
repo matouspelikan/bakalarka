@@ -1,3 +1,6 @@
+/**
+ *  Vnitrní reprezentace cest pomocí spojového seznamu
+ */
 public class Element {
     public Candidate candidate;
     public Element previous = null;
