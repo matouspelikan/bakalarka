@@ -29,7 +29,7 @@ public class Main {
         List<Edge> requiredEdges = config.edges.stream().filter(e -> e.required).collect(Collectors.toList());
 
         Genetic genetic = new Genetic(requiredEdges);
-        genetic.evolution(100, 800, 0.9, 0.5, 10, 2, 0.2);
+        genetic.evolution(100, 800, 0.9, 0.5, 50, 50, 0.2);
     }
 
     public static Config readGDB() throws IOException {

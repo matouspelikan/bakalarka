@@ -21,6 +21,11 @@ public class Individual {
         this.evaluation = Main.evaluatePriorityList(priorityList, config, journal, journaling);
     }
 
+    public void perturb(Map<Node, Map<Node, AnalysisNode>> journal, boolean journaling){
+        Collections.shuffle(this.priorityList, new Random(random.nextInt()));
+        this.evaluate(journal, journaling);
+    }
+
     public List<Edge> crossWith(Individual other){
         List<Edge> newPriorityList = new ArrayList<>();
         int half = priorityList.size() / 2;

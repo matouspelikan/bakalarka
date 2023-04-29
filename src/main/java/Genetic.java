@@ -46,17 +46,39 @@ public class Genetic {
         sortPopulation(population);
         printPopulation(population);
 
+        int nbOfJournaling = 0;
+
         for (int i = 0; i < maxGen; i++) {
 
-            if(i == M){ // v M-te generaci se poprve spusti analyza
-                journaling = true;
-                analyzePopulation(population, journal, N);
-            }
+//            if(i == M){ // v M-te generaci se poprve spusti analyza
+//                journaling = true;
+//                analyzePopulation(population, journal, N);
+//            }
+//
+//            if(i > M && (i % k == 0)){ //kazdou k-tou iteraci se analyza prepocita
+//                journal = new HashMap<>();
+//                analyzePopulation(population, journal, N);
+//            }
 
-            if(i > M && (i % k == 0)){ //kazdou k-tou iteraci se analyza prepocita
+            boolean reevaluate = false;
+
+            if((i == M) ||                              // v M-te generaci se poprve spusti analyza
+                    (i > M && (nbOfJournaling % k == 0)))    // kazdou k-tou iteraci se analyza prepocita
+            {
+                journaling = true;
+                nbOfJournaling = 0;
+                reevaluate = true;
                 journal = new HashMap<>();
                 analyzePopulation(population, journal, N);
             }
+
+            if (reevaluate){
+                for (Individual ind: population){
+                    ind.perturb(journal, journaling);
+                }
+            }
+
+            nbOfJournaling++;
 
             System.out.print(i + ": ");
             printPopulation(population);
@@ -157,8 +179,6 @@ public class Genetic {
         return population;
     }
 
-
-
     public List<Individual> deleteDuplicates(List<Individual> population){
         List<Individual> newPopulation = new ArrayList<>(); //without duplicates
         Map<Evaluation, Integer> counts = new HashMap<>();
@@ -211,7 +231,7 @@ public class Genetic {
         }
         System.out.println("population average: " + sum/count + " best: " + population.get(0).evaluation.cost);
 
-        population.get(0).printRoutes();
+//        population.get(0).printRoutes();
     }
 
     public void analyzePopulation(List<Individual> population, Map<Node, Map<Node, AnalysisNode>> journal, double N){
