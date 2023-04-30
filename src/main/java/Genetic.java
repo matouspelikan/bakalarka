@@ -74,6 +74,7 @@ public class Genetic {
         System.out.println(secondTail.candidate.edge.hashCode());
 
 
+        System.out.println("first/second edge");
         Edge firstEdge = firstTail.candidate.edge;
         Edge secondEdge = secondTail.candidate.edge;
 
@@ -87,14 +88,22 @@ public class Genetic {
         first.printRoutes();
 
         System.out.println();
-        Collections.shuffle(second.evaluation.routes, new Random(3213));
+        Collections.shuffle(second.evaluation.routes, new Random(0));
 
+
+//        Node n = secondTail.nextLink;
+//        secondTail.nextLink = secondTail.next.nextLink;
+//        secondTail.next.nextLink = n;
 
 //        secondTail.nextLink = new Node(secondTail.nextLink.number + 1);
+//        secondTail.previousLink = new Node(secondTail.previousLink.number - 1);
         second.printRoutes();
+
 
         System.out.println(first.hashCustom());
         System.out.println(second.hashCustom());
+
+
 
 
         if(true) return;
@@ -214,6 +223,8 @@ public class Genetic {
     }
 
     public List<Individual> createInitialPopulation(int popSize, Map<Node, Map<Node, AnalysisNode>> journal){
+        Set<Integer> hashes = new HashSet<>();
+
         Map<Evaluation, Integer> counts = new HashMap<>();
 
         List<Individual> population = new ArrayList<>();
@@ -221,11 +232,24 @@ public class Genetic {
         int iteration = 0;
         while(size < popSize){
             iteration++;
-            if(iteration > popSize){ //assurance iteration overflow
-                if(true) break;
+            if(iteration > popSize*1000){ //assurance iteration overflow
                 throw new RuntimeException();
             }
             Individual newIndividual = createIndividual(journal);
+            int newIndividualHash = newIndividual.hashCustom();
+
+            newIndividual.printRoutes();
+            System.out.println(newIndividualHash);
+            System.out.println();
+
+            if(true || !hashes.contains(newIndividualHash)){
+                population.add(newIndividual);
+                size++;
+                hashes.add(newIndividualHash);
+            }
+
+            if(true) continue;
+
             if(counts.containsKey(newIndividual.evaluation)){
                 int count = counts.get(newIndividual.evaluation);
                 if(count < maxDuplicates){

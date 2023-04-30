@@ -37,12 +37,24 @@ public class Individual {
         this.evaluate(journal, journaling);
     }
 
+    public Object toHash(Element element){
+        if (element != null){
+            return element.candidate.edge.hash();
+        }
+        return 0;
+    }
+
     public int hashCustom(){
         int hash = 0;
         for(Route route : evaluation.routes){
             Element el = route.tail;
             while(el != null){
-                Set<Object> set = new HashSet<>(List.of(el.previousLink, el.candidate.edge, el.nextLink));
+
+                Object previousHash = toHash(el.previous);
+                Object nextHash = toHash(el.next);
+
+                Set<Object> set = new HashSet<>(List.of(el.previousLink.hash(),
+                        el.candidate.edge.hash(), el.nextLink.hash(), previousHash, nextHash));
                 hash += set.hashCode();
                 el = el.next;
             }

@@ -1,7 +1,4 @@
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 public class Edge {
 
@@ -104,7 +101,7 @@ public class Edge {
 //                ", cost=" + cost +
 //                ", demand=" + demand +
 //                '}';
-        return "(" + leftNumber + ", " + rightNumber + ")";
+        return "(" + leftNumber + ", " + rightNumber + ") " + cost + " " + demand;
     }
 
     @Override
@@ -118,5 +115,9 @@ public class Edge {
     @Override
     public int hashCode() {
         return Objects.hash(leftNumber, rightNumber, cost, demand);
+    }
+
+    public int hash(){
+        return new Random(this.hashCode()).nextInt();
     }
 }

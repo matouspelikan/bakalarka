@@ -61,4 +61,8 @@ public class Node {
     public int hashCode() {
         return Objects.hash(number);
     }
+
+    public int hash(){
+        return new Random(this.hashCode()).nextInt();
+    }
 }
