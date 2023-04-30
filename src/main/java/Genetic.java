@@ -1,3 +1,4 @@
+import javax.naming.InitialContext;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -36,7 +37,7 @@ public class Genetic {
         };
     }
 
-    public void evolution(int popSize, int maxGen, double probCross, double probMutation, int M, int k, double N){
+    public void evolution(int popSize, int maxGen, double probCross, double probMutation, int M, int k, double N, int maxEpoch){
 
         Map<Node, Map<Node, AnalysisNode>> journal = new HashMap<>(); //struktura, ve ktere se uchovavaji vysledky analyzy
         boolean journaling = false; //priznak, podle ktereho se prepina vybirani sousedu podle vzdalenosti/analyzy
@@ -46,42 +47,55 @@ public class Genetic {
         sortPopulation(population);
         printPopulation(population);
 
+        Map<Node, Map<Node, AnalysisNode>> bestSoFarJournal = null;
+        Individual bestSoFarIndividual = new Individual(); //fitness nastaveno na infinity
+
         int nbOfJournaling = 0;
+        int nbOfEpoch = 0;
 
         for (int i = 0; i < maxGen; i++) {
-
-//            if(i == M){ // v M-te generaci se poprve spusti analyza
-//                journaling = true;
-//                analyzePopulation(population, journal, N);
-//            }
-//
-//            if(i > M && (i % k == 0)){ //kazdou k-tou iteraci se analyza prepocita
-//                journal = new HashMap<>();
-//                analyzePopulation(population, journal, N);
-//            }
-
             boolean reevaluate = false;
 
             if((i == M) ||                              // v M-te generaci se poprve spusti analyza
                     (i > M && (nbOfJournaling % k == 0)))    // kazdou k-tou iteraci se analyza prepocita
             {
+                if(i == M){
+                    bestSoFarIndividual = new Individual(population.get(0));
+                    bestSoFarJournal = analyzePopulation(population, N);
+                }
+
+                if(comparator.compare(population.get(0), bestSoFarIndividual) < 0){
+                    bestSoFarIndividual = new Individual(population.get(0));
+                    journal = analyzePopulation(population, N);
+                    bestSoFarJournal = journal;
+                    nbOfEpoch = 0;
+                }
+                else if(nbOfEpoch < maxEpoch){
+                    nbOfEpoch++;
+                    journal = analyzePopulation(population, N);
+                }
+                else{
+                    nbOfEpoch = 0;
+                    journal = bestSoFarJournal;
+                }
+
                 journaling = true;
                 nbOfJournaling = 0;
                 reevaluate = true;
-                journal = new HashMap<>();
-                analyzePopulation(population, journal, N);
+//                journal = analyzePopulation(population, N);
             }
 
             if (reevaluate){
                 for (Individual ind: population){
-                    ind.perturb(journal, journaling);
+                    ind.perturb(journal, true);
                 }
             }
 
             nbOfJournaling++;
 
-            System.out.print(i + ": ");
+            System.out.print(i + ": " + " epoch: " + nbOfEpoch + "  ");
             printPopulation(population);
+            System.out.println("BestSoFar: " + bestSoFarIndividual.evaluation);
 
             List<Individual> interPop = new ArrayList<>();
             int interPopSize = 0;
@@ -234,13 +248,14 @@ public class Genetic {
 //        population.get(0).printRoutes();
     }
 
-    public void analyzePopulation(List<Individual> population, Map<Node, Map<Node, AnalysisNode>> journal, double N){
-//        Map<Node, Map<Node, AnalysisNode>> journal = new HashMap<>();
+    public Map<Node, Map<Node, AnalysisNode>> analyzePopulation(List<Individual> population, double N){
+        Map<Node, Map<Node, AnalysisNode>> journal = new HashMap<>();
         int sizeWorthy = (int)(population.size()*N);
         List<Individual> populationWorthy = new ArrayList<>(population.stream().limit(sizeWorthy).toList());
         for (Individual individual : populationWorthy) {
             analyzeIndividual(individual, journal);
         }
+        return journal;
     }
 
     public void analyzeIndividual(Individual individual, Map<Node, Map<Node, AnalysisNode>> journal){

@@ -5,9 +5,7 @@ import java.util.stream.Collectors;
  * jedinec v populaci
  */
 public class Individual {
-
     public static Config config;
-
     public static Random random;
 
     public List<Edge> priorityList;
@@ -15,6 +13,17 @@ public class Individual {
 
     public Individual(List<Edge> priorityList){
         this.priorityList = Main.deepCopy(priorityList);
+    }
+
+    /**
+     * pouze pro BestSoFar ucely, potrebuji pouze evaluation pro porovnani,
+     * prioriotyList a evaluation.routes me nezajimaji, jsou null
+     */
+    public Individual(Individual individual){
+        this.evaluation = new Evaluation(individual.evaluation);
+    }
+    public Individual(){
+        this.evaluation = new Evaluation(Double.POSITIVE_INFINITY, Integer.MAX_VALUE, null);
     }
 
     public void evaluate(Map<Node, Map<Node, AnalysisNode>> journal, boolean journaling){
@@ -124,9 +133,10 @@ public class Individual {
         twoOptMultipleWrap(this);
 
         for (int j = 0; j < 10; j++) {
-            for (int l = 2; l < 4; l++) {
-                this.pathScanningWrap(journal, l);
-            }
+//            for (int l = 2; l < 4; l++) {
+//                this.pathScanningWrap(journal, l);
+//            }
+            this.pathScanningWrap(journal, 2);
         }
 
     }

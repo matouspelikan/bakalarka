@@ -13,6 +13,17 @@ public class Evaluation {
         this.routes = routes;
     }
 
+    /**
+     * konstruktor pouze pro ucely "BestSoFar", kopiruji pouze cost a vehicleCount,
+     * abych dokazal porovnat s BestSoFar
+     * @param evaluation
+     */
+    public Evaluation(Evaluation evaluation){
+        this.cost = evaluation.cost;
+        this.vehicleCount = evaluation.vehicleCount;
+        this.routes = null;
+    }
+
     @Override
     public String toString() {
         return "Ev{" +

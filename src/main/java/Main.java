@@ -17,7 +17,7 @@ public class Main {
         }
 
         Double[][] matrix = floydWarshall(config.nodes);
-        Random random = new Random(0);  //SEED
+        Random random = new Random(1);  //SEED
         config.matrix = matrix;
         Route.matrix = matrix;
         Genetic.matrix = matrix;
@@ -29,7 +29,7 @@ public class Main {
         List<Edge> requiredEdges = config.edges.stream().filter(e -> e.required).collect(Collectors.toList());
 
         Genetic genetic = new Genetic(requiredEdges);
-        genetic.evolution(100, 800, 0.9, 0.5, 50, 50, 0.2);
+        genetic.evolution(100, 400, 0.9, 0.5, 400, 100, 0.2, 5);
     }
 
     public static Config readGDB() throws IOException {
