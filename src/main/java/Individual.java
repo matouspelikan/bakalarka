@@ -56,6 +56,7 @@ public class Individual {
                 Set<Object> set = new HashSet<>(List.of(el.previousLink.hash(),
                         el.candidate.edge.hash(), el.nextLink.hash(), previousHash, nextHash));
                 hash += set.hashCode();
+
                 el = el.next;
             }
         }

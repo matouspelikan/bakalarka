@@ -3,36 +3,17 @@
  */
 public class Element {
     public Candidate candidate;
-    public Element previous = null;
+    public Element previous = null; //odkaz na dalsi prvek ve spojovem seznamu
     public Element next = null;
 
-    public double nextDistance = 0;
-    public double previousDistance = 0;
+    public double nextDistance = 0; //vzdalenost do this.previous
+    public double previousDistance = 0; //vzdalenost do this.next
 
-    public Node previousLink;
-    public Node nextLink;
+    public Node previousLink; //Vrchol skrze ktery je hrana spojena se svym predchudcem (this.previous)
+    public Node nextLink; //Vrchol skrze ktery je hrana spojena se svym nasledovnikem (this.next)
 
     public Element(Candidate candidate){
         this.candidate = candidate;
-    }
-
-    public int getEdge(){
-        if(nextLink == null){
-            if(candidate.edge.leftNode.number == previousLink.number){
-                return candidate.edge.rightNode.number;
-            }
-            return candidate.edge.leftNode.number;
-        }
-        else if(previousLink == null){
-            if(candidate.edge.leftNode.number == nextLink.number){
-                return candidate.edge.rightNode.number;
-            }
-            return candidate.edge.leftNode.number;
-        }
-        else{
-            //element neni na kraji
-            throw new RuntimeException();
-        }
     }
 
     @Override

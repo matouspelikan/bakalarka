@@ -67,18 +67,18 @@ public class Genetic {
                     bestSoFarJournal = analyzePopulation(population, N);
                 }
 
-                if(comparator.compare(population.get(0), bestSoFarIndividual) < 0){
+                if(comparator.compare(population.get(0), bestSoFarIndividual) < 0){ //prvni jedinec v populaci je lepsi nez bestSoFar
                     bestSoFarIndividual = new Individual(population.get(0));
                     journal = analyzePopulation(population, N);
                     bestSoFarJournal = journal;
-                    nbOfEpoch = 0;
+                    nbOfEpoch = 1; //dokud se nejlepsi jedinec zlepsuje, zustava epocha na zacatku
                 }
                 else if(nbOfEpoch < maxEpoch){
                     nbOfEpoch++;
                     journal = analyzePopulation(population, N);
                 }
                 else{
-                    nbOfEpoch = 0;
+                    nbOfEpoch = 1;
                     journal = bestSoFarJournal;
                 }
 
@@ -179,10 +179,6 @@ public class Genetic {
             }
             Individual newIndividual = createIndividual(journal);
             int newIndividualHash = newIndividual.hashCustom();
-
-//            newIndividual.printRoutes();
-//            System.out.println(newIndividualHash);
-//            System.out.println();
 
             if(!hashes.contains(newIndividualHash)){
                 population.add(newIndividual);
