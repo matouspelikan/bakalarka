@@ -886,6 +886,17 @@ public class Route {
         return count;
     }
 
+    public int lengthReverse(){
+        Element el = head;
+        int count = 0;
+        while (el != null){
+            count++;
+            el = el.previous;
+//            System.out.println(count);
+        }
+        return count;
+    }
+
     public Element get(int index){
         Element el = tail;
         while(el != null && index > 0){

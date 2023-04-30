@@ -1,3 +1,5 @@
+import com.sun.security.jgss.GSSUtil;
+
 import javax.naming.InitialContext;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -38,6 +40,7 @@ public class Genetic {
     }
 
     public void evolution(int popSize, int maxGen, double probCross, double probMutation, int M, int k, double N, int maxEpoch){
+        maxDuplicates = popSize;
 
         Map<Node, Map<Node, AnalysisNode>> journal = new HashMap<>(); //struktura, ve ktere se uchovavaji vysledky analyzy
         boolean journaling = false; //priznak, podle ktereho se prepina vybirani sousedu podle vzdalenosti/analyzy
@@ -46,6 +49,55 @@ public class Genetic {
         population = createInitialPopulation(popSize, journal);
         sortPopulation(population);
         printPopulation(population);
+
+
+        Individual first = population.get(0);
+        Individual second = population.get(1);
+
+        first.printRoutes();
+        Element firstTail = first.evaluation.routes.get(0).tail;
+        System.out.println(firstTail);
+
+        System.out.println();
+
+        second.printRoutes();
+        Element secondTail = second.evaluation.routes.get(0).tail;
+        System.out.println(secondTail);
+
+        System.out.println(firstTail == secondTail);
+        System.out.println(firstTail.equals(secondTail));
+
+        System.out.println(firstTail.candidate.edge == secondTail.candidate.edge);
+        System.out.println(firstTail.candidate.edge.equals(secondTail.candidate.edge));
+
+        System.out.println(firstTail.candidate.edge.hashCode());
+        System.out.println(secondTail.candidate.edge.hashCode());
+
+
+        Edge firstEdge = firstTail.candidate.edge;
+        Edge secondEdge = secondTail.candidate.edge;
+
+        System.out.println(firstEdge == secondEdge);
+        System.out.println(firstEdge.equals(secondEdge));
+
+        System.out.println(Objects.hash(firstEdge));
+        System.out.println(Objects.hash(secondEdge));
+
+
+        first.printRoutes();
+
+        System.out.println();
+        Collections.shuffle(second.evaluation.routes, new Random(3213));
+
+
+//        secondTail.nextLink = new Node(secondTail.nextLink.number + 1);
+        second.printRoutes();
+
+        System.out.println(first.hashCustom());
+        System.out.println(second.hashCustom());
+
+
+        if(true) return;
 
         Map<Node, Map<Node, AnalysisNode>> bestSoFarJournal = null;
         Individual bestSoFarIndividual = new Individual(); //fitness nastaveno na infinity
@@ -155,7 +207,7 @@ public class Genetic {
 
     public Individual createIndividual(Map<Node, Map<Node, AnalysisNode>> journal){
         List<Edge> newPriorityList = Main.deepCopy(requiredEdges);
-        Collections.shuffle(newPriorityList, new Random(random.nextInt()));
+//        Collections.shuffle(newPriorityList, new Random(random.nextInt()));
         Individual individual = new Individual(newPriorityList);
         individual.evaluate(journal, false);
         return individual;
@@ -169,7 +221,8 @@ public class Genetic {
         int iteration = 0;
         while(size < popSize){
             iteration++;
-            if(iteration > popSize*1000){
+            if(iteration > popSize){ //assurance iteration overflow
+                if(true) break;
                 throw new RuntimeException();
             }
             Individual newIndividual = createIndividual(journal);

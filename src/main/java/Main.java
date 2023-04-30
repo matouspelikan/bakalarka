@@ -113,23 +113,6 @@ public class Main {
         return new Config(nodes, edges, depot, vehicles, capacity);
     }
 
-
-    public static Evaluation evaluatePriorityList(List<Edge> priority, Config config, Map<Node, Map<Node,
-            AnalysisNode>> journal, boolean journaling){
-        List<Route> routes = construct(priority, config, journal, journaling);
-        int cumulativeCost = evaluateRoutes(routes, config);
-        return new Evaluation(cumulativeCost, routes.size(), routes);
-    }
-
-    public static int evaluateRoutes(List<Route> routes, Config config){
-        int cumulativeCost = 0;
-        for (Route r :
-                routes) {
-            cumulativeCost += evaluateRoute(r, config.matrix);
-        }
-        return cumulativeCost;
-    }
-
     public static List<Route> construct(List<Edge> priority, Config config, Map<Node, Map<Node, AnalysisNode>> journal,
                                         boolean journaling){
         List<Route> routes = new ArrayList<>();
@@ -155,6 +138,23 @@ public class Main {
 
         return new ArrayList<>(routes.stream().filter(r -> r.active).collect(Collectors.toList()));
     }
+
+    public static Evaluation evaluatePriorityList(List<Edge> priority, Config config, Map<Node, Map<Node,
+            AnalysisNode>> journal, boolean journaling){
+        List<Route> routes = construct(priority, config, journal, journaling);
+        int cumulativeCost = evaluateRoutes(routes, config);
+        return new Evaluation(cumulativeCost, routes.size(), routes);
+    }
+
+    public static int evaluateRoutes(List<Route> routes, Config config){
+        int cumulativeCost = 0;
+        for (Route r :
+                routes) {
+            cumulativeCost += evaluateRoute(r, config.matrix);
+        }
+        return cumulativeCost;
+    }
+
 
     public static double evaluateRoute(Route route, Double[][] matrix){
         if(route.tail == null) return 0.0;
@@ -189,80 +189,6 @@ public class Main {
             newPriorityList.add(new Edge(e));
         }
         return newPriorityList;
-    }
-
-    /**
-     * Component = Route which and edge is part of
-     */
-    public static Route nodeToComponent(int node, List<Route> routes){
-        int componentCount = 0;
-        Route onlyRoute = null;
-        for (int i = 0; i < routes.size(); i++) {
-            Route route = routes.get(i);
-//            for (int j = 0; j < route.edges.size(); j++) {
-//                Edge edge = route.edges.get(j);
-//                if(edge.leftNumber == node || edge.rightNumber == node){
-//                    return route;
-//                }
-//            }
-            if(route.containsNodeI(node)){
-                componentCount++;
-                onlyRoute = route;
-            }
-        }
-
-        if(componentCount > 1){
-            return null;
-        }
-
-        return onlyRoute;
-    }
-
-    public static boolean entryToComponent(Entry entry, Route route){
-        if(entry.toNode == null){
-            return false;
-        }
-        for (Edge e : entry.toNode.edges){
-            if(e.component != route){
-                return true;
-            }
-        }
-        return false;
-    }
-
-    public static Route edgeToComponent(Edge edge, List<Route> routes){
-        for (int i = 0; i < routes.size(); i++) {
-            Route route = routes.get(i);
-            if(route.edges.contains(edge)){
-                return route;
-            }
-        }
-        return null;
-    }
-
-    public static Entry[][] createEntries(Double[][] matrix2, List<Node> nodes){
-        Entry[][] entries = new Entry[matrix2.length][];
-        for (int i = 1; i < matrix2.length; i++) {
-            Double[] row = matrix2[i];
-            Entry[] entryRow = new Entry[matrix2[i].length];
-            for (int j = 0; j < matrix2[i].length; j++) {
-                int finalJ = j;
-                Optional<Node> toNode = nodes.stream().filter(n -> n.number == finalJ).findFirst();
-
-                int finalI = i;
-                Optional<Node> fromNode = nodes.stream().filter(n -> n.number == finalI).findFirst();
-
-                entryRow[j] = new Entry(j, matrix2[i][j], i, toNode, fromNode);
-            }
-            Arrays.sort(entryRow, new Comparator<Entry>() {
-                @Override
-                public int compare(Entry o1, Entry o2) {
-                    return Double.compare(o1.distance, o2.distance);
-                }
-            });
-            entries[i] = entryRow;
-        }
-        return entries;
     }
 
     public static Double[][] floydWarshall(List<Node> nodes){
@@ -308,15 +234,6 @@ public class Main {
             }
         }
 
-//        for (int i = 0; i < matrix.length; i++) {
-//            for (int j = 0; j < matrix.length; j++) {
-//                System.out.print(matrix[i][j]);
-//                System.out.print(" ");
-//            }
-//            System.out.println();
-//        }c
-
-
         Double[][] matrix2 = new Double[matrix.length][];
 
         Node n = null;
@@ -355,17 +272,6 @@ public class Main {
 //        return Arrays.asList(matrix, matrix2);
     }
 
-    public static int argMinArray(Double[] array){
-        Double min = Double.POSITIVE_INFINITY;
-        int arg = -1;
-        for (int i = 0; i < array.length; i++) {
-            if (array[i]<min){
-                min = array[i];
-                arg = i;
-            }
-        }
-        return arg;
-    }
 
     public static Node[] getNodeArray(List<Node> nodes){
         Node[] nodesArray = new Node[nodes.size() + 1];
@@ -373,32 +279,6 @@ public class Main {
             nodesArray[i] = getNode(nodes, i);
         }
         return nodesArray;
-    }
-
-    public static List<Entry> filterEntries(int left, int right, List<Route> routes, Route route){
-        return null;
-    }
-
-    //TODO nemusí fungovat, protoze zadny z tech minimal nemusi byt vyhovujici pro
-    public static List<Entry> mergeEntryLists(List<Entry> e1, List<Entry> e2){
-        double minimal1 = e1.get(0).distance;
-        double minimal2 = e2.get(0).distance;
-        List<Entry> result = new ArrayList<>();
-        double minimal = minimal2;
-        if (minimal1 < minimal2){
-            minimal = minimal1;
-        }
-        for (Entry e : e1) {
-            if(e.distance > minimal)
-                break;
-            result.add(e);
-        }
-        for (Entry e : e2){
-            if (e.distance > minimal)
-                break;
-            result.add(e);
-        }
-        return result;
     }
 
     public static Node getNode(List<Node> nodes, int number){
@@ -433,47 +313,6 @@ public class Main {
 
         return edges;
     }
-
-    /**
-        get candidates more effectively
-     */
-    public static List<Candidate> getCandidatesFromMultipleNodes(List<Entry> entries, Map<Integer, List<Edge>> edgeMap, Route route, List<Route> routes){
-
-        List<Candidate> candidates = new ArrayList<>();
-        for (Entry entry : entries){
-//            edges.addAll(edgeMap.get(entry.nodeNumber).stream().filter(e -> e.required && e.component != route).toList());
-            for(Edge e : edgeMap.get(entry.toNodeNumber).stream().filter(_e -> _e.required && _e.component != route).collect(Collectors.toList())){
-                candidates.add(new Candidate(e, entry.toNode, entry.fromNode, entry.distance));
-            }
-        }
-        return candidates;
-    }
-
-    /**
-     * selects candidates based on current remaining vehicle capacity
-     * @return
-     */
-    public static Candidate selectViableCandidate(Route route, List<Candidate> candidates){
-        for (int i = 0; i < candidates.size(); i++) {
-            Candidate candidate = candidates.get(i);
-            //TODO musím zajistit aby vybrany node byl na kraji svoji komponenty
-            if(!candidate.edge.component.findOuterNodes().contains(candidate.toNode.number)){
-                continue;
-            }
-            if(!(candidate.edge.component.tail.candidate.edge == candidate.edge || candidate.edge.component.head.candidate.edge == candidate.edge)){
-                continue;
-            }
-
-            //greedy
-//            if(candidate.edge.component.capacityLeft >= route.capacityTaken){
-            if(route.capacityLeft >= candidate.edge.component.capacityTaken){
-//            if(candidate.edge.component2.capacityTaken <= route.capacityLeft){
-                return candidate;
-            }
-        }
-        return null;
-    }
-
 
     /**
      * stezejni metoda, ve ktereho dochazi k vyberu nejvhodnejsiho kandidata na prodlouzeni cesty
@@ -580,7 +419,5 @@ public class Main {
         nodes.add(newNode);
         return newNode;
     }
-
-
 
 }

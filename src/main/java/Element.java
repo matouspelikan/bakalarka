@@ -37,6 +37,6 @@ public class Element {
 
     @Override
     public String toString() {
-        return candidate.edge.toString();
+        return "|" + previousLink + " " + nextLink + "|";
     }
 }

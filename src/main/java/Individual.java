@@ -5,11 +5,13 @@ import java.util.stream.Collectors;
  * jedinec v populaci
  */
 public class Individual {
+
     public static Config config;
     public static Random random;
 
     public List<Edge> priorityList;
     public Evaluation evaluation;
+
 
     public Individual(List<Edge> priorityList){
         this.priorityList = Main.deepCopy(priorityList);
@@ -33,6 +35,20 @@ public class Individual {
     public void perturb(Map<Node, Map<Node, AnalysisNode>> journal, boolean journaling){
         Collections.shuffle(this.priorityList, new Random(random.nextInt()));
         this.evaluate(journal, journaling);
+    }
+
+    public int hashCustom(){
+        int hash = 0;
+        for(Route route : evaluation.routes){
+            Element el = route.tail;
+            while(el != null){
+                Set<Object> set = new HashSet<>(List.of(el.previousLink, el.candidate.edge, el.nextLink));
+                hash += set.hashCode();
+                el = el.next;
+            }
+        }
+
+        return hash;
     }
 
     public List<Edge> crossWith(Individual other){
@@ -95,12 +111,13 @@ public class Individual {
         for(Route r : evaluation.routes){
             Element el = r.tail;
             while(el != null){
-                System.out.print("|");
-                System.out.print(el.previousLink);
-//                System.out.print(el.candidate.edge);
-                System.out.print(" ");
-                System.out.print(el.nextLink);
-                System.out.print("| ");
+                System.out.print(el);
+//                System.out.print("|");
+//                System.out.print(el.previousLink);
+////                System.out.print(el.candidate.edge);
+//                System.out.print(" ");
+//                System.out.print(el.nextLink);
+//                System.out.print("| ");
 
                 el = el.next;
 
@@ -139,6 +156,11 @@ public class Individual {
             this.pathScanningWrap(journal, 2);
         }
 
+        for(Route r : evaluation.routes){
+//            System.out.println(r.length());
+            if(r.lengthReverse() != r.length()) throw new RuntimeException();
+        }
+
     }
 
     public void pathScanningWrap(Map<Node, Map<Node, AnalysisNode>> journal, int limit){
@@ -175,10 +197,6 @@ public class Individual {
             }
         }
         Collections.shuffle(allEdges, new Random(random.nextInt()));
-//        System.out.println("difference");
-//        System.out.println(routes.size());
-//        System.out.println(Main.evaluateRoutes(routes, config));
-//        System.out.println(Main.evaluatePriorityList(allEdges, config));
         return Main.evaluatePriorityList(allEdges, config, journal, false);
     }
 
