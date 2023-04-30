@@ -29,11 +29,11 @@ public class Main {
         List<Edge> requiredEdges = config.edges.stream().filter(e -> e.required).collect(Collectors.toList());
 
         Genetic genetic = new Genetic(requiredEdges);
-        genetic.evolution(100, 400, 0.9, 0.5, 400, 100, 0.2, 5);
+        genetic.evolution(100, 400, 0.9, 0.5, 50, 50, 0.2, 5);
     }
 
     public static Config readGDB() throws IOException {
-        FileReader fileReader = new FileReader("C:\\Users\\Asus\\ownCloud\\cvut\\carp\\carpbak\\src\\main\\resources\\gdb\\gdb1.dat");
+        FileReader fileReader = new FileReader("C:\\Users\\Asus\\ownCloud\\cvut\\carp\\carpbak\\src\\main\\resources\\egl\\egl-e1-A.dat");
         BufferedReader bufferedReader = new BufferedReader(fileReader);
 
         String line;

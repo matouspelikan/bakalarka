@@ -50,64 +50,6 @@ public class Genetic {
         sortPopulation(population);
         printPopulation(population);
 
-
-        Individual first = population.get(0);
-        Individual second = population.get(1);
-
-        first.printRoutes();
-        Element firstTail = first.evaluation.routes.get(0).tail;
-        System.out.println(firstTail);
-
-        System.out.println();
-
-        second.printRoutes();
-        Element secondTail = second.evaluation.routes.get(0).tail;
-        System.out.println(secondTail);
-
-        System.out.println(firstTail == secondTail);
-        System.out.println(firstTail.equals(secondTail));
-
-        System.out.println(firstTail.candidate.edge == secondTail.candidate.edge);
-        System.out.println(firstTail.candidate.edge.equals(secondTail.candidate.edge));
-
-        System.out.println(firstTail.candidate.edge.hashCode());
-        System.out.println(secondTail.candidate.edge.hashCode());
-
-
-        System.out.println("first/second edge");
-        Edge firstEdge = firstTail.candidate.edge;
-        Edge secondEdge = secondTail.candidate.edge;
-
-        System.out.println(firstEdge == secondEdge);
-        System.out.println(firstEdge.equals(secondEdge));
-
-        System.out.println(Objects.hash(firstEdge));
-        System.out.println(Objects.hash(secondEdge));
-
-
-        first.printRoutes();
-
-        System.out.println();
-        Collections.shuffle(second.evaluation.routes, new Random(0));
-
-
-//        Node n = secondTail.nextLink;
-//        secondTail.nextLink = secondTail.next.nextLink;
-//        secondTail.next.nextLink = n;
-
-//        secondTail.nextLink = new Node(secondTail.nextLink.number + 1);
-//        secondTail.previousLink = new Node(secondTail.previousLink.number - 1);
-        second.printRoutes();
-
-
-        System.out.println(first.hashCustom());
-        System.out.println(second.hashCustom());
-
-
-
-
-        if(true) return;
-
         Map<Node, Map<Node, AnalysisNode>> bestSoFarJournal = null;
         Individual bestSoFarIndividual = new Individual(); //fitness nastaveno na infinity
 
@@ -216,7 +158,7 @@ public class Genetic {
 
     public Individual createIndividual(Map<Node, Map<Node, AnalysisNode>> journal){
         List<Edge> newPriorityList = Main.deepCopy(requiredEdges);
-//        Collections.shuffle(newPriorityList, new Random(random.nextInt()));
+        Collections.shuffle(newPriorityList, new Random(random.nextInt()));
         Individual individual = new Individual(newPriorityList);
         individual.evaluate(journal, false);
         return individual;
@@ -238,17 +180,18 @@ public class Genetic {
             Individual newIndividual = createIndividual(journal);
             int newIndividualHash = newIndividual.hashCustom();
 
-            newIndividual.printRoutes();
-            System.out.println(newIndividualHash);
-            System.out.println();
+//            newIndividual.printRoutes();
+//            System.out.println(newIndividualHash);
+//            System.out.println();
 
-            if(true || !hashes.contains(newIndividualHash)){
+            if(!hashes.contains(newIndividualHash)){
                 population.add(newIndividual);
                 size++;
                 hashes.add(newIndividualHash);
             }
 
             if(true) continue;
+            //obsolete way of checking for duplicates
 
             if(counts.containsKey(newIndividual.evaluation)){
                 int count = counts.get(newIndividual.evaluation);
@@ -271,9 +214,20 @@ public class Genetic {
     }
 
     public List<Individual> deleteDuplicates(List<Individual> population){
+        Set<Integer> hashes = new HashSet<>();
+
         List<Individual> newPopulation = new ArrayList<>(); //without duplicates
         Map<Evaluation, Integer> counts = new HashMap<>();
         for(Individual individual : population){
+            int hash = individual.hashCustom();
+            if(!hashes.contains(hash)){
+                hashes.add(hash);
+                newPopulation.add(individual);
+            }
+
+            if(true) continue;
+            //obsolete way of checking for duplicates
+
             if(counts.containsKey(individual.evaluation)){
                 int count = counts.get(individual.evaluation);
                 if(count < maxDuplicates){
