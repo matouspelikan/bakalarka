@@ -124,15 +124,7 @@ public class Individual {
             Element el = r.tail;
             while(el != null){
                 System.out.print(el);
-//                System.out.print("|");
-//                System.out.print(el.previousLink);
-////                System.out.print(el.candidate.edge);
-//                System.out.print(" ");
-//                System.out.print(el.nextLink);
-//                System.out.print("| ");
-
                 el = el.next;
-
             }
             System.out.println();
         }
@@ -145,8 +137,6 @@ public class Individual {
 
         priorityList.set(indexFrom, priorityList.get(indexTo));
         priorityList.set(indexTo, temp);
-
-//        System.out.println(indexFrom + "  " + indexTo);
     }
 
     //greedy localOptim, pokud nalezne lokalni zlepseni, provede ho ihned

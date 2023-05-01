@@ -101,7 +101,7 @@ public class Edge {
 //                ", cost=" + cost +
 //                ", demand=" + demand +
 //                '}';
-        return "(" + leftNumber + ", " + rightNumber + ") " + cost + " " + demand;
+        return "(" + leftNumber + ", " + rightNumber + ")"; // + cost + " " + demand;
     }
 
     @Override

@@ -906,6 +906,26 @@ public class Route {
         return el;
     }
 
+    /**
+     * route reverse itself for testing purposes -> linked list reversal
+     * head becomes tail and tail becomes head
+     */
+    public void reverse(){
+        Route newRoute = new Route(new Edge(this.tail.candidate.edge), Integer.MAX_VALUE);
+        Candidate newCandidate = new Candidate(this.head.candidate.edge, this.head.nextLink,
+                newRoute.head.nextLink, 0);
+        newRoute.mergeRouteE(newCandidate);
+
+        newRoute.tail = newRoute.tail.next;
+        newRoute.tail.previous = null;
+        newRoute.tail.previousDistance = matrix[newRoute.tail.previousLink.number][1];
+        newRoute.active = false;
+
+        this.active = true;
+        this.head = newRoute.head;
+        this.tail = newRoute.tail;
+    }
+
     @Override
     public String toString() {
         return fullRoute();
@@ -915,7 +935,7 @@ public class Route {
         String s = "";
         Element element = tail;
         while(element != null){
-            s += element.candidate.edge + " | ";
+            s += element;
             element = element.next;
         }
         return s;

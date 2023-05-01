@@ -86,9 +86,11 @@ public class Genetic {
 
 
         first.printRoutes();
+        first.evaluate(new HashMap<>(), false);
+        System.out.println(first.evaluation);
 
         System.out.println();
-        Collections.shuffle(second.evaluation.routes, new Random(0));
+//        Collections.shuffle(second.evaluation.routes, new Random(0));
 
 
 //        Node n = secondTail.nextLink;
@@ -97,7 +99,12 @@ public class Genetic {
 
 //        secondTail.nextLink = new Node(secondTail.nextLink.number + 1);
 //        secondTail.previousLink = new Node(secondTail.previousLink.number - 1);
+
+        second.evaluation.routes.get(0).reverse();
+        System.out.println("\n\nroutes:");
         second.printRoutes();
+//        second.evaluate(new HashMap<>(), false);
+        System.out.println(second.evaluation);
 
 
         System.out.println(first.hashCustom());
