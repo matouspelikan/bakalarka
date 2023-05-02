@@ -162,7 +162,7 @@ public class Individual {
         singleInsertMultipleWrap(this);
         twoOptMultipleWrap(this);
 
-        for (int j = 0; j < 10; j++) {
+        for (int j = 0; j < 1; j++) {
 //            for (int l = 2; l < 4; l++) {
 //                this.pathScanningWrap(journal, l);
 //            }

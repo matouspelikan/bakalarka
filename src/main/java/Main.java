@@ -17,7 +17,7 @@ public class Main {
         }
 
         Double[][] matrix = floydWarshall(config.nodes);
-        Random random = new Random(1);  //SEED
+        Random random = new Random(0);  //SEED
         config.matrix = matrix;
         Route.matrix = matrix;
         Genetic.matrix = matrix;
@@ -29,7 +29,7 @@ public class Main {
         List<Edge> requiredEdges = config.edges.stream().filter(e -> e.required).collect(Collectors.toList());
 
         Genetic genetic = new Genetic(requiredEdges);
-        genetic.evolution(100, 400, 0.9, 0.5, 50, 50, 0.2, 5);
+        genetic.evolution(100, 200, 0.9, 0.5, 50, 50, 0.2, 3);
     }
 
     public static Config readGDB() throws IOException {
@@ -356,6 +356,58 @@ public class Main {
             Collections.sort(candidates, Comparator.comparingDouble(Candidate::getDistance));
         }
         if(journaling){
+            Map<Node, Integer> nodeCountsFromLeftNode = new HashMap<>();
+            Map<Node, Integer> nodeCountsFromRightNode = new HashMap<>();
+
+            for(Candidate candidate : candidates){
+                if(candidate.fromNode == outerLeft){
+                    if(!nodeCountsFromLeftNode.containsKey(candidate.toNode)){
+                        nodeCountsFromLeftNode.put(candidate.toNode, 1);
+                    }
+                    else{
+                        int count = nodeCountsFromLeftNode.get(candidate.toNode);
+                        nodeCountsFromLeftNode.put(candidate.toNode, count + 1);
+                    }
+                }
+                else if(candidate.fromNode == outerRight){
+                    if(!nodeCountsFromRightNode.containsKey(candidate.toNode)){
+                        nodeCountsFromRightNode.put(candidate.toNode, 1);
+                    }
+                    else{
+                        int count = nodeCountsFromRightNode.get(candidate.toNode);
+                        nodeCountsFromRightNode.put(candidate.toNode, count + 1);
+                    }
+                }
+                else{
+                    throw new RuntimeException();
+                }
+            }
+
+            int countLeft = 0;
+            int countDoubleLeft = 0;
+            int leftSum = 0;
+            for(Node node : nodeCountsFromLeftNode.keySet()){
+                countLeft++;
+                if(nodeCountsFromLeftNode.get(node) > 1){
+                    countDoubleLeft++;
+                }
+                leftSum += nodeCountsFromLeftNode.get(node);
+            }
+
+            int countRight = 0;
+            int countDoubleRight = 0;
+            for(Node node : nodeCountsFromRightNode.keySet()){
+                countRight++;
+                if(nodeCountsFromRightNode.get(node) > 1){
+                    countDoubleRight++;
+                }
+            }
+            System.out.println("routes: " + routes.size() + " " + routes.stream().filter(r -> r.active).toList().size());
+            System.out.println("left: " + countDoubleLeft + " " + countLeft + " right: " + countDoubleRight + " " + countRight);
+
+            System.out.println(candidates.stream().filter(c -> c.fromNode == outerLeft).toList().size());
+            System.out.println(leftSum);
+
             Collections.sort(candidates, Comparator.comparingDouble(Candidate::getJournalEntry).thenComparingDouble(Candidate::getDistance));
         }
 
