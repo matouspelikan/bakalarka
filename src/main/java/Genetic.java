@@ -1,6 +1,7 @@
 import com.sun.security.jgss.GSSUtil;
 
 import javax.naming.InitialContext;
+import java.io.PrintWriter;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -14,8 +15,10 @@ public class Genetic {
     public int kTournament = 3;
     public int maxDuplicates = 2; //maximalni pocet jedincu v populace se stejnym costem
 
-    public Genetic(List<Edge> requiredEdges){
+    public PrintWriter pw;
 
+    public Genetic(List<Edge> requiredEdges, PrintWriter pw){
+        this.pw = pw;
         this.requiredEdges = requiredEdges;
 
         Config finalConfig = config;
@@ -39,6 +42,8 @@ public class Genetic {
         };
     }
 
+    public Individual BEST = new Individual();
+
     public void evolution(int popSize, int maxGen, double probCross, double probMutation, int M, int k, double N, int maxEpoch){
         maxDuplicates = popSize;
 
@@ -48,27 +53,33 @@ public class Genetic {
         List<Individual> population;
         population = createInitialPopulation(popSize, journal);
         sortPopulation(population);
-        printPopulation(population);
+//        printPopulation(population);
 
         Map<Node, Map<Node, AnalysisNode>> bestSoFarJournal = null;
         Individual bestSoFarIndividual = new Individual(); //fitness nastaveno na infinity
+
 
         int nbOfJournaling = 0;
         int nbOfEpoch = 0;
 
         for (int i = 0; i < maxGen; i++) {
+            if(comparator.compare(population.get(0), BEST) < 0){ //prvni jedinec v populaci je lepsi nez bestSoFar
+                BEST = new Individual(population.get(0), i);
+                pw.println(i + ": " + BEST.evaluation);
+            }
+
             boolean reevaluate = false;
 
             if((i == M) ||                              // v M-te generaci se poprve spusti analyza
                     (i > M && (nbOfJournaling % k == 0)))    // kazdou k-tou iteraci se analyza prepocita
             {
                 if(i == M){
-                    bestSoFarIndividual = new Individual(population.get(0));
+                    bestSoFarIndividual = new Individual(population.get(0), i);
                     bestSoFarJournal = analyzePopulation(population, N);
                 }
 
                 if(comparator.compare(population.get(0), bestSoFarIndividual) < 0){ //prvni jedinec v populaci je lepsi nez bestSoFar
-                    bestSoFarIndividual = new Individual(population.get(0));
+                    bestSoFarIndividual = new Individual(population.get(0), i);
                     journal = analyzePopulation(population, N);
                     bestSoFarJournal = journal;
                     nbOfEpoch = 1; //dokud se nejlepsi jedinec zlepsuje, zustava epocha na zacatku
@@ -96,9 +107,9 @@ public class Genetic {
 
             nbOfJournaling++;
 
-            System.out.print(i + ": " + " epoch: " + nbOfEpoch + "  ");
-            printPopulation(population);
-            System.out.println("BestSoFar: " + bestSoFarIndividual.evaluation);
+//            System.out.print(i + ": " + " epoch: " + nbOfEpoch + "  ");
+//            printPopulation(population);
+//            System.out.println("BestSoFar: " + bestSoFarIndividual.evaluation);
 
             List<Individual> interPop = new ArrayList<>();
             int interPopSize = 0;
@@ -150,8 +161,8 @@ public class Genetic {
 
         }
 
-        System.out.println();
-        printPopulation(population);
+//        System.out.println();
+//        printPopulation(population);
 
 //        System.out.println(journal);
     }

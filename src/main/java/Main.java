@@ -1,23 +1,74 @@
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
+import java.nio.file.Files;
 import java.util.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public class Main {
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
+
+        runDataset("C:\\Users\\Asus\\ownCloud\\cvut\\carp\\carpbak\\src\\main\\resources\\egl\\egl-e1-A.dat");
+        runDataset("C:\\Users\\Asus\\ownCloud\\cvut\\carp\\carpbak\\src\\main\\resources\\egl\\egl-s3-A.dat");
+
+    }
+
+    public static void runDataset(String file) throws IOException {
+        List<String> l = Arrays.stream(file.split("[\\\\, .]")).toList();
+        String output = l.get(l.size()-2);
+        String ol = output;
+        output = "C:\\Users\\Asus\\ownCloud\\cvut\\carp\\resultsWrap\\" + output + ".csv";
+
+        File f = new File(output);
+//        System.out.println(f.createNewFile());
+        FileWriter fw = new FileWriter(f);
+        PrintWriter pw = new PrintWriter(fw);
+
+
+        pw.println("seed,k=50 iteration, best,k=100 iteration, best,k=Inf iteration, best");
+        System.out.println(ol);
+        for (int i = 0; i < 13; i++) {
+            System.out.println("seed " + i);
+            Individual best1 = run(file, i, 50);
+            Individual best2 = run(file, i, 100);
+            Individual best3 = run(file, i, Integer.MAX_VALUE);
+
+            pw.println(i+","+best1.nbofGeneration+","+best1.evaluation.cost+","+best2.nbofGeneration+","+best2.evaluation.cost+","+best3.nbofGeneration+","+best3.evaluation.cost);
+        }
+
+        pw.flush();
+        pw.close();
+        fw.close();
+    }
+
+    public static Individual run(String file, int seed, int period) throws IOException {
+
+        List<String> l = Arrays.stream(file.split("[\\\\, .]")).toList();
+        String output = l.get(l.size()-2);
+        output = "C:\\Users\\Asus\\ownCloud\\cvut\\carp\\results\\" + output + "-s="+seed+"-p="+period+".txt";
+
+        File f = new File(output);
+//        System.out.println(f.createNewFile());
+        FileWriter fw = new FileWriter(f);
+        PrintWriter pw = new PrintWriter(fw);
+
+
+
+
+//        if(true) return;
+
         Config config = null;
         try {
-            config = readGDB();
+            config = readGDB(file);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
 
         Double[][] matrix = floydWarshall(config.nodes);
-        Random random = new Random(0);  //SEED
+        Random random = new Random(seed);  //SEED
         config.matrix = matrix;
         Route.matrix = matrix;
         Genetic.matrix = matrix;
@@ -28,12 +79,18 @@ public class Main {
 
         List<Edge> requiredEdges = config.edges.stream().filter(e -> e.required).collect(Collectors.toList());
 
-        Genetic genetic = new Genetic(requiredEdges);
-        genetic.evolution(100, 200, 0.9, 0.5, 50, 50, 0.2, 3);
+        Genetic genetic = new Genetic(requiredEdges, pw);
+        genetic.evolution(100, 1000, 0.9, 0.5, period, period, 0.15, 3);
+
+        pw.flush();
+        pw.close();
+        fw.close();
+
+        return genetic.BEST;
     }
 
-    public static Config readGDB() throws IOException {
-        FileReader fileReader = new FileReader("C:\\Users\\Asus\\ownCloud\\cvut\\carp\\carpbak\\src\\main\\resources\\egl\\egl-e1-A.dat");
+    public static Config readGDB(String file) throws IOException {
+        FileReader fileReader = new FileReader(file);
         BufferedReader bufferedReader = new BufferedReader(fileReader);
 
         String line;
@@ -197,7 +254,7 @@ public class Main {
 //        Integer[][] matrix = new Integer[nodes.size()+1][nodes.size()+1];
         Double[][] matrix = new Double[nodes.size()+1][nodes.size()+1];
 
-        System.out.println(matrix.length);
+//        System.out.println(matrix.length);
 
         for (int i = 1; i < matrix.length; i++) {
             for (int j = 1; j < matrix.length; j++) {
@@ -356,57 +413,57 @@ public class Main {
             Collections.sort(candidates, Comparator.comparingDouble(Candidate::getDistance));
         }
         if(journaling){
-            Map<Node, Integer> nodeCountsFromLeftNode = new HashMap<>();
-            Map<Node, Integer> nodeCountsFromRightNode = new HashMap<>();
-
-            for(Candidate candidate : candidates){
-                if(candidate.fromNode == outerLeft){
-                    if(!nodeCountsFromLeftNode.containsKey(candidate.toNode)){
-                        nodeCountsFromLeftNode.put(candidate.toNode, 1);
-                    }
-                    else{
-                        int count = nodeCountsFromLeftNode.get(candidate.toNode);
-                        nodeCountsFromLeftNode.put(candidate.toNode, count + 1);
-                    }
-                }
-                else if(candidate.fromNode == outerRight){
-                    if(!nodeCountsFromRightNode.containsKey(candidate.toNode)){
-                        nodeCountsFromRightNode.put(candidate.toNode, 1);
-                    }
-                    else{
-                        int count = nodeCountsFromRightNode.get(candidate.toNode);
-                        nodeCountsFromRightNode.put(candidate.toNode, count + 1);
-                    }
-                }
-                else{
-                    throw new RuntimeException();
-                }
-            }
-
-            int countLeft = 0;
-            int countDoubleLeft = 0;
-            int leftSum = 0;
-            for(Node node : nodeCountsFromLeftNode.keySet()){
-                countLeft++;
-                if(nodeCountsFromLeftNode.get(node) > 1){
-                    countDoubleLeft++;
-                }
-                leftSum += nodeCountsFromLeftNode.get(node);
-            }
-
-            int countRight = 0;
-            int countDoubleRight = 0;
-            for(Node node : nodeCountsFromRightNode.keySet()){
-                countRight++;
-                if(nodeCountsFromRightNode.get(node) > 1){
-                    countDoubleRight++;
-                }
-            }
-            System.out.println("routes: " + routes.size() + " " + routes.stream().filter(r -> r.active).toList().size());
-            System.out.println("left: " + countDoubleLeft + " " + countLeft + " right: " + countDoubleRight + " " + countRight);
-
-            System.out.println(candidates.stream().filter(c -> c.fromNode == outerLeft).toList().size());
-            System.out.println(leftSum);
+//            Map<Node, Integer> nodeCountsFromLeftNode = new HashMap<>();
+//            Map<Node, Integer> nodeCountsFromRightNode = new HashMap<>();
+//
+//            for(Candidate candidate : candidates){
+//                if(candidate.fromNode == outerLeft){
+//                    if(!nodeCountsFromLeftNode.containsKey(candidate.toNode)){
+//                        nodeCountsFromLeftNode.put(candidate.toNode, 1);
+//                    }
+//                    else{
+//                        int count = nodeCountsFromLeftNode.get(candidate.toNode);
+//                        nodeCountsFromLeftNode.put(candidate.toNode, count + 1);
+//                    }
+//                }
+//                else if(candidate.fromNode == outerRight){
+//                    if(!nodeCountsFromRightNode.containsKey(candidate.toNode)){
+//                        nodeCountsFromRightNode.put(candidate.toNode, 1);
+//                    }
+//                    else{
+//                        int count = nodeCountsFromRightNode.get(candidate.toNode);
+//                        nodeCountsFromRightNode.put(candidate.toNode, count + 1);
+//                    }
+//                }
+//                else{
+//                    throw new RuntimeException();
+//                }
+//            }
+//
+//            int countLeft = 0;
+//            int countDoubleLeft = 0;
+//            int leftSum = 0;
+//            for(Node node : nodeCountsFromLeftNode.keySet()){
+//                countLeft++;
+//                if(nodeCountsFromLeftNode.get(node) > 1){
+//                    countDoubleLeft++;
+//                }
+//                leftSum += nodeCountsFromLeftNode.get(node);
+//            }
+//
+//            int countRight = 0;
+//            int countDoubleRight = 0;
+//            for(Node node : nodeCountsFromRightNode.keySet()){
+//                countRight++;
+//                if(nodeCountsFromRightNode.get(node) > 1){
+//                    countDoubleRight++;
+//                }
+//            }
+//            System.out.println("routes: " + routes.size() + " " + routes.stream().filter(r -> r.active).toList().size());
+//            System.out.println("left: " + countDoubleLeft + " " + countLeft + " right: " + countDoubleRight + " " + countRight);
+//
+//            System.out.println(candidates.stream().filter(c -> c.fromNode == outerLeft).toList().size());
+//            System.out.println(leftSum);
 
             Collections.sort(candidates, Comparator.comparingDouble(Candidate::getJournalEntry).thenComparingDouble(Candidate::getDistance));
         }

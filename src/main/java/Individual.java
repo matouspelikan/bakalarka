@@ -21,8 +21,10 @@ public class Individual {
      * pouze pro BestSoFar ucely, potrebuji pouze evaluation pro porovnani,
      * prioriotyList a evaluation.routes me nezajimaji, jsou null
      */
-    public Individual(Individual individual){
+    public int nbofGeneration;
+    public Individual(Individual individual, int nbofGeneration){
         this.evaluation = new Evaluation(individual.evaluation);
+        this.nbofGeneration = nbofGeneration;
     }
     public Individual(){
         this.evaluation = new Evaluation(Double.POSITIVE_INFINITY, Integer.MAX_VALUE, null);
@@ -162,7 +164,7 @@ public class Individual {
         singleInsertMultipleWrap(this);
         twoOptMultipleWrap(this);
 
-        for (int j = 0; j < 1; j++) {
+        for (int j = 0; j < 10; j++) {
 //            for (int l = 2; l < 4; l++) {
 //                this.pathScanningWrap(journal, l);
 //            }
