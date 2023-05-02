@@ -337,4 +337,45 @@ public class Genetic {
         }
     }
 
+    public void analyzeElementNew(Element element, Evaluation evaluation, Map<Edge, Map<Edge, AnalysisNode>> journal){
+        if(element.previous != null){
+            Map<Edge, AnalysisNode> subJournal;
+            if(journal.containsKey(element.candidate.edge)){
+                subJournal = journal.get(element.candidate.edge);
+            }
+            else{
+                subJournal = new HashMap<>();
+                journal.put(element.candidate.edge, subJournal);
+            }
+            if(subJournal.containsKey(element.previous.candidate.edge)){
+                AnalysisNode analysisNode = subJournal.get(element.previous.candidate.edge);
+                analysisNode.count += 1;
+                analysisNode.sum += evaluation.cost * evaluation.vehicleCount;
+            }
+            else{
+                AnalysisNode analysisNode = new AnalysisNode(evaluation.cost);
+                subJournal.put(element.previous.candidate.edge, analysisNode);
+            }
+        }
+        if(element.next != null){
+            Map<Edge, AnalysisNode> subJournal;
+            if(journal.containsKey(element.candidate.edge)){
+                subJournal = journal.get(element.candidate.edge);
+            }
+            else{
+                subJournal = new HashMap<>();
+                journal.put(element.candidate.edge, subJournal);
+            }
+            if(subJournal.containsKey(element.next.candidate.edge)){
+                AnalysisNode analysisNode = subJournal.get(element.next.candidate.edge);
+                analysisNode.count += 1;
+                analysisNode.sum += evaluation.cost * evaluation.vehicleCount;
+            }
+            else{
+                AnalysisNode analysisNode = new AnalysisNode(evaluation.cost);
+                subJournal.put(element.next.candidate.edge, analysisNode);
+            }
+        }
+    }
+
 }
