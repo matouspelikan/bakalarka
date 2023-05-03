@@ -20,6 +20,14 @@ public class Main {
 //        runDataset("C:\\Users\\Asus\\ownCloud\\cvut\\carp\\carpbak\\src\\main\\resources\\gdb\\gdb5.dat");
 //        runDataset("C:\\Users\\Asus\\ownCloud\\cvut\\carp\\carpbak\\src\\main\\resources\\gdb\\gdb10.dat");
 
+        InputStream is = Main.class.getClassLoader().getResourceAsStream("gdb/gdb1.dat");
+        BufferedReader br = new BufferedReader(new InputStreamReader(is));
+        String line;
+        while((line = br.readLine()) != null){
+            System.out.println(line);
+        }
+
+        if(true) return;
 
         runDataset("C:\\Users\\Asus\\ownCloud\\cvut\\carp\\carpbak\\src\\main\\resources\\val\\val10A.dat");
 
