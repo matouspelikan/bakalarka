@@ -164,17 +164,19 @@ public class Individual {
         singleInsertMultipleWrap(this);
         twoOptMultipleWrap(this);
 
-        for (int j = 0; j < 10; j++) {
+        for (int j = 0; j < 5; j++) {
 //            for (int l = 2; l < 4; l++) {
 //                this.pathScanningWrap(journal, l);
 //            }
-            this.pathScanningWrap(journal, 2);
+//            this.pathScanningWrap(journal, 3);
         }
+//        this.pathScanningWrap(journal, 2);
 
-        for(Route r : evaluation.routes){
-//            System.out.println(r.length());
-            if(r.lengthReverse() != r.length()) throw new RuntimeException();
-        }
+
+//        for(Route r : evaluation.routes){
+////            System.out.println(r.length());
+//            if(r.lengthReverse() != r.length()) throw new RuntimeException();
+//        }
 
     }
 

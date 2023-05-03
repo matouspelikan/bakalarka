@@ -11,8 +11,19 @@ public class Main {
 
     public static void main(String[] args) throws IOException {
 
-        runDataset("C:\\Users\\Asus\\ownCloud\\cvut\\carp\\carpbak\\src\\main\\resources\\egl\\egl-e1-A.dat");
-        runDataset("C:\\Users\\Asus\\ownCloud\\cvut\\carp\\carpbak\\src\\main\\resources\\egl\\egl-s3-A.dat");
+//        runDataset("C:\\Users\\Asus\\ownCloud\\cvut\\carp\\carpbak\\src\\main\\resources\\egl\\egl-e2-A.dat");
+//        runDataset("C:\\Users\\Asus\\ownCloud\\cvut\\carp\\carpbak\\src\\main\\resources\\egl\\egl-e3-B.dat");
+//        runDataset("C:\\Users\\Asus\\ownCloud\\cvut\\carp\\carpbak\\src\\main\\resources\\egl\\egl-e4-C.dat");
+//        runDataset("C:\\Users\\Asus\\ownCloud\\cvut\\carp\\carpbak\\src\\main\\resources\\egl\\egl-e2-B.dat");
+//        runDataset("C:\\Users\\Asus\\ownCloud\\cvut\\carp\\carpbak\\src\\main\\resources\\egl\\egl-e2-C.dat");
+
+//        runDataset("C:\\Users\\Asus\\ownCloud\\cvut\\carp\\carpbak\\src\\main\\resources\\gdb\\gdb5.dat");
+//        runDataset("C:\\Users\\Asus\\ownCloud\\cvut\\carp\\carpbak\\src\\main\\resources\\gdb\\gdb10.dat");
+
+
+        runDataset("C:\\Users\\Asus\\ownCloud\\cvut\\carp\\carpbak\\src\\main\\resources\\val\\val10A.dat");
+
+        //        runDataset("C:\\Users\\Asus\\ownCloud\\cvut\\carp\\carpbak\\src\\main\\resources\\egl\\egl-s3-A.dat");
 
     }
 
@@ -30,13 +41,14 @@ public class Main {
 
         pw.println("seed,k=50 iteration, best,k=100 iteration, best,k=Inf iteration, best");
         System.out.println(ol);
-        for (int i = 0; i < 13; i++) {
+        for (int i = 0; i < 10; i++) {
             System.out.println("seed " + i);
             Individual best1 = run(file, i, 50);
             Individual best2 = run(file, i, 100);
             Individual best3 = run(file, i, Integer.MAX_VALUE);
 
             pw.println(i+","+best1.nbofGeneration+","+best1.evaluation.cost+","+best2.nbofGeneration+","+best2.evaluation.cost+","+best3.nbofGeneration+","+best3.evaluation.cost);
+            pw.flush();
         }
 
         pw.flush();
@@ -80,7 +92,7 @@ public class Main {
         List<Edge> requiredEdges = config.edges.stream().filter(e -> e.required).collect(Collectors.toList());
 
         Genetic genetic = new Genetic(requiredEdges, pw);
-        genetic.evolution(100, 1000, 0.9, 0.5, period, period, 0.15, 3);
+        genetic.evolution(100, 500, 0.9, 0.5, period, period, 0.15, 3);
 
         pw.flush();
         pw.close();
@@ -141,8 +153,8 @@ public class Main {
         //LISTA_ARISTAS_REQ
         line = bufferedReader.readLine();
 
-        Pattern patternRequired = Pattern.compile("\\( (\\d+), (\\d+)\\)\\s+coste\\s+(\\d+)\\s+demanda\\s+(\\d+)");
-        Pattern patternOptional = Pattern.compile("\\( (\\d+), (\\d+)\\)\\s+coste\\s+(\\d+)");
+        Pattern patternRequired = Pattern.compile("\\(\\s+(\\d+),\\s+(\\d+)\\)\\s+coste\\s+(\\d+)\\s+demanda\\s+(\\d+)");
+        Pattern patternOptional = Pattern.compile("\\(\\s+(\\d+),\\s+(\\d+)\\)\\s+coste\\s+(\\d+)");
 
         List<Node> nodes = new ArrayList<>();
 
