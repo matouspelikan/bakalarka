@@ -13,19 +13,13 @@ public class Main {
 
     public static void main(String[] args) throws Exception {
 
-//        runDataset("C:\\Users\\Asus\\ownCloud\\cvut\\carp\\carpbak\\src\\main\\resources\\egl\\egl-e2-A.dat");
-//        runDataset("C:\\Users\\Asus\\ownCloud\\cvut\\carp\\carpbak\\src\\main\\resources\\egl\\egl-e3-B.dat");
-//        runDataset("C:\\Users\\Asus\\ownCloud\\cvut\\carp\\carpbak\\src\\main\\resources\\egl\\egl-e4-C.dat");
-//        runDataset("C:\\Users\\Asus\\ownCloud\\cvut\\carp\\carpbak\\src\\main\\resources\\egl\\egl-e2-B.dat");
-//        runDataset("C:\\Users\\Asus\\ownCloud\\cvut\\carp\\carpbak\\src\\main\\resources\\egl\\egl-e2-C.dat");
-
-//        runDataset("C:\\Users\\Asus\\ownCloud\\cvut\\carp\\carpbak\\src\\main\\resources\\gdb\\gdb5.dat");
-//        runDataset("C:\\Users\\Asus\\ownCloud\\cvut\\carp\\carpbak\\src\\main\\resources\\gdb\\gdb10.dat");
-
-
-        System.out.println(args.length);
-//        String configFile = args[0];
-        String configFile = "config.properties";
+//        System.out.println(args.length);
+        if(args.length < 1){
+            System.out.println("Please provide input config file...");
+            return;
+        }
+        String configFile = args[0];
+//        String configFile = "config.properties";
 
         CARPProperties properties = CARPProperties.getInstance();
         properties.readConfigFile(configFile);
@@ -97,80 +91,6 @@ public class Main {
 
         solutionWriter.close();
         journalWriter.close();
-    }
-
-    public static void runDataset(String file) throws IOException {
-        List<String> l = Arrays.stream(file.split("[\\\\, .]")).toList();
-        String output = l.get(l.size()-2);
-        String ol = output;
-        output = "C:\\Users\\Asus\\ownCloud\\cvut\\carp\\resultsWrap\\" + output + ".csv";
-
-        File f = new File(output);
-//        System.out.println(f.createNewFile());
-        FileWriter fw = new FileWriter(f);
-        PrintWriter pw = new PrintWriter(fw);
-
-
-        pw.println("seed,k=50 iteration, best,k=100 iteration, best,k=Inf iteration, best");
-        System.out.println(ol);
-        for (int i = 0; i < 10; i++) {
-            System.out.println("seed " + i);
-            Individual best1 = run(file, i, 50);
-            Individual best2 = run(file, i, 100);
-            Individual best3 = run(file, i, Integer.MAX_VALUE);
-
-            pw.println(i+","+best1.nbofGeneration+","+best1.evaluation.cost+","+best2.nbofGeneration+","+best2.evaluation.cost+","+best3.nbofGeneration+","+best3.evaluation.cost);
-            pw.flush();
-        }
-
-        pw.flush();
-        pw.close();
-        fw.close();
-    }
-
-    public static Individual run(String file, int seed, int period) throws IOException {
-
-        List<String> l = Arrays.stream(file.split("[\\\\, .]")).toList();
-        String output = l.get(l.size()-2);
-        output = "C:\\Users\\Asus\\ownCloud\\cvut\\carp\\results\\" + output + "-s="+seed+"-p="+period+".txt";
-
-        File f = new File(output);
-//        System.out.println(f.createNewFile());
-        FileWriter fw = new FileWriter(f);
-        PrintWriter pw = new PrintWriter(fw);
-
-
-
-
-//        if(true) return;
-
-        Config config = null;
-        try {
-            config = readGDB(file);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-
-        Double[][] matrix = floydWarshall(config.nodes);
-        Random random = new Random(seed);  //SEED
-        config.matrix = matrix;
-        Route.matrix = matrix;
-        Genetic.matrix = matrix;
-        Genetic.config = config;
-        Individual.config = config;
-        Individual.random = random;
-        Genetic.random = random;
-
-        List<Edge> requiredEdges = config.edges.stream().filter(e -> e.required).collect(Collectors.toList());
-
-        Genetic genetic = new Genetic(requiredEdges, pw);
-        genetic.evolution(100, 500, 0.9, 0.5, period, period, 0.15, 3);
-
-        pw.flush();
-        pw.close();
-        fw.close();
-
-        return genetic.BEST;
     }
 
     public static Config readGDB(String datasetPath) throws IOException {
