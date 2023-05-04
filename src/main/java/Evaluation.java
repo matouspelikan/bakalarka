@@ -21,7 +21,7 @@ public class Evaluation {
     public Evaluation(Evaluation evaluation){
         this.cost = evaluation.cost;
         this.vehicleCount = evaluation.vehicleCount;
-        this.routes = null;
+        this.routes = evaluation.routes;
     }
 
     @Override

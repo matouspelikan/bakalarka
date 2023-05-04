@@ -1,10 +1,7 @@
-//import com.sun.security.jgss.GSSUtil;
-//import me.tongfei.progressbar.ProgressBar;
+import me.tongfei.progressbar.ProgressBar;
 
-import javax.naming.InitialContext;
 import java.io.PrintWriter;
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class Genetic {
     public static Random random;
@@ -63,11 +60,11 @@ public class Genetic {
         int nbOfJournaling = 0;
         int nbOfEpoch = 0;
 
-//        ProgressBar pb = new ProgressBar("k=" + M, maxGen);
+        ProgressBar pb = new ProgressBar("k=" + M, maxGen);
 
 
         for (int i = 0; i < maxGen; i++) {
-//            pb.step();
+            pb.step();
             if(comparator.compare(population.get(0), BEST) < 0){ //prvni jedinec v populaci je lepsi nez bestSoFar
                 BEST = new Individual(population.get(0), i);
                 pw.println(i + ": " + BEST.evaluation);
@@ -166,7 +163,7 @@ public class Genetic {
             if (originalSize != population.size()) throw new RuntimeException();
 
         }
-//        pb.close();
+        pb.close();
 
 //        System.out.println();
 //        printPopulation(population);
