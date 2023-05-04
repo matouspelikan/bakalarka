@@ -21,11 +21,21 @@ public class Main {
 //        runDataset("C:\\Users\\Asus\\ownCloud\\cvut\\carp\\carpbak\\src\\main\\resources\\gdb\\gdb10.dat");
 
         InputStream is = Main.class.getClassLoader().getResourceAsStream("gdb/gdb1.dat");
+
+        FileInputStream fis = new FileInputStream("outerFile.txt");
+        is = fis;
+
         BufferedReader br = new BufferedReader(new InputStreamReader(is));
         String line;
         while((line = br.readLine()) != null){
             System.out.println(line);
         }
+
+        File out = new File("outerFileOut.txt");
+        FileOutputStream fos = new FileOutputStream(out);
+        PrintWriter pwo = new PrintWriter(fos);
+        pwo.println("tohle snad neni mozne");
+        pwo.close();
 
         if(true) return;
 
