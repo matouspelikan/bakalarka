@@ -13,6 +13,8 @@ public class CARPProperties extends Properties {
     public int popSize;
     public int maxGen;
 
+    public String configFileName;
+
     private static CARPProperties instance;
     private CARPProperties(){}
     public static CARPProperties getInstance(){
@@ -22,8 +24,9 @@ public class CARPProperties extends Properties {
         return instance;
     }
 
-    public void readConfigFile(String fileName) throws Exception{
-        File inputFile = new File(fileName);
+    public void readConfigFile(String configFileName) throws Exception{
+        this.configFileName = configFileName;
+        File inputFile = new File(configFileName);
         if(!inputFile.exists()){
             throw new Exception("config file does not exist!");
         }

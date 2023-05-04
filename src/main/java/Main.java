@@ -65,6 +65,11 @@ public class Main {
         Path resultDir = getDirectory(dir);
         Path outSolution = resultDir.resolve("BSF_solution.csv");
         Path outJournal = resultDir.resolve("BSF_journal.csv");
+        Path outConfig = resultDir.resolve("config.properties");
+
+        byte[] content = new FileInputStream(properties.configFileName).readAllBytes();
+        FileOutputStream outputStream = new FileOutputStream(outConfig.toFile());
+        outputStream.write(content);
 
         PrintWriter solutionWriter = new PrintWriter(new FileWriter(outSolution.toFile()));
         PrintWriter journalWriter = new PrintWriter(new FileWriter(outJournal.toFile()));
