@@ -9,7 +9,7 @@ import java.util.stream.Collectors;
 
 public class Main {
 
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws Exception {
 
 //        runDataset("C:\\Users\\Asus\\ownCloud\\cvut\\carp\\carpbak\\src\\main\\resources\\egl\\egl-e2-A.dat");
 //        runDataset("C:\\Users\\Asus\\ownCloud\\cvut\\carp\\carpbak\\src\\main\\resources\\egl\\egl-e3-B.dat");
@@ -20,16 +20,17 @@ public class Main {
 //        runDataset("C:\\Users\\Asus\\ownCloud\\cvut\\carp\\carpbak\\src\\main\\resources\\gdb\\gdb5.dat");
 //        runDataset("C:\\Users\\Asus\\ownCloud\\cvut\\carp\\carpbak\\src\\main\\resources\\gdb\\gdb10.dat");
 
-        InputStream is = Main.class.getClassLoader().getResourceAsStream("gdb/gdb1.dat");
+        CARPProperties properties = CARPProperties.getInstance();
 
-        FileInputStream fis = new FileInputStream("outerFile.txt");
-        is = fis;
+        System.out.println(args.length);
+        String configFile = args[0];
+        System.out.println("config file: " + configFile);
 
-        BufferedReader br = new BufferedReader(new InputStreamReader(is));
-        String line;
-        while((line = br.readLine()) != null){
-            System.out.println(line);
-        }
+        properties.readConfigFile(configFile);
+        System.out.println(properties.seed);
+        System.out.println(properties.N);
+
+
 
         File out = new File("outerFileOut.txt");
         FileOutputStream fos = new FileOutputStream(out);
