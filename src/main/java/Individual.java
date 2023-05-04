@@ -122,23 +122,19 @@ public class Individual {
         return newPriorityList;
     }
 
-    public void printRoutes(){
+    public String printRoutes(){
+        String s = "";
         for(Route r : evaluation.routes){
             Element el = r.tail;
             while(el != null){
-                System.out.print(el);
-//                System.out.print("|");
-//                System.out.print(el.previousLink);
-////                System.out.print(el.candidate.edge);
-//                System.out.print(" ");
-//                System.out.print(el.nextLink);
-//                System.out.print("| ");
-
+//                System.out.print(el);
+                s += el.toString();
                 el = el.next;
-
             }
-            System.out.println();
+//            System.out.println();
+            s += '\n';
         }
+        return s;
     }
 
     public void mutate(){

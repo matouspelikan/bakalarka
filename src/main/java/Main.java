@@ -1,5 +1,7 @@
 import java.io.*;
 import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -20,30 +22,81 @@ public class Main {
 //        runDataset("C:\\Users\\Asus\\ownCloud\\cvut\\carp\\carpbak\\src\\main\\resources\\gdb\\gdb5.dat");
 //        runDataset("C:\\Users\\Asus\\ownCloud\\cvut\\carp\\carpbak\\src\\main\\resources\\gdb\\gdb10.dat");
 
-        CARPProperties properties = CARPProperties.getInstance();
 
         System.out.println(args.length);
-        String configFile = args[0];
-        System.out.println("config file: " + configFile);
+//        String configFile = args[0];
+        String configFile = "config.properties";
 
+        CARPProperties properties = CARPProperties.getInstance();
         properties.readConfigFile(configFile);
-        System.out.println(properties.seed);
-        System.out.println(properties.N);
+
+        RUN(properties);
+
+    }
+
+    public static String createExperimentName(String name, int seed){
+        char version = 'a';
+        String dirName = name + "_" + seed + "_" + version;
+
+        File f;
+        while((f = absolutePath(dirName).toFile()).exists()){
+            dirName = dirName.substring(0, dirName.length()-1);
+            dirName += (char)(++version);
+        }
+
+        return dirName;
+    }
+    public static Path getDirectory(String directoryName) throws IOException {
+        Path jarPath = Paths.get("").toAbsolutePath();
+        Path dirPathRelative = Path.of(directoryName);
+
+        Path dirPathAbsolute = jarPath.resolve(dirPathRelative);
+        File dirFile = dirPathAbsolute.toFile();
+
+        if(!dirFile.exists()){
+            Files.createDirectories(dirPathAbsolute);
+        }
+
+        return dirPathRelative;
+    }
+    public static Path absolutePath(String directoryName){
+        Path jarPath = Paths.get("").toAbsolutePath();
+        Path dirPathRelative = Path.of(directoryName);
+        return jarPath.resolve(dirPathRelative);
+    }
+
+    public static void RUN(CARPProperties properties) throws IOException {
+        String dir = createExperimentName(properties.dataset, properties.seed);
+
+        Path resultDir = getDirectory(dir);
+        Path outSolution = resultDir.resolve("BSF_solution.csv");
+        Path outJournal = resultDir.resolve("BSF_journal.csv");
+
+        PrintWriter solutionWriter = new PrintWriter(new FileWriter(outSolution.toFile()));
+        PrintWriter journalWriter = new PrintWriter(new FileWriter(outJournal.toFile()));
 
 
+        Config config = readGDB(properties.datasetGroup + "/" + properties.dataset + ".dat");
+        Double[][] matrix = floydWarshall(config.nodes);
+        Random random = new Random(properties.seed);  //SEED
+        config.matrix = matrix;
+        Route.matrix = matrix;
+        Genetic.matrix = matrix;
+        Genetic.config = config;
+        Individual.config = config;
+        Individual.random = random;
+        Genetic.random = random;
 
-        File out = new File("outerFileOut.txt");
-        FileOutputStream fos = new FileOutputStream(out);
-        PrintWriter pwo = new PrintWriter(fos);
-        pwo.println("tohle snad neni mozne");
-        pwo.close();
+        List<Edge> requiredEdges = config.edges.stream().filter(e -> e.required).collect(Collectors.toList());
 
-        if(true) return;
+        Genetic genetic = new Genetic(requiredEdges, journalWriter);
+        genetic.evolution(properties.popSize, properties.maxGen, 0.9, 0.5, properties.M, properties.k, properties.N, properties.maxEpoch);
 
-        runDataset("C:\\Users\\Asus\\ownCloud\\cvut\\carp\\carpbak\\src\\main\\resources\\val\\val10A.dat");
+        solutionWriter.println(genetic.BEST.evaluation.cost+","+genetic.BEST.evaluation.vehicleCount);
+        solutionWriter.println(genetic.BEST.printRoutes());
 
-        //        runDataset("C:\\Users\\Asus\\ownCloud\\cvut\\carp\\carpbak\\src\\main\\resources\\egl\\egl-s3-A.dat");
-
+        solutionWriter.close();
+        journalWriter.close();
     }
 
     public static void runDataset(String file) throws IOException {
@@ -120,9 +173,12 @@ public class Main {
         return genetic.BEST;
     }
 
-    public static Config readGDB(String file) throws IOException {
-        FileReader fileReader = new FileReader(file);
-        BufferedReader bufferedReader = new BufferedReader(fileReader);
+    public static Config readGDB(String datasetPath) throws IOException {
+//        FileReader fileReader = new FileReader(file);
+//        BufferedReader bufferedReader = new BufferedReader(fileReader);
+
+        InputStream is = Main.class.getClassLoader().getResourceAsStream(datasetPath);
+        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(is));
 
         String line;
         Pattern patternDigit = Pattern.compile("\\d+");

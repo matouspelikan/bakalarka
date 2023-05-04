@@ -3,9 +3,15 @@ import java.io.FileInputStream;
 import java.util.Properties;
 
 public class CARPProperties extends Properties {
-
+    public String datasetGroup;
+    public String dataset;
     public int seed;
     public double N;
+    public int M;
+    public int k;
+    public int maxEpoch;
+    public int popSize;
+    public int maxGen;
 
     private static CARPProperties instance;
     private CARPProperties(){}
@@ -26,7 +32,14 @@ public class CARPProperties extends Properties {
 
         this.load(stream);
 
+        datasetGroup = this.getProperty("datasetGroup");
+        dataset = this.getProperty("dataset");
         seed = Integer.parseInt(this.getProperty("seed"));
         N = Double.parseDouble(this.getProperty("N"));
+        M = Integer.parseInt(this.getProperty("M"));
+        k = Integer.parseInt(this.getProperty("k"));
+        maxEpoch = Integer.parseInt(this.getProperty("maxEpoch"));
+        popSize = Integer.parseInt(this.getProperty("popSize"));
+        maxGen = Integer.parseInt(this.getProperty("maxGen"));
     }
 }
