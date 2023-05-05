@@ -63,7 +63,7 @@ public class Edge {
                 throw new RuntimeException("spatne adjacent vyber");
             }
 
-            if(recursive) next.connect(List.of(this), false);
+            if(recursive) next.connect(new ArrayList<>(Arrays.asList(this)), false);
 
         }
     }

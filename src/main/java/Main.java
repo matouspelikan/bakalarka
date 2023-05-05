@@ -42,7 +42,7 @@ public class Main {
     }
     public static Path getDirectory(String directoryName) throws IOException {
         Path jarPath = Paths.get("").toAbsolutePath();
-        Path dirPathRelative = Path.of(directoryName);
+        Path dirPathRelative = Paths.get(directoryName);
 
         Path dirPathAbsolute = jarPath.resolve(dirPathRelative);
         File dirFile = dirPathAbsolute.toFile();
@@ -55,7 +55,7 @@ public class Main {
     }
     public static Path absolutePath(String directoryName){
         Path jarPath = Paths.get("").toAbsolutePath();
-        Path dirPathRelative = Path.of(directoryName);
+        Path dirPathRelative = Paths.get(directoryName);
         return jarPath.resolve(dirPathRelative);
     }
 
@@ -67,7 +67,13 @@ public class Main {
         Path outJournal = resultDir.resolve("BSF_journal.csv");
         Path outConfig = resultDir.resolve("config.properties");
 
-        byte[] content = new FileInputStream(properties.configFileName).readAllBytes();
+//        byte[] content = new FileInputStream(properties.configFileName).readAllBytes();
+        File f = new File(properties.configFileName);
+        byte[] content = new byte[(int)f.length()];
+        DataInputStream dis = new DataInputStream(new FileInputStream(f));
+        dis.readFully(content);
+
+
         FileOutputStream outputStream = new FileOutputStream(outConfig.toFile());
         outputStream.write(content);
 
@@ -323,7 +329,7 @@ public class Main {
 
                     //potrebuji zjistit jestli se vrchol nachazi ve vice pozadovanych hranach
                     int finalI = i;
-                    if(nodes.stream().filter(n_ -> n_.number == finalI).findFirst().get().nodes.stream().filter(n_ -> n_.hasRequired).toList().size() > 1){
+                    if(nodes.stream().filter(n_ -> n_.number == finalI).findFirst().get().nodes.stream().filter(n_ -> n_.hasRequired).collect(Collectors.toList()).size() > 1){
                         matrix2[i][j] = 0.0;
                     }
 //                    continue;

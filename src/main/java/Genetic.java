@@ -61,18 +61,15 @@ public class Genetic {
         Map<Node, Map<Node, AnalysisNode>> bestSoFarJournal = null;
         Individual bestSoFarIndividual = new Individual(); //fitness nastaveno na infinity
 
-
         int nbOfJournaling = 0;
         int nbOfEpoch = 0;
 
         ProgressBar pb = new ProgressBar("k=" + M, maxGen);
 
-
         pw.println("best neighbors before analysis = distances");
-        for(Node node : config.nodes.stream().filter(n -> n.hasRequired).sorted(Comparator.comparingInt(Node::getNumber)).toList()){
+        for(Node node : config.nodes.stream().filter(n -> n.hasRequired).sorted(Comparator.comparingInt(Node::getNumber)).collect(Collectors.toList())){
             printBestNeighbors(node, null);
         }
-
 
         for (int i = 0; i < maxGen; i++) {
             pb.step();
@@ -304,14 +301,14 @@ public class Genetic {
     public Map<Node, Map<Node, AnalysisNode>> analyzePopulation(List<Individual> population, double N, int generation){
         Map<Node, Map<Node, AnalysisNode>> journal = new HashMap<>();
         int sizeWorthy = (int)(population.size()*N);
-        List<Individual> populationWorthy = new ArrayList<>(population.stream().limit(sizeWorthy).toList());
+        List<Individual> populationWorthy = new ArrayList<>(population.stream().limit(sizeWorthy).collect(Collectors.toList()));
         for (Individual individual : populationWorthy) {
             analyzeIndividual(individual, journal);
         }
 
         pw.println("new analysis generation: " + generation);
 
-        for(Node node : config.nodes.stream().filter(n -> n.hasRequired).sorted(Comparator.comparingInt(Node::getNumber)).toList()){
+        for(Node node : config.nodes.stream().filter(n -> n.hasRequired).sorted(Comparator.comparingInt(Node::getNumber)).collect(Collectors.toList())){
             printBestNeighbors(node, journal);
         }
 
@@ -320,14 +317,14 @@ public class Genetic {
 
     public void printBestNeighbors(Node node, Map<Node, Map<Node, AnalysisNode>> journal){
         if(journal == null){
-            List<Node> otherNodes = new ArrayList<>(config.nodes.stream().filter(n -> n.hasRequired).toList());
+            List<Node> otherNodes = new ArrayList<>(config.nodes.stream().filter(n -> n.hasRequired).collect(Collectors.toList()));
             otherNodes.sort(new Comparator<Node>() {
                 @Override
                 public int compare(Node o1, Node o2) {
                     return Double.compare(matrix[node.number][o1.number], matrix[node.number][o2.number]);
                 }
             });
-            List<Node> toPrint = otherNodes.stream().limit(5).toList();
+            List<Node> toPrint = otherNodes.stream().limit(5).collect(Collectors.toList());
             pw.println(node.number + ": " + toPrint + " " + otherNodes.size());
 
             return;
@@ -343,7 +340,7 @@ public class Genetic {
             foos.add(new Foo(n, subJournal.get(n)));
         }
         foos.sort(Comparator.comparingDouble(Foo::getAverage));
-        List<Foo> toPrint = foos.stream().limit(5).toList();
+        List<Foo> toPrint = foos.stream().limit(5).collect(Collectors.toList());
         pw.println(node.number + ": " + toPrint + " " + foos.size() );
     }
 
