@@ -1,4 +1,5 @@
 import me.tongfei.progressbar.ProgressBar;
+import me.tongfei.progressbar.ProgressBarStyle;
 
 import java.io.PrintWriter;
 import java.util.*;
@@ -62,6 +63,7 @@ public class Genetic {
         int nbOfEpoch = 0;
 
         ProgressBar pb = new ProgressBar("k=" + M, maxGen);
+
 
         pw.println("best neighbors before analysis = distances");
         for(Node node : config.nodes.stream().filter(n -> n.hasRequired).sorted(Comparator.comparingInt(Node::getNumber)).toList()){
@@ -323,7 +325,7 @@ public class Genetic {
                 }
             });
             List<Node> toPrint = otherNodes.stream().limit(5).toList();
-            pw.println(node.number + ": " + toPrint);
+            pw.println(node.number + ": " + toPrint + " " + otherNodes.size());
 
             return;
         }
@@ -339,7 +341,7 @@ public class Genetic {
         }
         foos.sort(Comparator.comparingDouble(Foo::getAverage));
         List<Foo> toPrint = foos.stream().limit(5).toList();
-        pw.println(node.number + ": " + toPrint);
+        pw.println(node.number + ": " + toPrint + " " + foos.size() );
     }
 
     class Foo{
