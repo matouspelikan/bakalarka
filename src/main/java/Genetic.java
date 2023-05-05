@@ -2,6 +2,7 @@ import me.tongfei.progressbar.ProgressBar;
 
 import java.io.PrintWriter;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class Genetic {
     public static Random random;
@@ -62,6 +63,12 @@ public class Genetic {
 
         ProgressBar pb = new ProgressBar("k=" + M, maxGen);
 
+        System.out.println("best neighbors before analysis = distances");
+        for(Edge e : requiredEdges){
+            printBestNeighbors(e.leftNode, null);
+            printBestNeighbors(e.rightNode, null);
+        }
+
 
         for (int i = 0; i < maxGen; i++) {
             pb.step();
@@ -78,18 +85,18 @@ public class Genetic {
             {
                 if(i == M){
                     bestSoFarIndividual = new Individual(population.get(0), i);
-                    bestSoFarJournal = analyzePopulation(population, N);
+                    bestSoFarJournal = analyzePopulation(population, N, i);
                 }
 
                 if(comparator.compare(population.get(0), bestSoFarIndividual) < 0){ //prvni jedinec v populaci je lepsi nez bestSoFar
                     bestSoFarIndividual = new Individual(population.get(0), i);
-                    journal = analyzePopulation(population, N);
+                    journal = analyzePopulation(population, N, i);
                     bestSoFarJournal = journal;
                     nbOfEpoch = 1; //dokud se nejlepsi jedinec zlepsuje, zustava epocha na zacatku
                 }
                 else if(nbOfEpoch < maxEpoch){
                     nbOfEpoch++;
-                    journal = analyzePopulation(population, N);
+                    journal = analyzePopulation(population, N, i);
                 }
                 else{
                     nbOfEpoch = 1;
@@ -290,14 +297,64 @@ public class Genetic {
 //        population.get(0).printRoutes();
     }
 
-    public Map<Node, Map<Node, AnalysisNode>> analyzePopulation(List<Individual> population, double N){
+    public Map<Node, Map<Node, AnalysisNode>> analyzePopulation(List<Individual> population, double N, int generation){
         Map<Node, Map<Node, AnalysisNode>> journal = new HashMap<>();
         int sizeWorthy = (int)(population.size()*N);
         List<Individual> populationWorthy = new ArrayList<>(population.stream().limit(sizeWorthy).toList());
         for (Individual individual : populationWorthy) {
             analyzeIndividual(individual, journal);
         }
+
+        pw.println("new analysis generation: " + generation);
+        for(Edge e : requiredEdges){
+            printBestNeighbors(e.leftNode, journal);
+            printBestNeighbors(e.rightNode, journal);
+        }
+
         return journal;
+    }
+
+    public void printBestNeighbors(Node node, Map<Node, Map<Node, AnalysisNode>> journal){
+        if(journal == null){
+            List<Node> otherNodes = new ArrayList<>(config.nodes.stream().filter(n -> n.hasRequired).toList());
+            otherNodes.sort(new Comparator<Node>() {
+                @Override
+                public int compare(Node o1, Node o2) {
+                    return Double.compare(matrix[node.number][o1.number], matrix[node.number][o2.number]);
+                }
+            });
+            List<Node> toPrint = otherNodes.stream().limit(5).toList();
+            pw.println(node.number + ": " + toPrint);
+
+            return;
+        }
+
+        Map<Node, Integer> journalEntries;
+        Map<Node, AnalysisNode> subJournal = journal.get(node);
+        List<Foo> foos = new ArrayList<>();
+        for(Node n : subJournal.keySet()){
+            foos.add(new Foo(n, subJournal.get(n)));
+        }
+        foos.sort(Comparator.comparingDouble(Foo::getAverage));
+        List<Foo> toPrint = foos.stream().limit(5).toList();
+        pw.println(node.number + ": " + toPrint);
+    }
+
+    class Foo{
+        public Node node;
+        public double average;
+        public Foo(Node node, AnalysisNode analysisNode){
+            this.node = node;
+            this.average = analysisNode.sum/analysisNode.count;
+        }
+        public double getAverage(){
+            return average;
+        }
+
+        @Override
+        public String toString() {
+            return node.number + "";
+        }
     }
 
     public void analyzeIndividual(Individual individual, Map<Node, Map<Node, AnalysisNode>> journal){
