@@ -30,7 +30,7 @@ public class Main {
 
     public static String createExperimentName(String name, int seed){
         char version = 'a';
-        String dirName = name + "_" + seed + "_" + version;
+        String dirName = "results/" + name + "_" + seed + "_" + version;
 
         File f;
         while((f = absolutePath(dirName).toFile()).exists()){

@@ -39,6 +39,9 @@ public class Node {
         }
     }
 
+    public int getNumber(){
+        return number;
+    }
 
     @Override
     public String toString() {

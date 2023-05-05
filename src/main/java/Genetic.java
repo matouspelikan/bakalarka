@@ -63,10 +63,9 @@ public class Genetic {
 
         ProgressBar pb = new ProgressBar("k=" + M, maxGen);
 
-        System.out.println("best neighbors before analysis = distances");
-        for(Edge e : requiredEdges){
-            printBestNeighbors(e.leftNode, null);
-            printBestNeighbors(e.rightNode, null);
+        pw.println("best neighbors before analysis = distances");
+        for(Node node : config.nodes.stream().filter(n -> n.hasRequired).sorted(Comparator.comparingInt(Node::getNumber)).toList()){
+            printBestNeighbors(node, null);
         }
 
 
@@ -306,9 +305,9 @@ public class Genetic {
         }
 
         pw.println("new analysis generation: " + generation);
-        for(Edge e : requiredEdges){
-            printBestNeighbors(e.leftNode, journal);
-            printBestNeighbors(e.rightNode, journal);
+
+        for(Node node : config.nodes.stream().filter(n -> n.hasRequired).sorted(Comparator.comparingInt(Node::getNumber)).toList()){
+            printBestNeighbors(node, journal);
         }
 
         return journal;
@@ -329,8 +328,11 @@ public class Genetic {
             return;
         }
 
-        Map<Node, Integer> journalEntries;
         Map<Node, AnalysisNode> subJournal = journal.get(node);
+        if(subJournal == null){
+            pw.println(node.number + ": ");
+            return;
+        }
         List<Foo> foos = new ArrayList<>();
         for(Node n : subJournal.keySet()){
             foos.add(new Foo(n, subJournal.get(n)));
