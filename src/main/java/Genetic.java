@@ -12,14 +12,17 @@ public class Genetic {
     public static Config config;
     public static Double[][] matrix;  //matice vzdáleností
     List<Edge> requiredEdges; //seznam pozadovanych hran, jeho permutovanim se vytvareji nahodne chromosomy
-    public int kTournament = 3;
-    public int maxDuplicates = 2; //maximalni pocet jedincu v populace se stejnym costem
+    public int kTournament;
+    public int maxDuplicates; //maximalni pocet jedincu v populace se stejnym costem
 
     public PrintWriter pw;
 
-    public Genetic(List<Edge> requiredEdges, PrintWriter pw){
+    public Genetic(List<Edge> requiredEdges, PrintWriter pw, CARPProperties properties){
         this.pw = pw;
         this.requiredEdges = requiredEdges;
+
+        this.kTournament = properties.tournament;
+        this.maxDuplicates = properties.duplicates;
 
         Config finalConfig = config;
         //pravidlo pro razeni populace

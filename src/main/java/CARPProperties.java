@@ -12,6 +12,8 @@ public class CARPProperties extends Properties {
     public int maxEpoch;
     public int popSize;
     public int maxGen;
+    public int tournament;
+    public int duplicates;
 
     public String configFileName;
 
@@ -44,5 +46,7 @@ public class CARPProperties extends Properties {
         maxEpoch = Integer.parseInt(this.getProperty("maxEpoch"));
         popSize = Integer.parseInt(this.getProperty("popSize"));
         maxGen = Integer.parseInt(this.getProperty("maxGen"));
+        tournament = Integer.parseInt(this.getProperty("tournament"));
+        duplicates = Integer.parseInt(this.getProperty("duplicates"));
     }
 }

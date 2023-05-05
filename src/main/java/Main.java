@@ -88,7 +88,7 @@ public class Main {
 
         List<Edge> requiredEdges = config.edges.stream().filter(e -> e.required).collect(Collectors.toList());
 
-        Genetic genetic = new Genetic(requiredEdges, journalWriter);
+        Genetic genetic = new Genetic(requiredEdges, journalWriter, properties);
         genetic.evolution(properties.popSize, properties.maxGen, 0.9, 0.5, properties.M, properties.k, properties.N, properties.maxEpoch);
 
         solutionWriter.println(genetic.BEST.evaluation.cost+","+genetic.BEST.evaluation.vehicleCount);
