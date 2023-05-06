@@ -28,6 +28,7 @@ public class Individual {
     }
     public Individual(){
         this.evaluation = new Evaluation(Double.POSITIVE_INFINITY, Integer.MAX_VALUE, null);
+        this.nbofGeneration = Integer.MAX_VALUE;
     }
 
     public void evaluate(Map<Node, Map<Node, AnalysisNode>> journal, boolean journaling){
@@ -160,11 +161,12 @@ public class Individual {
         singleInsertMultipleWrap(this);
         twoOptMultipleWrap(this);
 
-        for (int j = 0; j < 5; j++) {
+
+        for (int j = 0; j < 10; j++) {
 //            for (int l = 2; l < 4; l++) {
 //                this.pathScanningWrap(journal, l);
 //            }
-//            this.pathScanningWrap(journal, 3);
+            this.pathScanningWrap(journal, 2);
         }
 //        this.pathScanningWrap(journal, 2);
 
@@ -532,8 +534,6 @@ public class Individual {
 
     @Override
     public String toString() {
-        return "Individual{" +
-                "priorityList=" + priorityList +
-                '}';
+        return evaluation.toString() + " " + nbofGeneration;
     }
 }

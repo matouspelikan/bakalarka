@@ -14,6 +14,7 @@ public class CARPProperties extends Properties {
     public int maxGen;
     public int tournament;
     public int duplicates;
+    public String resultDir;
 
     public String configFileName;
 
@@ -48,5 +49,21 @@ public class CARPProperties extends Properties {
         maxGen = Integer.parseInt(this.getProperty("maxGen"));
         tournament = Integer.parseInt(this.getProperty("tournament"));
         duplicates = Integer.parseInt(this.getProperty("duplicates"));
+        resultDir = this.getProperty("resultsDir");
+    }
+
+    @Override
+    public String toString() {
+        return "configuration: " +
+                "dataset='" + dataset + '\'' +
+                ", seed=" + seed +
+                ", N=" + N +
+                ", M=" + M +
+                ", k=" + k +
+                ", maxEpoch=" + maxEpoch +
+                ", popSize=" + popSize +
+                ", maxGen=" + maxGen +
+                ", tournament=" + tournament +
+                ", duplicates=" + duplicates;
     }
 }

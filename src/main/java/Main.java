@@ -28,9 +28,9 @@ public class Main {
 
     }
 
-    public static String createExperimentName(String name, int seed){
+    public static String createExperimentName(CARPProperties properties){
         char version = 'a';
-        String dirName = "results/" + name + "_" + seed + "_" + version;
+        String dirName = properties.resultDir + "/" + properties.dataset + "_" + properties.seed + "_" + version;
 
         File f;
         while((f = absolutePath(dirName).toFile()).exists()){
@@ -60,11 +60,13 @@ public class Main {
     }
 
     public static void RUN(CARPProperties properties) throws IOException {
-        String dir = createExperimentName(properties.dataset, properties.seed);
+        String dir = createExperimentName(properties);
+        System.out.println("output directory: " + dir);
 
         Path resultDir = getDirectory(dir);
         Path outSolution = resultDir.resolve("BSF_solution.csv");
         Path outJournal = resultDir.resolve("BSF_journal.csv");
+        Path outConvergence = resultDir.resolve("convergence.csv");
         Path outConfig = resultDir.resolve("config.properties");
 
 //        byte[] content = new FileInputStream(properties.configFileName).readAllBytes();
@@ -79,7 +81,8 @@ public class Main {
 
         PrintWriter solutionWriter = new PrintWriter(new FileWriter(outSolution.toFile()));
         PrintWriter journalWriter = new PrintWriter(new FileWriter(outJournal.toFile()));
-
+        PrintWriter convergenceWriter = new PrintWriter(new FileWriter(outConvergence.toFile()));
+        convergenceWriter.println("generation,currentPopulationBestCost,currentPopulationBestVehicleCount,currentPopulationAverageCost,BSFcost,BSFvehicleCount");
 
         Config config = readGDB(properties.datasetGroup + "/" + properties.dataset + ".dat");
         Double[][] matrix = floydWarshall(config.nodes);
@@ -94,14 +97,19 @@ public class Main {
 
         List<Edge> requiredEdges = config.edges.stream().filter(e -> e.required).collect(Collectors.toList());
 
-        Genetic genetic = new Genetic(requiredEdges, journalWriter, properties);
+        Genetic genetic = new Genetic(requiredEdges, journalWriter, convergenceWriter, properties);
         genetic.evolution(properties.popSize, properties.maxGen, 0.9, 0.5, properties.M, properties.k, properties.N, properties.maxEpoch);
 
-        solutionWriter.println(genetic.BEST.evaluation.cost+","+genetic.BEST.evaluation.vehicleCount);
+        System.out.println("best solution: " + genetic.BEST.evaluation.cost + " " + genetic.BEST.evaluation.vehicleCount + " found at generation: " + genetic.BEST.nbofGeneration);
+
+        solutionWriter.println("bestSolutionGeneration,bestCost,bestVehicleCount");
+        solutionWriter.println(genetic.BEST.nbofGeneration+","+genetic.BEST.evaluation.cost+","+genetic.BEST.evaluation.vehicleCount);
         solutionWriter.println(genetic.BEST.printRoutes());
+        solutionWriter.flush();
 
         solutionWriter.close();
         journalWriter.close();
+        convergenceWriter.close();
     }
 
     public static Config readGDB(String datasetPath) throws IOException {

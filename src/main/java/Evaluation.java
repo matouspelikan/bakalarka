@@ -26,7 +26,7 @@ public class Evaluation {
 
     @Override
     public String toString() {
-        return "Ev{" +
+        return "Eval{" +
                 "cost=" + cost +
                 ", vehC=" + vehicleCount +
                 '}';

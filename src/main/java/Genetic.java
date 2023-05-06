@@ -1,4 +1,5 @@
 import me.tongfei.progressbar.ProgressBar;
+import me.tongfei.progressbar.ProgressBarBuilder;
 import me.tongfei.progressbar.ProgressBarStyle;
 
 import java.io.PrintWriter;
@@ -15,11 +16,17 @@ public class Genetic {
     public int kTournament;
     public int maxDuplicates; //maximalni pocet jedincu v populace se stejnym costem
 
-    public PrintWriter pw;
+    public PrintWriter journalWriter;
+    public PrintWriter convergenceWriter;
 
-    public Genetic(List<Edge> requiredEdges, PrintWriter pw, CARPProperties properties){
-        this.pw = pw;
+    public CARPProperties properties;
+
+    public Genetic(List<Edge> requiredEdges, PrintWriter journalWriter, PrintWriter convergenceWriter, CARPProperties properties){
+        this.journalWriter = journalWriter;
+        this.convergenceWriter = convergenceWriter;
         this.requiredEdges = requiredEdges;
+
+        this.properties = properties;
 
         this.kTournament = properties.tournament;
         this.maxDuplicates = properties.duplicates;
@@ -48,7 +55,8 @@ public class Genetic {
     public Individual BEST = new Individual();
 
     public void evolution(int popSize, int maxGen, double probCross, double probMutation, int M, int k, double N, int maxEpoch){
-        maxDuplicates = popSize;
+        System.out.println(properties);
+//        maxDuplicates = popSize;
 
         Map<Node, Map<Node, AnalysisNode>> journal = new HashMap<>(); //struktura, ve ktere se uchovavaji vysledky analyzy
         boolean journaling = false; //priznak, podle ktereho se prepina vybirani sousedu podle vzdalenosti/analyzy
@@ -64,20 +72,24 @@ public class Genetic {
         int nbOfJournaling = 0;
         int nbOfEpoch = 0;
 
-        ProgressBar pb = new ProgressBar("k=" + M, maxGen);
+        ProgressBarBuilder pbb = new ProgressBarBuilder();
+        pbb.setStyle(ProgressBarStyle.ASCII);
+        pbb.setInitialMax(maxGen);
+        pbb.setTaskName(properties.dataset);
 
-        pw.println("best neighbors before analysis = distances");
+        ProgressBar pb = pbb.build();
+//        ProgressBar pb = new ProgressBar("k=" + M, maxGen);
+
+        journalWriter.println("best neighbors before analysis = distances");
         for(Node node : config.nodes.stream().filter(n -> n.hasRequired).sorted(Comparator.comparingInt(Node::getNumber)).collect(Collectors.toList())){
             printBestNeighbors(node, null);
         }
 
         for (int i = 0; i < maxGen; i++) {
+            journalWriter.flush();
+            convergenceWriter.flush();
+
             pb.step();
-            if(comparator.compare(population.get(0), BEST) < 0){ //prvni jedinec v populaci je lepsi nez bestSoFar
-                BEST = new Individual(population.get(0), i);
-                pw.println(i + ": " + BEST.evaluation);
-                pw.flush();
-            }
 
             boolean reevaluate = false;
 
@@ -93,14 +105,14 @@ public class Genetic {
                     bestSoFarIndividual = new Individual(population.get(0), i);
                     journal = analyzePopulation(population, N, i);
                     bestSoFarJournal = journal;
-                    nbOfEpoch = 1; //dokud se nejlepsi jedinec zlepsuje, zustava epocha na zacatku
+                    nbOfEpoch = 0; //dokud se nejlepsi jedinec zlepsuje, zustava epocha na zacatku
                 }
                 else if(nbOfEpoch < maxEpoch){
                     nbOfEpoch++;
                     journal = analyzePopulation(population, N, i);
                 }
                 else{
-                    nbOfEpoch = 1;
+                    nbOfEpoch = 0;
                     journal = bestSoFarJournal;
                 }
 
@@ -110,6 +122,14 @@ public class Genetic {
 //                journal = analyzePopulation(population, N);
             }
 
+            if(comparator.compare(population.get(0), BEST) < 0){ //prvni jedinec v populaci je lepsi nez bestSoFar
+                BEST = new Individual(population.get(0), i);
+            }
+
+            printPopulation(population, i, BEST);
+
+//            System.out.println("i:" + i + " " + population.get(0) + " " + BEST + " " + bestSoFarIndividual);
+
             if (reevaluate){
                 for (Individual ind: population){
                     ind.perturb(journal, true);
@@ -118,10 +138,8 @@ public class Genetic {
 
             nbOfJournaling++;
 
-//            System.out.print(i + ": " + " epoch: " + nbOfEpoch + "  ");
-//            printPopulation(population);
-//            System.out.println("BestSoFar: " + bestSoFarIndividual.evaluation);
 
+            //new generation
             List<Individual> interPop = new ArrayList<>();
             int interPopSize = 0;
             while (interPopSize < popSize) {
@@ -173,10 +191,6 @@ public class Genetic {
         }
         pb.close();
 
-//        System.out.println();
-//        printPopulation(population);
-
-//        System.out.println(journal);
     }
 
     public Individual createIndividual(Map<Node, Map<Node, AnalysisNode>> journal){
@@ -280,21 +294,18 @@ public class Genetic {
         return subset.get(0);
     }
 
-    public void printPopulation(List<Individual> population){
-        for(Individual individual : population){
-            System.out.print(individual.evaluation);
-            System.out.print(" ");
-        }
-        System.out.println();
-
+    public void printPopulation(List<Individual> population, int generation, Individual BEST){
         double sum = 0;
         int count = 0;
         for (int j = 0; j < population.size(); j++) {
             sum += population.get(j).evaluation.cost;
             count++;
         }
-        System.out.println("population average: " + sum/count + " best: " + population.get(0).evaluation.cost);
-
+//        convergenceWriter.println("population average: " + sum/count + " best: " + population.get(0).evaluation.cost);
+        Individual best = population.get(0);
+        convergenceWriter.println(generation + "," + best.evaluation.cost + "," + best.evaluation.vehicleCount + ","
+                + sum/count + "," + BEST.evaluation.cost + "," + BEST.evaluation.vehicleCount);
+        convergenceWriter.flush();
 //        population.get(0).printRoutes();
     }
 
@@ -306,7 +317,7 @@ public class Genetic {
             analyzeIndividual(individual, journal);
         }
 
-        pw.println("new analysis generation: " + generation);
+        journalWriter.println("new analysis generation: " + generation);
 
         for(Node node : config.nodes.stream().filter(n -> n.hasRequired).sorted(Comparator.comparingInt(Node::getNumber)).collect(Collectors.toList())){
             printBestNeighbors(node, journal);
@@ -316,6 +327,7 @@ public class Genetic {
     }
 
     public void printBestNeighbors(Node node, Map<Node, Map<Node, AnalysisNode>> journal){
+        int limit = 5;
         if(journal == null){
             List<Node> otherNodes = new ArrayList<>(config.nodes.stream().filter(n -> n.hasRequired).collect(Collectors.toList()));
             otherNodes.sort(new Comparator<Node>() {
@@ -324,15 +336,15 @@ public class Genetic {
                     return Double.compare(matrix[node.number][o1.number], matrix[node.number][o2.number]);
                 }
             });
-            List<Node> toPrint = otherNodes.stream().limit(5).collect(Collectors.toList());
-            pw.println(node.number + ": " + toPrint + " " + otherNodes.size());
+            List<Node> toPrint = otherNodes.stream().limit(limit).collect(Collectors.toList());
+            journalWriter.println(node.number + ": " + toPrint + " " + otherNodes.size());
 
             return;
         }
 
         Map<Node, AnalysisNode> subJournal = journal.get(node);
         if(subJournal == null){
-            pw.println(node.number + ": ");
+            journalWriter.println(node.number + ": ");
             return;
         }
         List<Foo> foos = new ArrayList<>();
@@ -341,8 +353,16 @@ public class Genetic {
         }
         foos.sort(Comparator.comparingDouble(Foo::getAverage));
         List<Foo> toPrint = foos.stream().limit(5).collect(Collectors.toList());
-        pw.println(node.number + ": " + toPrint + " " + foos.size() );
+        journalWriter.println(node.number + ": " + toPrint + " " + foos.size() );
     }
+
+    public void printBestNeighbors2(Map<Node, Map<Node, Integer>> journal){
+        for (Node node : config.nodes.stream().filter(n -> n.hasRequired).sorted(Comparator.comparingInt(Node::getNumber)).collect(Collectors.toList())){
+            journalWriter.print("node: " + node.number);
+            Map<Node, Integer> subJournal = journal.get(node);
+        }
+    }
+
 
     class Foo{
         public Node node;
