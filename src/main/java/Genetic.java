@@ -309,7 +309,7 @@ public class Genetic {
             if(subJournal.containsKey(element.previous.nextLink)){
                 AnalysisNode analysisNode = subJournal.get(element.previous.nextLink);
                 analysisNode.count += 1;
-                analysisNode.sum += evaluation.cost * evaluation.vehicleCount;
+                analysisNode.sum += evaluation.cost;
             }
             else{
                 AnalysisNode analysisNode = new AnalysisNode(evaluation.cost);
@@ -328,7 +328,7 @@ public class Genetic {
             if(subJournal.containsKey(element.next.previousLink)){
                 AnalysisNode analysisNode = subJournal.get(element.next.previousLink);
                 analysisNode.count += 1;
-                analysisNode.sum += evaluation.cost * evaluation.vehicleCount;
+                analysisNode.sum += evaluation.cost;
             }
             else{
                 AnalysisNode analysisNode = new AnalysisNode(evaluation.cost);
