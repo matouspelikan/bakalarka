@@ -12,7 +12,6 @@ public class Node {
 
     Map<Node, Boolean> required = new HashMap<>();
 
-    public Map<Node, Integer> analysis = new HashMap<>();
 
     public Node(int number, int neighbor){
         this.number = number;
@@ -23,6 +22,12 @@ public class Node {
     public Node(int number){
         this.number = number;
         this.neighbors = new ArrayList<>();
+    }
+
+    public Node(Node node){
+        this.number = node.number;
+        this.hasRequired = node.hasRequired;
+        this.neighbors = node.neighbors;
     }
 
     public void add(int neighbor){
@@ -52,13 +57,13 @@ public class Node {
         return "" + number;
     }
 
-//    @Override
-//    public boolean equals(Object o) {
-//        if (this == o) return true;
-//        if (o == null || getClass() != o.getClass()) return false;
-//        Node node = (Node) o;
-//        return number == node.number;
-//    }
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Node node = (Node) o;
+        return number == node.number;
+    }
 
     @Override
     public int hashCode() {

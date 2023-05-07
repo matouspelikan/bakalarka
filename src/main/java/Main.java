@@ -14,12 +14,12 @@ public class Main {
     public static void main(String[] args) throws Exception {
 
 //        System.out.println(args.length);
-        if(args.length < 1){
-            System.out.println("Please provide input config file...");
-            return;
-        }
-        String configFile = args[0];
-//        String configFile = "config.properties";
+//        if(args.length < 1){
+//            System.out.println("Please provide input config file...");
+//            return;
+//        }
+//        String configFile = args[0];
+        String configFile = "config.properties";
 
         CARPProperties properties = CARPProperties.getInstance();
         properties.readConfigFile(configFile);
@@ -99,6 +99,8 @@ public class Main {
 
         Genetic genetic = new Genetic(requiredEdges, journalWriter, convergenceWriter, properties);
         genetic.evolution(properties.popSize, properties.maxGen, properties.pCross, properties.pMutation, properties.M, properties.k, properties.N, properties.maxEpoch);
+
+        if(true) return;
 
         System.out.println("best solution: " + genetic.BEST.evaluation.cost + " " + genetic.BEST.evaluation.vehicleCount + " found at generation: " + genetic.BEST.nbofGeneration);
 
@@ -439,57 +441,60 @@ public class Main {
             Collections.sort(candidates, Comparator.comparingDouble(Candidate::getDistance));
         }
         if(journaling){
-//            Map<Node, Integer> nodeCountsFromLeftNode = new HashMap<>();
-//            Map<Node, Integer> nodeCountsFromRightNode = new HashMap<>();
-//
-//            for(Candidate candidate : candidates){
-//                if(candidate.fromNode == outerLeft){
-//                    if(!nodeCountsFromLeftNode.containsKey(candidate.toNode)){
-//                        nodeCountsFromLeftNode.put(candidate.toNode, 1);
-//                    }
-//                    else{
-//                        int count = nodeCountsFromLeftNode.get(candidate.toNode);
-//                        nodeCountsFromLeftNode.put(candidate.toNode, count + 1);
-//                    }
-//                }
-//                else if(candidate.fromNode == outerRight){
-//                    if(!nodeCountsFromRightNode.containsKey(candidate.toNode)){
-//                        nodeCountsFromRightNode.put(candidate.toNode, 1);
-//                    }
-//                    else{
-//                        int count = nodeCountsFromRightNode.get(candidate.toNode);
-//                        nodeCountsFromRightNode.put(candidate.toNode, count + 1);
-//                    }
-//                }
-//                else{
-//                    throw new RuntimeException();
-//                }
-//            }
-//
-//            int countLeft = 0;
-//            int countDoubleLeft = 0;
-//            int leftSum = 0;
-//            for(Node node : nodeCountsFromLeftNode.keySet()){
-//                countLeft++;
-//                if(nodeCountsFromLeftNode.get(node) > 1){
-//                    countDoubleLeft++;
-//                }
-//                leftSum += nodeCountsFromLeftNode.get(node);
-//            }
-//
-//            int countRight = 0;
-//            int countDoubleRight = 0;
-//            for(Node node : nodeCountsFromRightNode.keySet()){
-//                countRight++;
-//                if(nodeCountsFromRightNode.get(node) > 1){
-//                    countDoubleRight++;
-//                }
-//            }
-//            System.out.println("routes: " + routes.size() + " " + routes.stream().filter(r -> r.active).toList().size());
-//            System.out.println("left: " + countDoubleLeft + " " + countLeft + " right: " + countDoubleRight + " " + countRight);
-//
-//            System.out.println(candidates.stream().filter(c -> c.fromNode == outerLeft).toList().size());
-//            System.out.println(leftSum);
+            Map<Node, Integer> nodeCountsFromLeftNode = new HashMap<>();
+            Map<Node, Integer> nodeCountsFromRightNode = new HashMap<>();
+
+            for(Candidate candidate : candidates){
+                if(candidate.fromNode == outerLeft){
+                    if(!nodeCountsFromLeftNode.containsKey(candidate.toNode)){
+                        nodeCountsFromLeftNode.put(candidate.toNode, 1);
+                    }
+                    else{
+                        int count = nodeCountsFromLeftNode.get(candidate.toNode);
+                        nodeCountsFromLeftNode.put(candidate.toNode, count + 1);
+                    }
+                }
+                else if(candidate.fromNode == outerRight){
+                    if(!nodeCountsFromRightNode.containsKey(candidate.toNode)){
+                        nodeCountsFromRightNode.put(candidate.toNode, 1);
+                    }
+                    else{
+                        int count = nodeCountsFromRightNode.get(candidate.toNode);
+                        nodeCountsFromRightNode.put(candidate.toNode, count + 1);
+                    }
+                }
+                else{
+                    throw new RuntimeException();
+                }
+            }
+
+            int countLeft = 0;
+            int countDoubleLeft = 0;
+            int leftSum = 0;
+            for(Node node : nodeCountsFromLeftNode.keySet()){
+                countLeft++;
+                if(nodeCountsFromLeftNode.get(node) > 1){
+                    countDoubleLeft++;
+                }
+                leftSum += nodeCountsFromLeftNode.get(node);
+                System.out.print(nodeCountsFromLeftNode.get(node) + " ");
+            }
+            System.out.println();
+
+            int countRight = 0;
+            int countDoubleRight = 0;
+            for(Node node : nodeCountsFromRightNode.keySet()){
+                countRight++;
+                if(nodeCountsFromRightNode.get(node) > 1){
+                    countDoubleRight++;
+                }
+            }
+            System.out.println("routes: " + routes.size() + " " + routes.stream().filter(r -> r.active).collect(Collectors.toList()).size());
+            System.out.println("left: " + countDoubleLeft + " " + countLeft + " right: " + countDoubleRight + " " + countRight);
+
+            System.out.println(candidates.stream().filter(c -> c.fromNode == outerLeft).collect(Collectors.toList()).size());
+            System.out.println(leftSum);
+            System.out.println("average: " + (double)leftSum/(++countLeft));
 
             Collections.sort(candidates, Comparator.comparingDouble(Candidate::getJournalEntry).thenComparingDouble(Candidate::getDistance));
         }

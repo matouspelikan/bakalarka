@@ -57,6 +57,35 @@ public class Genetic {
         System.out.println(properties);
 //        maxDuplicates = popSize;
 
+        Map<Domain, Map<Domain, AnalysisNode>> journalEdge = new HashMap<>();
+
+
+        Edge e = config.edges.get(0);
+        System.out.println(e);
+        Node n = config.nodes.get(0);
+        System.out.println(n);
+
+        Domain d = new Domain(e, n);
+        Domain d2 = new Domain(new Edge(e), new Node(n));
+
+        System.out.println(d.edge.equals(d2.edge));
+        System.out.println(d.node.equals(d2.node));
+
+        System.out.println(d == d2);
+        System.out.println(d.equals(d2));
+
+        Map<Domain, AnalysisNode> subJournalEdge = new HashMap<>();
+        subJournalEdge.put(d, new AnalysisNode(1));
+        System.out.println(subJournalEdge.containsKey(d2));
+        System.out.println(subJournalEdge.get(d2));
+
+        System.out.println(Objects.hash(n));
+        System.out.println(n.hashCode());
+
+
+        if(true) return;
+
+
         Map<Node, Map<Node, AnalysisNode>> journal = new HashMap<>(); //struktura, ve ktere se uchovavaji vysledky analyzy
         boolean journaling = false; //priznak, podle ktereho se prepina vybirani sousedu podle vzdalenosti/analyzy
 
@@ -81,7 +110,7 @@ public class Genetic {
 //        ProgressBar pb = new ProgressBar("k=" + M, maxGen);
 
         journalWriter.println("best neighbors before analysis = distances");
-        for(Node node : config.nodes.stream().filter(n -> n.hasRequired).sorted(Comparator.comparingInt(Node::getNumber)).collect(Collectors.toList())){
+        for(Node node : config.nodes.stream().filter(_n -> _n.hasRequired).sorted(Comparator.comparingInt(Node::getNumber)).collect(Collectors.toList())){
             printBestNeighbors(node, null);
         }
 
