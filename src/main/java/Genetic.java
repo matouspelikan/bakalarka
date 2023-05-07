@@ -278,7 +278,7 @@ public class Genetic {
     public Map<Node, Map<Node, AnalysisNode>> analyzePopulation(List<Individual> population, double N){
         Map<Node, Map<Node, AnalysisNode>> journal = new HashMap<>();
         int sizeWorthy = (int)(population.size()*N);
-        List<Individual> populationWorthy = new ArrayList<>(population.stream().limit(sizeWorthy).toList());
+        List<Individual> populationWorthy = new ArrayList<>(population.stream().limit(sizeWorthy).collect(Collectors.toList()));
         for (Individual individual : populationWorthy) {
             analyzeIndividual(individual, journal);
         }

@@ -255,7 +255,7 @@ public class Main {
 
                     //potrebuji zjistit jestli se vrchol nachazi ve vice pozadovanych hranach
                     int finalI = i;
-                    if(nodes.stream().filter(n_ -> n_.number == finalI).findFirst().get().nodes.stream().filter(n_ -> n_.hasRequired).toList().size() > 1){
+                    if(nodes.stream().filter(n_ -> n_.number == finalI).findFirst().get().nodes.stream().filter(n_ -> n_.hasRequired).collect(Collectors.toList()).size() > 1){
                         matrix2[i][j] = 0.0;
                     }
 //                    continue;
@@ -403,13 +403,13 @@ public class Main {
                     countDoubleRight++;
                 }
             }
-            System.out.println("routes: " + routes.size() + " " + routes.stream().filter(r -> r.active).toList().size());
+            System.out.println("routes: " + routes.size() + " " + routes.stream().filter(r -> r.active).collect(Collectors.toList()).size());
             System.out.println("left: " + countDoubleLeft + " " + countLeft + " right: " + countDoubleRight + " " + countRight);
 
-            System.out.println(candidates.stream().filter(c -> c.fromNode == outerLeft).toList().size());
+            System.out.println(candidates.stream().filter(c -> c.fromNode == outerLeft).collect(Collectors.toList()).size());
             System.out.println(leftSum);
 
-            Collections.sort(candidates, Comparator.comparingDouble(Candidate::getJournalEntry).thenComparingDouble(Candidate::getDistance));
+            candidates.sort(Comparator.comparingDouble(Candidate::getJournalEntry).thenComparingDouble(Candidate::getDistance));
         }
 
         //vyber prvniho nejlepsiho

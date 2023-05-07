@@ -53,7 +53,7 @@ public class Individual {
                 Object previousHash = toHash(el.previous);
                 Object nextHash = toHash(el.next);
 
-                Set<Object> set = new HashSet<>(List.of(el.previousLink.hash(),
+                Set<Object> set = new HashSet<>(Arrays.asList(el.previousLink.hash(),
                         el.candidate.edge.hash(), el.nextLink.hash(), previousHash, nextHash));
                 hash += set.hashCode();
 
