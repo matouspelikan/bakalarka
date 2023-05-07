@@ -90,7 +90,7 @@ public class Genetic {
         boolean journaling = false; //priznak, podle ktereho se prepina vybirani sousedu podle vzdalenosti/analyzy
 
         List<Individual> population;
-        population = createInitialPopulation(popSize, journal);
+        population = createInitialPopulation(popSize, journal, journalEdge);
         sortPopulation(population);
 //        printPopulation(population);
 
@@ -158,7 +158,7 @@ public class Genetic {
 
             if (reevaluate){
                 for (Individual ind: population){
-                    ind.perturb(journal, true);
+                    ind.perturb(journal, true, journalEdge);
                 }
             }
 
@@ -191,11 +191,11 @@ public class Genetic {
                     child2.mutate();
                 }
 
-                child1.evaluate(journal, journaling);
-                child2.evaluate(journal, journaling);
+                child1.evaluate(journal, journaling, journalEdge);
+                child2.evaluate(journal, journaling, journalEdge);
 
-                child1.localOptimisation(journal);
-                child2.localOptimisation(journal);
+                child1.localOptimisation(journal, journalEdge);
+                child2.localOptimisation(journal, journalEdge);
 
                 interPop.add(child1);
                 interPopSize++;
@@ -219,15 +219,17 @@ public class Genetic {
 
     }
 
-    public Individual createIndividual(Map<Node, Map<Node, AnalysisNode>> journal){
+    public Individual createIndividual(Map<Node, Map<Node, AnalysisNode>> journal,
+                                       Map<Domain, Map<Domain, AnalysisNode>> journalEdge){
         List<Edge> newPriorityList = Main.deepCopy(requiredEdges);
         Collections.shuffle(newPriorityList, new Random(random.nextInt()));
         Individual individual = new Individual(newPriorityList);
-        individual.evaluate(journal, false);
+        individual.evaluate(journal, false, journalEdge);
         return individual;
     }
 
-    public List<Individual> createInitialPopulation(int popSize, Map<Node, Map<Node, AnalysisNode>> journal){
+    public List<Individual> createInitialPopulation(int popSize, Map<Node, Map<Node, AnalysisNode>> journal,
+                                                    Map<Domain, Map<Domain, AnalysisNode>> journalEdge){
         Set<Integer> hashes = new HashSet<>();
 
         Map<Evaluation, Integer> counts = new HashMap<>();
@@ -240,7 +242,7 @@ public class Genetic {
             if(iteration > popSize*1000){ //assurance iteration overflow
                 throw new RuntimeException();
             }
-            Individual newIndividual = createIndividual(journal);
+            Individual newIndividual = createIndividual(journal, journalEdge);
             int newIndividualHash = newIndividual.hashCustom();
 
             if(!hashes.contains(newIndividualHash)){
@@ -470,43 +472,65 @@ public class Genetic {
         }
     }
 
-    public void analyzeElementNew(Element element, Evaluation evaluation, Map<Edge, Map<Edge, AnalysisNode>> journal){
+    public void analyzeElement2(Element element, Evaluation evaluation, Map<Domain, Map<Domain, AnalysisNode>> journalEdge, boolean distances){
         if(element.previous != null){
-            Map<Edge, AnalysisNode> subJournal;
-            if(journal.containsKey(element.candidate.edge)){
-                subJournal = journal.get(element.candidate.edge);
+            Map<Domain, AnalysisNode> subJournalEdge;
+
+            Domain domainFrom = new Domain(element.candidate.edge, element.previousLink);
+
+            if(journalEdge.containsKey(domainFrom)){
+                subJournalEdge = journalEdge.get(domainFrom);
             }
             else{
-                subJournal = new HashMap<>();
-                journal.put(element.candidate.edge, subJournal);
+                subJournalEdge = new HashMap<>();
+                journalEdge.put(domainFrom, subJournalEdge);
             }
-            if(subJournal.containsKey(element.previous.candidate.edge)){
-                AnalysisNode analysisNode = subJournal.get(element.previous.candidate.edge);
+
+            Domain domainTo = new Domain(element.previous.candidate.edge, element.previous.nextLink);
+
+            if(subJournalEdge.containsKey(domainTo)){
+                AnalysisNode analysisNode = subJournalEdge.get(domainTo);
                 analysisNode.count += 1;
-                analysisNode.sum += evaluation.cost * evaluation.vehicleCount;
+                if(distances){
+                    analysisNode.sum += matrix[element.previousLink.number][element.previous.nextLink.number];
+                }
+                else{
+                    analysisNode.sum += evaluation.cost;
+                }
             }
             else{
                 AnalysisNode analysisNode = new AnalysisNode(evaluation.cost);
-                subJournal.put(element.previous.candidate.edge, analysisNode);
+                subJournalEdge.put(domainTo, analysisNode);
             }
         }
         if(element.next != null){
-            Map<Edge, AnalysisNode> subJournal;
-            if(journal.containsKey(element.candidate.edge)){
-                subJournal = journal.get(element.candidate.edge);
+            Map<Domain, AnalysisNode> subJournalEdge;
+
+            Domain domainFrom = new Domain(element.candidate.edge, element.nextLink);
+
+            if(journalEdge.containsKey(domainFrom)){
+                subJournalEdge = journalEdge.get(domainFrom);
             }
             else{
-                subJournal = new HashMap<>();
-                journal.put(element.candidate.edge, subJournal);
+                subJournalEdge = new HashMap<>();
+                journalEdge.put(domainFrom, subJournalEdge);
             }
-            if(subJournal.containsKey(element.next.candidate.edge)){
-                AnalysisNode analysisNode = subJournal.get(element.next.candidate.edge);
+
+            Domain domainTo = new Domain(element.next.candidate.edge, element.next.previousLink);
+
+            if(subJournalEdge.containsKey(domainTo)){
+                AnalysisNode analysisNode = subJournalEdge.get(domainTo);
                 analysisNode.count += 1;
-                analysisNode.sum += evaluation.cost * evaluation.vehicleCount;
+                if(distances){
+                    analysisNode.sum += matrix[element.nextLink.number][element.next.previousLink.number];
+                }
+                else{
+                    analysisNode.sum += evaluation.cost;
+                }
             }
             else{
                 AnalysisNode analysisNode = new AnalysisNode(evaluation.cost);
-                subJournal.put(element.next.candidate.edge, analysisNode);
+                subJournalEdge.put(domainTo, analysisNode);
             }
         }
     }

@@ -8,6 +8,7 @@ public class Candidate {
 
     public double score;
     public double journalEntry;
+    public double journalEdgeEntry;
 
     public Candidate(Edge edge, Node toNode, Node fromNode, double distance) {
         this.edge = edge;
@@ -22,6 +23,10 @@ public class Candidate {
 
     public Double getJournalEntry(){
         return journalEntry;
+    }
+
+    public Double getJournalEdgeEntry(){
+        return journalEdgeEntry;
     }
 
     @Override

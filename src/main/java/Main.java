@@ -199,7 +199,7 @@ public class Main {
     }
 
     public static List<Route> construct(List<Edge> priority, Config config, Map<Node, Map<Node, AnalysisNode>> journal,
-                                        boolean journaling){
+                                        boolean journaling, Map<Domain, Map<Domain, AnalysisNode>> journalEdge){
         List<Route> routes = new ArrayList<>();
         for (int i = 0; i < priority.size(); i++) {
             Edge edge = priority.get(i);
@@ -211,7 +211,7 @@ public class Main {
             Edge edge = priority.get(i);
             Route route = edge.component;
 
-            Candidate selectedCandidate = selectFromRoutes(routes, route, config.matrix, journal, journaling);
+            Candidate selectedCandidate = selectFromRoutes(routes, route, config.matrix, journal, journaling, journalEdge);
 
             if(selectedCandidate == null){
                 //TODO vrat se zpet do depot, NEMUSIM RESIT
@@ -225,8 +225,8 @@ public class Main {
     }
 
     public static Evaluation evaluatePriorityList(List<Edge> priority, Config config, Map<Node, Map<Node,
-            AnalysisNode>> journal, boolean journaling){
-        List<Route> routes = construct(priority, config, journal, journaling);
+            AnalysisNode>> journal, boolean journaling, Map<Domain, Map<Domain, AnalysisNode>> journalEdge){
+        List<Route> routes = construct(priority, config, journal, journaling, journalEdge);
         int cumulativeCost = evaluateRoutes(routes, config);
         return new Evaluation(cumulativeCost, routes.size(), routes);
     }
@@ -403,7 +403,7 @@ public class Main {
      * stezejni metoda, ve ktereho dochazi k vyberu nejvhodnejsiho kandidata na prodlouzeni cesty
      */
     public static Candidate selectFromRoutes(List<Route> routes, Route route, Double[][] matrix, Map<Node, Map<Node,
-            AnalysisNode>> journal, boolean journaling){
+            AnalysisNode>> journal, boolean journaling, Map<Domain, Map<Domain, AnalysisNode>> journalEdge){
         Node outerLeft = route.tail.previousLink;
         Node outerRight = route.head.nextLink;
 
@@ -419,16 +419,20 @@ public class Main {
             Node right = r.head.nextLink;
 
             Candidate c;
-            if((c = evaluateCandidate(route, outerLeft, left, r.tail.candidate.edge, matrix, journal)) != null){
+            if((c = evaluateCandidate(route, outerLeft, route.tail.candidate.edge, left, r.tail.candidate.edge, matrix,
+                    journal, journalEdge)) != null){
                 candidates.add(c);
             }
-            if((c = evaluateCandidate(route, outerLeft, right, r.head.candidate.edge, matrix, journal)) != null){
+            if((c = evaluateCandidate(route, outerLeft, route.tail.candidate.edge, right, r.head.candidate.edge, matrix,
+                    journal, journalEdge)) != null){
                 candidates.add(c);
             }
-            if((c = evaluateCandidate(route, outerRight, left, r.tail.candidate.edge, matrix, journal)) != null){
+            if((c = evaluateCandidate(route, outerRight, route.head.candidate.edge, left, r.tail.candidate.edge, matrix,
+                    journal, journalEdge)) != null){
                 candidates.add(c);
             }
-            if((c = evaluateCandidate(route, outerRight, right, r.head.candidate.edge, matrix, journal)) != null){
+            if((c = evaluateCandidate(route, outerRight, route.head.candidate.edge, right, r.head.candidate.edge, matrix,
+                    journal, journalEdge)) != null){
                 candidates.add(c);
             }
         }
@@ -496,6 +500,8 @@ public class Main {
             System.out.println(leftSum);
             System.out.println("average: " + (double)leftSum/(++countLeft));
 
+
+
             Collections.sort(candidates, Comparator.comparingDouble(Candidate::getJournalEntry).thenComparingDouble(Candidate::getDistance));
         }
 
@@ -506,7 +512,9 @@ public class Main {
         return null;
     }
 
-    public static Candidate evaluateCandidate(Route route, Node fromNode, Node toNode, Edge toEdge, Double[][] matrix, Map<Node, Map<Node, AnalysisNode>> journal){
+    public static Candidate evaluateCandidate(Route route, Node fromNode, Edge fromEdge, Node toNode, Edge toEdge,
+                                              Double[][] matrix, Map<Node, Map<Node, AnalysisNode>> journal,
+                                              Map<Domain, Map<Domain, AnalysisNode>> journalEdge){
         if(toEdge.component == route || route.capacityLeft < toEdge.component.capacityTaken){
             return null;
         }
@@ -527,6 +535,23 @@ public class Main {
         else{
             c.journalEntry = Double.POSITIVE_INFINITY;
         }
+
+        Domain domainFrom = new Domain(fromEdge, fromNode);
+        if(journalEdge.containsKey(domainFrom)){
+            Map<Domain, AnalysisNode> subJournalEdge = journalEdge.get(domainFrom);
+            Domain domainTo = new Domain(toEdge, toNode);
+            if(subJournalEdge.containsKey(domainTo)){
+                AnalysisNode an = subJournalEdge.get(domainTo);
+                c.journalEdgeEntry = an.sum/an.count;
+            }
+            else{
+                c.journalEdgeEntry = Double.POSITIVE_INFINITY;
+            }
+        }
+        else{
+            c.journalEdgeEntry = Double.POSITIVE_INFINITY;
+        }
+
 
         return c;
     }
