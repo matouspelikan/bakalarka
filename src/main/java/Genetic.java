@@ -13,7 +13,7 @@ public class Genetic {
     public static Config config;
     public static Double[][] matrix;  //matice vzdáleností
     List<Edge> requiredEdges; //seznam pozadovanych hran, jeho permutovanim se vytvareji nahodne chromosomy
-    public int kTournament;
+
     public int maxDuplicates; //maximalni pocet jedincu v populace se stejnym costem
 
     public PrintWriter journalWriter;
@@ -28,7 +28,6 @@ public class Genetic {
 
         this.properties = properties;
 
-        this.kTournament = properties.tournament;
         this.maxDuplicates = properties.duplicates;
 
         Config finalConfig = config;
@@ -54,7 +53,7 @@ public class Genetic {
 
     public Individual BEST = new Individual();
 
-    public void evolution(int popSize, int maxGen, double probCross, double probMutation, int M, int k, double N, int maxEpoch){
+    public void evolution(int popSize, int maxGen, double probCross, double probMutation, int M, int k, int N, int maxEpoch){
         System.out.println(properties);
 //        maxDuplicates = popSize;
 
@@ -86,6 +85,7 @@ public class Genetic {
         }
 
         for (int i = 0; i < maxGen; i++) {
+            pb.setExtraMessage("| BSF cost: " + BEST.evaluation.cost);
             journalWriter.flush();
             convergenceWriter.flush();
 
@@ -143,8 +143,8 @@ public class Genetic {
             List<Individual> interPop = new ArrayList<>();
             int interPopSize = 0;
             while (interPopSize < popSize) {
-                Individual parent1 = tournamentSelection(population);
-                Individual parent2 = tournamentSelection(population);
+                Individual parent1 = tournamentSelection(population, properties.tournament1);
+                Individual parent2 = tournamentSelection(population, properties.tournament2);
 
                 Individual child1 = null;
                 Individual child2 = null;
@@ -283,9 +283,9 @@ public class Genetic {
         Collections.sort(population, comparator);
     }
 
-    public Individual tournamentSelection(List<Individual> population){
+    public Individual tournamentSelection(List<Individual> population, int limit){
         List<Individual> subset = new ArrayList<>();
-        for (int i = 0; i < this.kTournament; i++) {
+        for (int i = 0; i < limit; i++) {
             subset.add(population.get(random.nextInt(population.size())));
         }
 
@@ -309,9 +309,10 @@ public class Genetic {
 //        population.get(0).printRoutes();
     }
 
-    public Map<Node, Map<Node, AnalysisNode>> analyzePopulation(List<Individual> population, double N, int generation){
+    public Map<Node, Map<Node, AnalysisNode>> analyzePopulation(List<Individual> population, int N, int generation){
         Map<Node, Map<Node, AnalysisNode>> journal = new HashMap<>();
-        int sizeWorthy = (int)(population.size()*N);
+//        int sizeWorthy = (int)(population.size()*N);
+        int sizeWorthy = N;
         List<Individual> populationWorthy = new ArrayList<>(population.stream().limit(sizeWorthy).collect(Collectors.toList()));
         for (Individual individual : populationWorthy) {
             analyzeIndividual(individual, journal);

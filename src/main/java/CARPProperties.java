@@ -6,14 +6,18 @@ public class CARPProperties extends Properties {
     public String datasetGroup;
     public String dataset;
     public int seed;
-    public double N;
+    public int N;
     public int M;
     public int k;
     public int maxEpoch;
     public int popSize;
     public int maxGen;
-    public int tournament;
+//    public int tournament;
     public int duplicates;
+    public double pMutation;
+    public double pCross;
+    public int tournament1;
+    public int tournament2;
     public String resultDir;
 
     public String configFileName;
@@ -41,20 +45,24 @@ public class CARPProperties extends Properties {
         datasetGroup = this.getProperty("datasetGroup");
         dataset = this.getProperty("dataset");
         seed = Integer.parseInt(this.getProperty("seed"));
-        N = Double.parseDouble(this.getProperty("N"));
+        N = Integer.parseInt(this.getProperty("N"));
         M = Integer.parseInt(this.getProperty("M"));
         k = Integer.parseInt(this.getProperty("k"));
         maxEpoch = Integer.parseInt(this.getProperty("maxEpoch"));
         popSize = Integer.parseInt(this.getProperty("popSize"));
         maxGen = Integer.parseInt(this.getProperty("maxGen"));
-        tournament = Integer.parseInt(this.getProperty("tournament"));
+//        tournament = Integer.parseInt(this.getProperty("tournament"));
         duplicates = Integer.parseInt(this.getProperty("duplicates"));
+        pMutation = Double.parseDouble(this.getProperty("pMutation"));
+        pCross = Double.parseDouble(this.getProperty("pCross"));
+        tournament1 = Integer.parseInt(this.getProperty("tournament1"));
+        tournament2 = Integer.parseInt(this.getProperty("tournament2"));
         resultDir = this.getProperty("resultsDir");
     }
 
     @Override
     public String toString() {
-        return "configuration: " +
+        return "CARPProperties{" +
                 "dataset='" + dataset + '\'' +
                 ", seed=" + seed +
                 ", N=" + N +
@@ -63,7 +71,11 @@ public class CARPProperties extends Properties {
                 ", maxEpoch=" + maxEpoch +
                 ", popSize=" + popSize +
                 ", maxGen=" + maxGen +
-                ", tournament=" + tournament +
-                ", duplicates=" + duplicates;
+                ", duplicates=" + duplicates +
+                ", pMutation=" + pMutation +
+                ", pCross=" + pCross +
+                ", tournament1=" + tournament1 +
+                ", tournament2=" + tournament2 +
+                '}';
     }
 }

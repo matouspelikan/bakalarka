@@ -65,7 +65,7 @@ public class Main {
 
         Path resultDir = getDirectory(dir);
         Path outSolution = resultDir.resolve("BSF_solution.csv");
-        Path outJournal = resultDir.resolve("BSF_journal.csv");
+        Path outJournal = resultDir.resolve("BSF_journal.txt");
         Path outConvergence = resultDir.resolve("convergence.csv");
         Path outConfig = resultDir.resolve("config.properties");
 
@@ -98,7 +98,7 @@ public class Main {
         List<Edge> requiredEdges = config.edges.stream().filter(e -> e.required).collect(Collectors.toList());
 
         Genetic genetic = new Genetic(requiredEdges, journalWriter, convergenceWriter, properties);
-        genetic.evolution(properties.popSize, properties.maxGen, 0.9, 0.5, properties.M, properties.k, properties.N, properties.maxEpoch);
+        genetic.evolution(properties.popSize, properties.maxGen, properties.pCross, properties.pMutation, properties.M, properties.k, properties.N, properties.maxEpoch);
 
         System.out.println("best solution: " + genetic.BEST.evaluation.cost + " " + genetic.BEST.evaluation.vehicleCount + " found at generation: " + genetic.BEST.nbofGeneration);
 
