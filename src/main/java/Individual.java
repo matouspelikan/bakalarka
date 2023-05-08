@@ -31,13 +31,13 @@ public class Individual {
         this.nbofGeneration = Integer.MAX_VALUE;
     }
 
-    public void evaluate(Map<Node, Map<Node, AnalysisNode>> journal, boolean journaling, Map<Domain, Map<Domain, AnalysisNode>> journalEdge){
-        this.evaluation = Main.evaluatePriorityList(priorityList, config, journal, journaling, journalEdge);
+    public void evaluate(JournalPair journalPair, boolean journaling){
+        this.evaluation = Main.evaluatePriorityList(priorityList, config, journalPair, journaling);
     }
 
-    public void perturb(Map<Node, Map<Node, AnalysisNode>> journal, boolean journaling, Map<Domain, Map<Domain, AnalysisNode>> journalEdge){
+    public void perturb(JournalPair journalPair, boolean journaling){
         Collections.shuffle(this.priorityList, new Random(random.nextInt()));
-        this.evaluate(journal, journaling, journalEdge);
+        this.evaluate(journalPair, journaling);
     }
 
     public Object toHash(Element element){
@@ -150,8 +150,7 @@ public class Individual {
     }
 
     //greedy localOptim, pokud nalezne lokalni zlepseni, provede ho ihned
-    public void localOptimisation(Map<Node, Map<Node, AnalysisNode>> journal,
-                                  Map<Domain, Map<Domain, AnalysisNode>> journalEdge){
+    public void localOptimisation(JournalPair journalPair){
 
         for(Route r : evaluation.routes){
             r.twoOptWrap();
@@ -167,7 +166,7 @@ public class Individual {
 //            for (int l = 2; l < 4; l++) {
 //                this.pathScanningWrap(journal, l);
 //            }
-            this.pathScanningWrap(journal, 2, journalEdge);
+            this.pathScanningWrap(journalPair, 2);
         }
 //        this.pathScanningWrap(journal, 2);
 
@@ -179,13 +178,12 @@ public class Individual {
 
     }
 
-    public void pathScanningWrap(Map<Node, Map<Node, AnalysisNode>> journal, int limit,
-                                 Map<Domain, Map<Domain, AnalysisNode>> journalEdge){
+    public void pathScanningWrap(JournalPair journalPair, int limit){
         List<Route> routes = evaluation.routes;
         Collections.shuffle(routes, new Random(random.nextInt()));
         List<Route> subRoutes = routes.stream().filter(r -> r.active).limit(limit).collect(Collectors.toList());
         double pre = Main.evaluateRoutes(subRoutes, config);
-        Evaluation evaluationLocal = pathScanning(subRoutes, journal, journalEdge);
+        Evaluation evaluationLocal = pathScanning(subRoutes, journalPair);
         if(evaluationLocal.cost < pre && evaluationLocal.vehicleCount <= evaluation.vehicleCount){
             int rpre = Main.evaluateRoutes(routes, config);
             for(Route r : subRoutes){
@@ -204,8 +202,7 @@ public class Individual {
 //        pathScanning(routes.stream().limit(3).collect(Collectors.toList()));
     }
 
-    public Evaluation pathScanning(List<Route> routes, Map<Node, Map<Node, AnalysisNode>> journal,
-                                   Map<Domain, Map<Domain, AnalysisNode>> journalEdge){
+    public Evaluation pathScanning(List<Route> routes, JournalPair journalPair){
         List<Edge> allEdges = new ArrayList<>();
         for (Route r : routes){
             Element element = r.tail;
@@ -215,7 +212,7 @@ public class Individual {
             }
         }
         Collections.shuffle(allEdges, new Random(random.nextInt()));
-        return Main.evaluatePriorityList(allEdges, config, journal, false, journalEdge);
+        return Main.evaluatePriorityList(allEdges, config, journalPair, false);
     }
 
     public static void twoOptMultipleWrap(Individual individual){

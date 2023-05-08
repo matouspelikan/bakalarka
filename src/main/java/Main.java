@@ -198,8 +198,8 @@ public class Main {
         return new Config(nodes, edges, depot, vehicles, capacity);
     }
 
-    public static List<Route> construct(List<Edge> priority, Config config, Map<Node, Map<Node, AnalysisNode>> journal,
-                                        boolean journaling, Map<Domain, Map<Domain, AnalysisNode>> journalEdge){
+    public static List<Route> construct(List<Edge> priority, Config config, JournalPair journalPair,
+                                        boolean journaling){
         List<Route> routes = new ArrayList<>();
         for (int i = 0; i < priority.size(); i++) {
             Edge edge = priority.get(i);
@@ -211,7 +211,7 @@ public class Main {
             Edge edge = priority.get(i);
             Route route = edge.component;
 
-            Candidate selectedCandidate = selectFromRoutes(routes, route, config.matrix, journal, journaling, journalEdge);
+            Candidate selectedCandidate = selectFromRoutes(routes, route, config.matrix, journalPair, journaling);
 
             if(selectedCandidate == null){
                 //TODO vrat se zpet do depot, NEMUSIM RESIT
@@ -224,9 +224,8 @@ public class Main {
         return new ArrayList<>(routes.stream().filter(r -> r.active).collect(Collectors.toList()));
     }
 
-    public static Evaluation evaluatePriorityList(List<Edge> priority, Config config, Map<Node, Map<Node,
-            AnalysisNode>> journal, boolean journaling, Map<Domain, Map<Domain, AnalysisNode>> journalEdge){
-        List<Route> routes = construct(priority, config, journal, journaling, journalEdge);
+    public static Evaluation evaluatePriorityList(List<Edge> priority, Config config, JournalPair journalPair, boolean journaling){
+        List<Route> routes = construct(priority, config, journalPair, journaling);
         int cumulativeCost = evaluateRoutes(routes, config);
         return new Evaluation(cumulativeCost, routes.size(), routes);
     }
@@ -402,8 +401,8 @@ public class Main {
     /**
      * stezejni metoda, ve ktereho dochazi k vyberu nejvhodnejsiho kandidata na prodlouzeni cesty
      */
-    public static Candidate selectFromRoutes(List<Route> routes, Route route, Double[][] matrix, Map<Node, Map<Node,
-            AnalysisNode>> journal, boolean journaling, Map<Domain, Map<Domain, AnalysisNode>> journalEdge){
+    public static Candidate selectFromRoutes(List<Route> routes, Route route, Double[][] matrix,
+                                             JournalPair journalPair, boolean journaling){
         Node outerLeft = route.tail.previousLink;
         Node outerRight = route.head.nextLink;
 
@@ -420,19 +419,19 @@ public class Main {
 
             Candidate c;
             if((c = evaluateCandidate(route, outerLeft, route.tail.candidate.edge, left, r.tail.candidate.edge, matrix,
-                    journal, journalEdge)) != null){
+                    journalPair)) != null){
                 candidates.add(c);
             }
             if((c = evaluateCandidate(route, outerLeft, route.tail.candidate.edge, right, r.head.candidate.edge, matrix,
-                    journal, journalEdge)) != null){
+                    journalPair)) != null){
                 candidates.add(c);
             }
             if((c = evaluateCandidate(route, outerRight, route.head.candidate.edge, left, r.tail.candidate.edge, matrix,
-                    journal, journalEdge)) != null){
+                    journalPair)) != null){
                 candidates.add(c);
             }
             if((c = evaluateCandidate(route, outerRight, route.head.candidate.edge, right, r.head.candidate.edge, matrix,
-                    journal, journalEdge)) != null){
+                    journalPair)) != null){
                 candidates.add(c);
             }
         }
@@ -445,64 +444,64 @@ public class Main {
             Collections.sort(candidates, Comparator.comparingDouble(Candidate::getDistance));
         }
         if(journaling){
-            Map<Node, Integer> nodeCountsFromLeftNode = new HashMap<>();
-            Map<Node, Integer> nodeCountsFromRightNode = new HashMap<>();
+//            Map<Node, Integer> nodeCountsFromLeftNode = new HashMap<>();
+//            Map<Node, Integer> nodeCountsFromRightNode = new HashMap<>();
+//
+//            for(Candidate candidate : candidates){
+//                if(candidate.fromNode == outerLeft){
+//                    if(!nodeCountsFromLeftNode.containsKey(candidate.toNode)){
+//                        nodeCountsFromLeftNode.put(candidate.toNode, 1);
+//                    }
+//                    else{
+//                        int count = nodeCountsFromLeftNode.get(candidate.toNode);
+//                        nodeCountsFromLeftNode.put(candidate.toNode, count + 1);
+//                    }
+//                }
+//                else if(candidate.fromNode == outerRight){
+//                    if(!nodeCountsFromRightNode.containsKey(candidate.toNode)){
+//                        nodeCountsFromRightNode.put(candidate.toNode, 1);
+//                    }
+//                    else{
+//                        int count = nodeCountsFromRightNode.get(candidate.toNode);
+//                        nodeCountsFromRightNode.put(candidate.toNode, count + 1);
+//                    }
+//                }
+//                else{
+//                    throw new RuntimeException();
+//                }
+//            }
+//
+//            int countLeft = 0;
+//            int countDoubleLeft = 0;
+//            int leftSum = 0;
+//            for(Node node : nodeCountsFromLeftNode.keySet()){
+//                countLeft++;
+//                if(nodeCountsFromLeftNode.get(node) > 1){
+//                    countDoubleLeft++;
+//                }
+//                leftSum += nodeCountsFromLeftNode.get(node);
+//                System.out.print(nodeCountsFromLeftNode.get(node) + " ");
+//            }
+//            System.out.println();
+//
+//            int countRight = 0;
+//            int countDoubleRight = 0;
+//            for(Node node : nodeCountsFromRightNode.keySet()){
+//                countRight++;
+//                if(nodeCountsFromRightNode.get(node) > 1){
+//                    countDoubleRight++;
+//                }
+//            }
+//            System.out.println("routes: " + routes.size() + " " + routes.stream().filter(r -> r.active).collect(Collectors.toList()).size());
+//            System.out.println("left: " + countDoubleLeft + " " + countLeft + " right: " + countDoubleRight + " " + countRight);
+//
+//            System.out.println(candidates.stream().filter(c -> c.fromNode == outerLeft).collect(Collectors.toList()).size());
+//            System.out.println(leftSum);
+//            System.out.println("average: " + (double)leftSum/(++countLeft));
+//
 
-            for(Candidate candidate : candidates){
-                if(candidate.fromNode == outerLeft){
-                    if(!nodeCountsFromLeftNode.containsKey(candidate.toNode)){
-                        nodeCountsFromLeftNode.put(candidate.toNode, 1);
-                    }
-                    else{
-                        int count = nodeCountsFromLeftNode.get(candidate.toNode);
-                        nodeCountsFromLeftNode.put(candidate.toNode, count + 1);
-                    }
-                }
-                else if(candidate.fromNode == outerRight){
-                    if(!nodeCountsFromRightNode.containsKey(candidate.toNode)){
-                        nodeCountsFromRightNode.put(candidate.toNode, 1);
-                    }
-                    else{
-                        int count = nodeCountsFromRightNode.get(candidate.toNode);
-                        nodeCountsFromRightNode.put(candidate.toNode, count + 1);
-                    }
-                }
-                else{
-                    throw new RuntimeException();
-                }
-            }
 
-            int countLeft = 0;
-            int countDoubleLeft = 0;
-            int leftSum = 0;
-            for(Node node : nodeCountsFromLeftNode.keySet()){
-                countLeft++;
-                if(nodeCountsFromLeftNode.get(node) > 1){
-                    countDoubleLeft++;
-                }
-                leftSum += nodeCountsFromLeftNode.get(node);
-                System.out.print(nodeCountsFromLeftNode.get(node) + " ");
-            }
-            System.out.println();
-
-            int countRight = 0;
-            int countDoubleRight = 0;
-            for(Node node : nodeCountsFromRightNode.keySet()){
-                countRight++;
-                if(nodeCountsFromRightNode.get(node) > 1){
-                    countDoubleRight++;
-                }
-            }
-            System.out.println("routes: " + routes.size() + " " + routes.stream().filter(r -> r.active).collect(Collectors.toList()).size());
-            System.out.println("left: " + countDoubleLeft + " " + countLeft + " right: " + countDoubleRight + " " + countRight);
-
-            System.out.println(candidates.stream().filter(c -> c.fromNode == outerLeft).collect(Collectors.toList()).size());
-            System.out.println(leftSum);
-            System.out.println("average: " + (double)leftSum/(++countLeft));
-
-
-
-            Collections.sort(candidates, Comparator.comparingDouble(Candidate::getJournalEntry).thenComparingDouble(Candidate::getDistance));
+            Collections.sort(candidates, Comparator.comparingDouble(Candidate::getJournalEdgeEntry).thenComparingDouble(Candidate::getDistance));
         }
 
         //vyber prvniho nejlepsiho
@@ -513,14 +512,17 @@ public class Main {
     }
 
     public static Candidate evaluateCandidate(Route route, Node fromNode, Edge fromEdge, Node toNode, Edge toEdge,
-                                              Double[][] matrix, Map<Node, Map<Node, AnalysisNode>> journal,
-                                              Map<Domain, Map<Domain, AnalysisNode>> journalEdge){
+                                              Double[][] matrix, JournalPair journalPair){
         if(toEdge.component == route || route.capacityLeft < toEdge.component.capacityTaken){
             return null;
         }
         Candidate c = new Candidate(toEdge, toNode, fromNode, matrix[fromNode.number][toNode.number]);
         //TODO score evaluation bude pocitat s cetnosti
         c.score = c.distance;
+
+        Map<Node, Map<Node, AnalysisNode>> journal = journalPair.journal;
+        Map<Domain, Map<Domain, AnalysisNode>> journalEdge = journalPair.journalEdge;
+
 
         if(journal.containsKey(fromNode)){
             Map<Node, AnalysisNode> subJournal = journal.get(fromNode);
