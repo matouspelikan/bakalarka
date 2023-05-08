@@ -170,6 +170,7 @@ public class Genetic {
             nbOfJournaling++;
 
 
+
             //new generation
             List<Individual> interPop = new ArrayList<>();
             int interPopSize = 0;
@@ -212,9 +213,29 @@ public class Genetic {
             int originalSize = population.size();
             population.addAll(interPop);
             sortPopulation(population);
+
+//            System.out.print(population.size() + "  i: " + i + " ");
+//            for (int j = 0; j < population.size(); j++) {
+//                System.out.print(population.get(j).evaluation + " ");
+//            }
+//            System.out.println();
+
+
             List<Individual> nonDuplicatedPopulation = deleteDuplicates(population);
 //            population.subList(originalSize, population.size()).clear();
-            nonDuplicatedPopulation.subList(originalSize, nonDuplicatedPopulation.size()).clear();
+            int nonDSize = nonDuplicatedPopulation.size();
+            if(nonDSize<originalSize){
+                for (int j = 0; j < population.size() && nonDSize < originalSize; j++) {
+                    Individual individual = population.get(j);
+                    if(!nonDuplicatedPopulation.contains(individual)){
+                        nonDuplicatedPopulation.add(individual);
+                        nonDSize++;
+                    }
+                }
+            }
+            else{
+                nonDuplicatedPopulation.subList(originalSize, nonDuplicatedPopulation.size()).clear();
+            }
             population = nonDuplicatedPopulation;
 
             if (originalSize != population.size()) throw new RuntimeException();
@@ -282,30 +303,46 @@ public class Genetic {
 
         List<Individual> newPopulation = new ArrayList<>(); //without duplicates
         Map<Evaluation, Integer> counts = new HashMap<>();
+        Map<Integer, Integer> hashCounts = new HashMap<>();
+        int count;
         for(Individual individual : population){
             int hash = individual.hashCustom();
-            if(!hashes.contains(hash)){
-                hashes.add(hash);
-                newPopulation.add(individual);
-            }
 
-            if(true) continue;
-            //obsolete way of checking for duplicates
-
-            if(counts.containsKey(individual.evaluation)){
-                int count = counts.get(individual.evaluation);
+            if(hashCounts.containsKey(hash)){
+                count = hashCounts.get(hash);
                 if(count < maxDuplicates){
+                    hashCounts.put(hash, count+1);
                     newPopulation.add(individual);
-                    counts.put(individual.evaluation, count+1);
                 }
                 else{
-                    //too many of same evaluation
+                    //too many duplicates
                 }
             }
             else{
+                hashCounts.put(hash, 1);
                 newPopulation.add(individual);
-                counts.put(individual.evaluation, 1);
             }
+
+//            if(!hashes.contains(hash) ){
+//                hashes.add(hash);
+//                newPopulation.add(individual);
+//            }
+
+            //obsolete way of checking for duplicates
+//            if(counts.containsKey(individual.evaluation)){
+//                int count = counts.get(individual.evaluation);
+//                if(count < maxDuplicates){
+//                    newPopulation.add(individual);
+//                    counts.put(individual.evaluation, count+1);
+//                }
+//                else{
+//                    //too many of same evaluation
+//                }
+//            }
+//            else{
+//                newPopulation.add(individual);
+//                counts.put(individual.evaluation, 1);
+//            }
         }
         return newPopulation;
     }

@@ -14,12 +14,12 @@ public class Main {
     public static void main(String[] args) throws Exception {
 
 //        System.out.println(args.length);
-//        if(args.length < 1){
-//            System.out.println("Please provide input config file...");
-//            return;
-//        }
-//        String configFile = args[0];
-        String configFile = "config.properties";
+        if(args.length < 1){
+            System.out.println("Please provide input config file...");
+            return;
+        }
+        String configFile = args[0];
+//        String configFile = "config.properties";
 
         CARPProperties properties = CARPProperties.getInstance();
         properties.readConfigFile(configFile);
@@ -75,7 +75,6 @@ public class Main {
         DataInputStream dis = new DataInputStream(new FileInputStream(f));
         dis.readFully(content);
 
-
         FileOutputStream outputStream = new FileOutputStream(outConfig.toFile());
         outputStream.write(content);
 
@@ -99,8 +98,6 @@ public class Main {
 
         Genetic genetic = new Genetic(requiredEdges, journalWriter, convergenceWriter, properties);
         genetic.evolution(properties.popSize, properties.maxGen, properties.pCross, properties.pMutation, properties.M, properties.k, properties.N, properties.maxEpoch);
-
-        if(true) return;
 
         System.out.println("best solution: " + genetic.BEST.evaluation.cost + " " + genetic.BEST.evaluation.vehicleCount + " found at generation: " + genetic.BEST.nbofGeneration);
 
