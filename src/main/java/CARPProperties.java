@@ -1,3 +1,5 @@
+import com.sun.org.apache.xpath.internal.operations.Bool;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.util.Properties;
@@ -19,8 +21,11 @@ public class CARPProperties extends Properties {
     public int tournament1;
     public int tournament2;
     public String resultDir;
+    public boolean populationRestart;
+
 
     public String configFileName;
+
 
     private static CARPProperties instance;
     private CARPProperties(){}
@@ -31,10 +36,10 @@ public class CARPProperties extends Properties {
         return instance;
     }
 
-    public void readConfigFile(String configFileName) throws Exception{
+    public void readConfigFile(String configFileName) throws Exception {
         this.configFileName = configFileName;
         File inputFile = new File(configFileName);
-        if(!inputFile.exists()){
+        if (!inputFile.exists()) {
             throw new Exception("config file does not exist!");
         }
 
@@ -58,6 +63,7 @@ public class CARPProperties extends Properties {
         tournament1 = Integer.parseInt(this.getProperty("tournament1"));
         tournament2 = Integer.parseInt(this.getProperty("tournament2"));
         resultDir = this.getProperty("resultsDir");
+        populationRestart  = Boolean.parseBoolean(this.getProperty("populationRestart"));
     }
 
     @Override

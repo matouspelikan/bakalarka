@@ -55,6 +55,13 @@ public class Genetic {
 
     public void evolution(int popSize, int maxGen, double probCross, double probMutation, int M, int k, int N, int maxEpoch){
         System.out.println(properties);
+
+        JournalType journalType = JournalType.EDGE;
+        if(properties.populationRestart){
+            journalType = JournalType.BASIC;
+            System.out.println("!!!population restart variant!!! no journaling, only individual perturbation");
+        }
+
 //        maxDuplicates = popSize;
 
 //        Map<Domain, Map<Domain, AnalysisNode>> journalEdge = new HashMap<>();
@@ -91,7 +98,7 @@ public class Genetic {
         JournalPair journalPair = new JournalPair(journal, journalEdge);
 
         List<Individual> population;
-        population = createInitialPopulation(popSize, journalPair);
+        population = createInitialPopulation(popSize, journalPair, journalType);
         sortPopulation(population);
 //        printPopulation(population);
 
@@ -149,27 +156,23 @@ public class Genetic {
                 journaling = true;
                 nbOfJournaling = 0;
                 reevaluate = true;
-//                journal = analyzePopulation(population, N);
+
+                for (Individual ind: population){
+                    ind.perturb(journalPair, true, journalType);
+                }
+                sortPopulation(population);
             }
+            nbOfJournaling++;
+
 
             if(comparator.compare(population.get(0), BEST) < 0){ //prvni jedinec v populaci je lepsi nez bestSoFar
                 BEST = new Individual(population.get(0), i);
                 if(i < M) bestSoFarIndividual = BEST;
             }
 
-            printPopulation(population, i, BEST);
-
 //            System.out.println("i:" + i + " " + population.get(0) + " " + BEST + " " + bestSoFarIndividual);
 
-            if (reevaluate){
-                for (Individual ind: population){
-                    ind.perturb(journalPair, true);
-                }
-            }
-
-            nbOfJournaling++;
-
-
+            printPopulation(population, i, BEST);
 
             //new generation
             List<Individual> interPop = new ArrayList<>();
@@ -197,11 +200,11 @@ public class Genetic {
                     child2.mutate();
                 }
 
-                child1.evaluate(journalPair, journaling);
-                child2.evaluate(journalPair, journaling);
+                child1.evaluate(journalPair, journaling, journalType);
+                child2.evaluate(journalPair, journaling, journalType);
 
-                child1.localOptimisation(journalPair);
-                child2.localOptimisation(journalPair);
+                child1.localOptimisation(journalPair, journalType);
+                child2.localOptimisation(journalPair, journalType);
 
                 interPop.add(child1);
                 interPopSize++;
@@ -245,15 +248,15 @@ public class Genetic {
 
     }
 
-    public Individual createIndividual(JournalPair journalPair){
+    public Individual createIndividual(JournalPair journalPair, JournalType journalType){
         List<Edge> newPriorityList = Main.deepCopy(requiredEdges);
         Collections.shuffle(newPriorityList, new Random(random.nextInt()));
         Individual individual = new Individual(newPriorityList);
-        individual.evaluate(journalPair, false);
+        individual.evaluate(journalPair, false, journalType);
         return individual;
     }
 
-    public List<Individual> createInitialPopulation(int popSize, JournalPair journalPair){
+    public List<Individual> createInitialPopulation(int popSize, JournalPair journalPair, JournalType journalType){
         Set<Integer> hashes = new HashSet<>();
 
         Map<Evaluation, Integer> counts = new HashMap<>();
@@ -266,7 +269,7 @@ public class Genetic {
             if(iteration > popSize*1000){ //assurance iteration overflow
                 throw new RuntimeException();
             }
-            Individual newIndividual = createIndividual(journalPair);
+            Individual newIndividual = createIndividual(journalPair, journalType);
             int newIndividualHash = newIndividual.hashCustom();
 
             if(!hashes.contains(newIndividualHash)){
@@ -275,25 +278,25 @@ public class Genetic {
                 hashes.add(newIndividualHash);
             }
 
-            if(true) continue;
-            //obsolete way of checking for duplicates
-
-            if(counts.containsKey(newIndividual.evaluation)){
-                int count = counts.get(newIndividual.evaluation);
-                if(count < maxDuplicates){
-                    population.add(newIndividual);
-                    size++;
-                    counts.put(newIndividual.evaluation, count + 1);
-                }
-                else{
-                    //too many duplicates
-                }
-            }
-            else{
-                population.add(newIndividual);
-                size++;
-                counts.put(newIndividual.evaluation, 1);
-            }
+//            if(true) continue;
+//            //obsolete way of checking for duplicates
+//
+//            if(counts.containsKey(newIndividual.evaluation)){
+//                int count = counts.get(newIndividual.evaluation);
+//                if(count < maxDuplicates){
+//                    population.add(newIndividual);
+//                    size++;
+//                    counts.put(newIndividual.evaluation, count + 1);
+//                }
+//                else{
+//                    //too many duplicates
+//                }
+//            }
+//            else{
+//                population.add(newIndividual);
+//                size++;
+//                counts.put(newIndividual.evaluation, 1);
+//            }
         }
         return population;
     }
@@ -323,6 +326,7 @@ public class Genetic {
                 newPopulation.add(individual);
             }
 
+            //obsolete latest
 //            if(!hashes.contains(hash) ){
 //                hashes.add(hash);
 //                newPopulation.add(individual);
