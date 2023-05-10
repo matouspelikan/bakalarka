@@ -129,7 +129,7 @@ public class Genetic {
 
             pb.step();
 
-            boolean reevaluate = false;
+            boolean reevaluatePopRestart = false;
 
             if((i == M) ||                              // v M-te generaci se poprve spusti analyza
                     (i > M && (nbOfJournaling % k == 0)))    // kazdou k-tou iteraci se analyza prepocita
@@ -151,16 +151,27 @@ public class Genetic {
                     nbOfEpoch = 0;
 //                    journal = bestSoFarJournal;
                     journalPair = bestSoFarJournalPair;
+                    reevaluatePopRestart = true; //pouze pro ucely population restart
                 }
 
                 journaling = true;
                 nbOfJournaling = 0;
-                reevaluate = true;
+//                reevaluatePopRestart = true;
 
-                for (Individual ind: population){
-                    ind.perturb(journalPair, true, journalType);
+                //pokud je journalovací verze, prepocita se vzdy, jinak pouze kdyz dojdou epochy
+                if(!properties.populationRestart){
+                    for (Individual ind: population){
+                        ind.perturb(journalPair, true, journalType);
+                    }
+                    sortPopulation(population);
                 }
-                sortPopulation(population);
+                else if(reevaluatePopRestart){ //pro populationRestart variantu chceme zanechat prvnich N individuí a zbytek permutovat
+                    for (int j = 0; j < population.size(); j++) {
+                        if(j < N) continue; //prvnich N jedincu nechavame beze zmeny
+                        population.get(j).perturb(journalPair,true, journalType);
+                    }
+                    sortPopulation(population);
+                }
             }
             nbOfJournaling++;
 

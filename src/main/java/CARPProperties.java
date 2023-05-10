@@ -82,6 +82,7 @@ public class CARPProperties extends Properties {
                 ", pCross=" + pCross +
                 ", tournament1=" + tournament1 +
                 ", tournament2=" + tournament2 +
+                ", populationRestart= " + populationRestart +
                 '}';
     }
 }
