@@ -1,6 +1,7 @@
+import java.io.Serializable;
 import java.util.Map;
 
-public class JournalPair {
+public class JournalPair implements Serializable {
     public Map<Node, Map<Node, AnalysisNode>> journal;
     public Map<Domain, Map<Domain, AnalysisNode>> journalEdge;
 

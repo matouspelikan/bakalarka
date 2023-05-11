@@ -1,7 +1,9 @@
+import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-public class Evaluation {
+public class Evaluation implements Serializable {
 
     public double cost;
     public int vehicleCount;
@@ -21,7 +23,7 @@ public class Evaluation {
     public Evaluation(Evaluation evaluation){
         this.cost = evaluation.cost;
         this.vehicleCount = evaluation.vehicleCount;
-        this.routes = evaluation.routes;
+        this.routes = new ArrayList<>(evaluation.routes);
     }
 
     @Override

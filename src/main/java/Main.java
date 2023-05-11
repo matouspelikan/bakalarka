@@ -1,3 +1,5 @@
+import com.sun.corba.se.impl.orbutil.ObjectWriter;
+
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -14,12 +16,12 @@ public class Main {
     public static void main(String[] args) throws Exception {
 
 //        System.out.println(args.length);
-        if(args.length < 1){
-            System.out.println("Please provide input config file...");
-            return;
-        }
-        String configFile = args[0];
-//        String configFile = "config.properties";
+//        if(args.length < 1){
+//            System.out.println("Please provide input config file...");
+//            return;
+//        }
+//        String configFile = args[0];
+        String configFile = "config.properties";
 
         CARPProperties properties = CARPProperties.getInstance();
         properties.readConfigFile(configFile);
@@ -66,8 +68,10 @@ public class Main {
         Path resultDir = getDirectory(dir);
         Path outSolution = resultDir.resolve("BSF_solution.csv");
         Path outJournal = resultDir.resolve("BSF_journal.txt");
+        Path outJournalObj = resultDir.resolve("journal.txt");
         Path outConvergence = resultDir.resolve("convergence.csv");
         Path outConfig = resultDir.resolve("config.properties");
+        Path outSerializeBest = resultDir.resolve("bestSerialized.txt");
 
 //        byte[] content = new FileInputStream(properties.configFileName).readAllBytes();
         File f = new File(properties.configFileName);
@@ -80,6 +84,9 @@ public class Main {
 
         PrintWriter solutionWriter = new PrintWriter(new FileWriter(outSolution.toFile()));
         PrintWriter journalWriter = new PrintWriter(new FileWriter(outJournal.toFile()));
+        ObjectOutputStream OOS = new ObjectOutputStream(new FileOutputStream(outJournalObj.toFile()));
+        ObjectOutputStream bestOOS = new ObjectOutputStream(new FileOutputStream(outSerializeBest.toFile()));
+
         PrintWriter convergenceWriter = new PrintWriter(new FileWriter(outConvergence.toFile()));
         convergenceWriter.println("generation,currentPopulationBestCost,currentPopulationBestVehicleCount,currentPopulationAverageCost,BSFcost,BSFvehicleCount");
 
@@ -96,7 +103,7 @@ public class Main {
 
         List<Edge> requiredEdges = config.edges.stream().filter(e -> e.required).collect(Collectors.toList());
 
-        Genetic genetic = new Genetic(requiredEdges, journalWriter, convergenceWriter, properties);
+        Genetic genetic = new Genetic(requiredEdges, journalWriter, convergenceWriter, OOS, bestOOS, properties);
         genetic.evolution(properties.popSize, properties.maxGen, properties.pCross, properties.pMutation, properties.M, properties.k, properties.N, properties.maxEpoch);
 
         System.out.println("best solution: " + genetic.BEST.evaluation.cost + " " + genetic.BEST.evaluation.vehicleCount + " found at generation: " + genetic.BEST.nbofGeneration);
@@ -109,6 +116,8 @@ public class Main {
         solutionWriter.close();
         journalWriter.close();
         convergenceWriter.close();
+        OOS.close();
+        bestOOS.close();
     }
 
     public static Config readGDB(String datasetPath) throws IOException {

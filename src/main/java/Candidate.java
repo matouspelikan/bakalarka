@@ -1,6 +1,7 @@
+import java.io.Serializable;
 import java.util.Objects;
 
-public class Candidate {
+public class Candidate implements Serializable {
     public Edge edge;
     public Node toNode;
     public Node fromNode;

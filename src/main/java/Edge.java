@@ -1,6 +1,7 @@
+import java.io.Serializable;
 import java.util.*;
 
-public class Edge {
+public class Edge implements Serializable {
 
     public int leftNumber;
     public int rightNumber;
@@ -16,13 +17,8 @@ public class Edge {
     public boolean required;
 
     public Route component = null;
-    public Route component2 = null;
 
-    public boolean taken = false;
-
-    public Edge(){
-
-    }
+    public Edge(){}
 
     public Edge(int leftNumber, int rightNumber, boolean required, Node leftNode, Node rightNode){
         this.leftNumber = leftNumber;

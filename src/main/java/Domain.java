@@ -1,6 +1,7 @@
+import java.io.Serializable;
 import java.util.Objects;
 
-public class Domain {
+public class Domain implements Serializable {
 
     public Edge edge;
     public Node node;
@@ -21,5 +22,13 @@ public class Domain {
     @Override
     public int hashCode() {
         return Objects.hash(edge, node);
+    }
+
+    @Override
+    public String toString() {
+        return "Domain{" +
+                "edge=" + edge +
+                ", node=" + node +
+                '}';
     }
 }

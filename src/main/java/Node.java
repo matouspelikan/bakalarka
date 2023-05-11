@@ -1,6 +1,8 @@
+import java.io.Serializable;
 import java.util.*;
 
-public class Node {
+public class Node implements Serializable{
+
 
     public int number;
     public List<Integer> neighbors;
@@ -68,9 +70,10 @@ public class Node {
     @Override
     public int hashCode() {
         return Objects.hash(number);
+//        return hash();
     }
 
     public int hash(){
-        return new Random(this.hashCode()).nextInt();
+        return new Random(number).nextInt();
     }
 }

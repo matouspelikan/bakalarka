@@ -1,4 +1,6 @@
-public class AnalysisNode {
+import java.io.Serializable;
+
+public class AnalysisNode implements Serializable {
     public double sum;
     public int count;
 

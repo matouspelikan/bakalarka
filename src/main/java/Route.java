@@ -1,3 +1,4 @@
+import java.io.Serializable;
 import java.util.*;
 
 
@@ -5,7 +6,7 @@ import java.util.*;
  * Kazda instance Route reprezentuje jednu cestu zacinajici a koncici v depotu
  * reliazace pozadovanyho hran pomocí spojového seznamu - zacina a konci v tail/head
  */
-public class Route {
+public class Route implements Serializable {
 
     public static Double[][] matrix;
 
@@ -26,6 +27,9 @@ public class Route {
 
     public boolean twoopted = false;
 
+    public Route(Route route){
+
+    }
 
     public Route(){
     }
@@ -38,7 +42,6 @@ public class Route {
 
         edges.add(edge);
         edge.component = this;
-        edge.component2 = this;
 
         this.leftBorder = edge.leftNumber;
         this.rightBorder = edge.rightNumber;

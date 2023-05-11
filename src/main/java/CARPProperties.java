@@ -21,10 +21,10 @@ public class CARPProperties extends Properties {
     public int tournament1;
     public int tournament2;
     public String resultDir;
-    public boolean populationRestart;
-
+    public JournalType journalType;
 
     public String configFileName;
+
 
 
     private static CARPProperties instance;
@@ -63,7 +63,18 @@ public class CARPProperties extends Properties {
         tournament1 = Integer.parseInt(this.getProperty("tournament1"));
         tournament2 = Integer.parseInt(this.getProperty("tournament2"));
         resultDir = this.getProperty("resultsDir");
-        populationRestart  = Boolean.parseBoolean(this.getProperty("populationRestart"));
+
+        String journalT = this.getProperty("journalType");
+        if(journalT.equals("basic")){
+            journalType = JournalType.BASIC;
+        }
+        else if(journalT.equals("node")){
+            journalType = JournalType.NODE;
+        }
+        else{
+            journalType = JournalType.EDGE;
+        }
+
     }
 
     @Override
@@ -82,7 +93,7 @@ public class CARPProperties extends Properties {
                 ", pCross=" + pCross +
                 ", tournament1=" + tournament1 +
                 ", tournament2=" + tournament2 +
-                ", populationRestart= " + populationRestart +
+                ", journalType=" + journalType.toString() +
                 '}';
     }
 }

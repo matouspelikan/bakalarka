@@ -1,10 +1,11 @@
+import java.io.Serializable;
 import java.util.*;
 import java.util.stream.Collectors;
 
 /**
  * jedinec v populaci
  */
-public class Individual {
+public class Individual implements Serializable {
 
     public static Config config;
     public static Random random;
@@ -12,6 +13,10 @@ public class Individual {
     public List<Edge> priorityList;
     public Evaluation evaluation;
 
+    public Individual(Individual individual){
+        this.priorityList = new ArrayList<>(individual.priorityList);
+        this.evaluation = new Evaluation(individual.evaluation);
+    }
 
     public Individual(List<Edge> priorityList){
         this.priorityList = Main.deepCopy(priorityList);
@@ -35,8 +40,6 @@ public class Individual {
         this.evaluation = Main.evaluatePriorityList(priorityList, config, journalPair, journaling, journalType);
     }
 
-
-
     public void perturb(JournalPair journalPair, boolean journaling, JournalType journalType){
         Collections.shuffle(this.priorityList, new Random(random.nextInt()));
         this.evaluate(journalPair, journaling, journalType);
@@ -44,7 +47,8 @@ public class Individual {
 
     public Object toHash(Element element){
         if (element != null){
-            return element.candidate.edge.hash();
+//            return element.candidate.edge.hash();
+            return element.candidate.edge.hashCode();
         }
         return 0;
     }
@@ -58,8 +62,8 @@ public class Individual {
                 Object previousHash = toHash(el.previous);
                 Object nextHash = toHash(el.next);
 
-                Set<Object> set = new HashSet<>(Arrays.asList(el.previousLink.hash(),
-                        el.candidate.edge.hash(), el.nextLink.hash(), previousHash, nextHash));
+                Set<Object> set = new HashSet<>(Arrays.asList(el.previousLink.hashCode(),
+                        el.candidate.edge.hashCode(), el.nextLink.hashCode(), previousHash, nextHash));
                 hash += set.hashCode();
 
                 el = el.next;
@@ -68,6 +72,13 @@ public class Individual {
 
         return hash;
     }
+
+    @Override
+    public int hashCode() {
+        return hashCustom();
+    }
+
+
 
     public List<Edge> crossWith(Individual other){
         List<Edge> newPriorityList = new ArrayList<>();
@@ -536,6 +547,6 @@ public class Individual {
 
     @Override
     public String toString() {
-        return evaluation.toString() + " " + nbofGeneration;
+        return evaluation.toString() + " " + hashCustom();
     }
 }

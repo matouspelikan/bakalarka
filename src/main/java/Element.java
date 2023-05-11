@@ -1,7 +1,9 @@
+import java.io.Serializable;
+
 /**
  *  Vnitrní reprezentace cest pomocí spojového seznamu
  */
-public class Element {
+public class Element implements Serializable {
     public Candidate candidate;
     public Element previous = null; //odkaz na dalsi prvek ve spojovem seznamu
     public Element next = null;
@@ -11,6 +13,8 @@ public class Element {
 
     public Node previousLink; //Vrchol skrze ktery je hrana spojena se svym predchudcem (this.previous)
     public Node nextLink; //Vrchol skrze ktery je hrana spojena se svym nasledovnikem (this.next)
+
+
 
     public Element(Candidate candidate){
         this.candidate = candidate;
