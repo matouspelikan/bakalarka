@@ -132,9 +132,7 @@ public class Genetic {
             convergenceWriter.flush();
 //            pb.step();
 
-            System.out.println(i);
             serializeBest(population, i);
-            System.out.println(population);
 
             boolean reevaluatePopRestart = false;
 
@@ -467,6 +465,7 @@ public class Genetic {
 //        }
 
         if(journalType == JournalType.EDGE){
+            printJournal(journalPair);
             journalObjectStream.writeObject(new SerialJournal(generation, journalPair));
         }
         else if(journalType == JournalType.NODE){
@@ -478,10 +477,24 @@ public class Genetic {
         journalObjectStream.flush();
     }
 
+    public static void printJournal(JournalPair journalPair){
+        for(Map.Entry<Domain, Map<Domain, AnalysisNode>> e : journalPair.journalEdge.entrySet()){
+            System.out.println(e.getKey());
+            System.out.println(e.getValue());
+        }
+    }
+
+    public List<Individual> populationDeepCopy(List<Individual> population){
+        List<Individual> copy = new ArrayList<>();
+        for(Individual individual : population){
+            copy.add(new Individual(individual));
+        }
+        return copy;
+    }
+
     public void serializeBest(List<Individual> population, int generation) throws IOException {
-        System.out.println(population);
         bestObjectStream.writeObject(new SerialIndividual(generation,
-                new ArrayList<>(population)));
+                populationDeepCopy(population)));
 
 //        for (int i = 0; i < properties.N; i++) {
 //            Individual individual = population.get(i);

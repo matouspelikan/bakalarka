@@ -110,7 +110,7 @@ public class Edge implements Serializable {
 
     @Override
     public int hashCode() {
-        return Objects.hash(leftNumber, rightNumber, cost, demand);
+        return new Random(Objects.hash(leftNumber, rightNumber, cost, demand)).nextInt();
     }
 
     public int hash(){
