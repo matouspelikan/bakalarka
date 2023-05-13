@@ -15,6 +15,9 @@ public class Element implements Serializable {
     public Node nextLink; //Vrchol skrze ktery je hrana spojena se svym nasledovnikem (this.next)
 
 
+    public Element(Element element){
+        this.candidate = new Candidate(candidate);
+    }
 
     public Element(Candidate candidate){
         this.candidate = candidate;

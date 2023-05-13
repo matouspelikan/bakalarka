@@ -22,6 +22,7 @@ public class CARPProperties extends Properties {
     public int tournament2;
     public String resultDir;
     public JournalType journalType;
+    public boolean serialize;
 
     public String configFileName;
 
@@ -65,7 +66,10 @@ public class CARPProperties extends Properties {
         resultDir = this.getProperty("resultsDir");
 
         String journalT = this.getProperty("journalType");
-        if(journalT.equals("basic")){
+        if(journalT.equals("vanilla")){
+            journalType = JournalType.VANILLA;
+        }
+        else if(journalT.equals("basic")){
             journalType = JournalType.BASIC;
         }
         else if(journalT.equals("node")){
@@ -74,6 +78,8 @@ public class CARPProperties extends Properties {
         else{
             journalType = JournalType.EDGE;
         }
+
+        serialize = Boolean.parseBoolean(this.getProperty("serialize"));
 
     }
 

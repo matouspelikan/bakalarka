@@ -16,12 +16,12 @@ public class Main {
     public static void main(String[] args) throws Exception {
 
 //        System.out.println(args.length);
-//        if(args.length < 1){
-//            System.out.println("Please provide input config file...");
-//            return;
-//        }
-//        String configFile = args[0];
-        String configFile = "config.properties";
+        if(args.length < 1){
+            System.out.println("Please provide input config file...");
+            return;
+        }
+        String configFile = args[0];
+//        String configFile = "config.properties";
 
         CARPProperties properties = CARPProperties.getInstance();
         properties.readConfigFile(configFile);

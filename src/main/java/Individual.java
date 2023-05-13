@@ -36,13 +36,13 @@ public class Individual implements Serializable {
         this.nbofGeneration = Integer.MAX_VALUE;
     }
 
-    public void evaluate(JournalPair journalPair, boolean journaling, JournalType journalType){
-        this.evaluation = Main.evaluatePriorityList(priorityList, config, journalPair, journaling, journalType);
+    public void evaluate(JournalPair journalPair, JournalType journalType){
+        this.evaluation = Main.evaluatePriorityList(priorityList, config, journalPair, journalPair.journaling, journalType);
     }
 
-    public void perturb(JournalPair journalPair, boolean journaling, JournalType journalType){
+    public void perturb(JournalPair journalPair, JournalType journalType){
         Collections.shuffle(this.priorityList, new Random(random.nextInt()));
-        this.evaluate(journalPair, journaling, journalType);
+        this.evaluate(journalPair, journalType);
     }
 
     public Object toHash(Element element){
@@ -542,8 +542,13 @@ public class Individual implements Serializable {
         r1.capacityLeft += e1.candidate.edge.demand;
     }
 
+    public int getVehicleCount(){
+        return evaluation.vehicleCount;
+    }
 
-
+    public double getCost(){
+        return evaluation.cost;
+    }
 
     @Override
     public String toString() {

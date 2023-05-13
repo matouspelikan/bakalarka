@@ -10,10 +10,6 @@ public class Route implements Serializable {
 
     public static Double[][] matrix;
 
-    public List<Edge> edges = new ArrayList<>();
-    public List<Candidate> candidates = new ArrayList<>();
-    public List<Integer> nodesInt = new ArrayList<>();
-
     public int leftBorder;
     public int rightBorder;
 
@@ -28,6 +24,13 @@ public class Route implements Serializable {
     public boolean twoopted = false;
 
     public Route(Route route){
+        this.capacityTaken = route.capacityTaken;
+        this.capacityLeft = route.capacityLeft;
+
+        this.leftBorder = route.leftBorder;
+        this.rightBorder = route.rightBorder;
+
+        Element element = new Element(route.tail);
 
     }
 
@@ -40,14 +43,12 @@ public class Route implements Serializable {
         this.capacityLeft = capacity - edge.demand;
         this.capacityTaken = edge.demand;
 
-        edges.add(edge);
         edge.component = this;
 
         this.leftBorder = edge.leftNumber;
         this.rightBorder = edge.rightNumber;
 
         Candidate base = new Candidate(edge, null, null, 0);
-        candidates.add(base);
 
         Element element = new Element(base);
         head = element;
@@ -56,165 +57,6 @@ public class Route implements Serializable {
         element.nextLink = element.candidate.edge.rightNode;
         element.previousLink = element.candidate.edge.leftNode;
 
-    }
-
-    public void add(Separator separator){
-        edges.add(separator);
-    }
-    public void add(Edge edge, int connectingNode, int connectingNodeDestination){
-        System.out.println("adding edge");
-        System.out.println(edge);
-        System.out.println(connectingNode);
-        System.out.println(connectingNodeDestination);
-        nodesInt.add(edge.leftNumber);
-        nodesInt.add(edge.rightNumber);
-        edge.component = this;
-        if(edges.size() == 0) {
-            edges.add(edge);
-
-            leftBorder = edge.leftNumber;
-            rightBorder = edge.rightNumber;
-        }
-        else{
-            Edge beginning = edges.get(0);
-            Edge end = edges.get(edges.size()-1);
-
-            if(leftBorder == connectingNode){
-                leftBorder = edge.numbers().stream().filter(n -> n != connectingNodeDestination).findFirst().get();
-            }
-            else if (rightBorder == connectingNode){
-                rightBorder = edge.numbers().stream().filter(n -> n != connectingNodeDestination).findFirst().get();
-            }
-            else{
-                throw new RuntimeException();
-            }
-
-            if(beginning.leftNumber == connectingNode || beginning.rightNumber == connectingNode){
-                edges.add(0, edge);
-            }
-            else if(end.leftNumber == connectingNode || end.rightNumber == connectingNode){
-                edges.add(edge);
-            }
-            else{
-                throw new RuntimeException();
-            }
-        }
-    }
-
-    public void mergeRoutes(Candidate candidate){
-
-
-        Route newRoute = candidate.edge.component;
-        if(newRoute.rightBorder == candidate.toNode.number){
-//        if()
-            if(this.rightBorder == candidate.fromNode.number){
-//                int size = newRoute.edges.size();
-//                for (int i = 0; i < size; i++) {
-//                    Edge e = newRoute.edges.get(size - i);
-//                    e.component = this;
-//                    this.edges.add(e);
-//                }
-            }
-            else if(this.leftBorder == candidate.fromNode.number){
-//                int size = newRoute.edges.size();
-//                for (int i = 0; i < size; i++) {
-//                    Edge e = newRoute.edges.get(size - i);
-//                    e.component = this;
-//                    this.edges.add(0, e);
-//                }
-            }
-            else{
-                throw new RuntimeException();
-            }
-
-        }
-        else if(newRoute.leftBorder == candidate.toNode.number){
-            if(this.rightBorder == candidate.fromNode.number){
-//                int size = newRoute.edges.size();
-//                for (int i = 0; i < size; i++) {
-//                    Edge e = newRoute.edges.get(i);
-//                    e.component = this;
-//                    this.edges.add(e);
-//                }
-            }
-            else if(this.leftBorder == candidate.fromNode.number){
-//                int size = newRoute.edges.size();
-//                for (int i = 0; i < size; i++) {
-//                    Edge e = newRoute.edges.get(i);
-//                    e.component = this;
-//                    this.edges.add(0, e);
-//                }
-            }
-            else{
-                throw new RuntimeException();
-            }
-        }
-        else{
-            System.out.println(newRoute);
-            System.out.println(candidate.fromNode);
-            System.out.println(candidate.toNode);
-            throw new RuntimeException();
-        }
-    }
-
-    public void mergeRoutesC(Candidate candidate){
-        Route newRoute = candidate.edge.component;
-        if(newRoute.rightBorder == candidate.toNode.number){
-//        if()
-            if(this.rightBorder == candidate.fromNode.number){
-                int size = newRoute.edges.size();
-                for (int i = 0; i < size; i++) {
-                    Edge e = newRoute.edges.get(size - i);
-                    e.component = this;
-                    this.edges.add(e);
-
-                    Candidate c = newRoute.candidates.get(size - i);
-                    this.candidates.add(c);
-                }
-            }
-            else if(this.leftBorder == candidate.fromNode.number){
-                int size = newRoute.edges.size();
-                for (int i = 0; i < size; i++) {
-                    Edge e = newRoute.edges.get(size - i);
-                    e.component = this;
-                    this.edges.add(0, e);
-
-                    Candidate c = newRoute.candidates.get(size - i);
-                    this.candidates.add(0, c);
-                }
-            }
-            else{
-                throw new RuntimeException();
-            }
-
-        }
-        else if(newRoute.leftBorder == candidate.toNode.number){
-            if(this.rightBorder == candidate.fromNode.number){
-                int size = newRoute.edges.size();
-                for (int i = 0; i < size; i++) {
-                    Edge e = newRoute.edges.get(i);
-                    e.component = this;
-                    this.edges.add(e);
-                }
-            }
-            else if(this.leftBorder == candidate.fromNode.number){
-                int size = newRoute.edges.size();
-                for (int i = 0; i < size; i++) {
-                    Edge e = newRoute.edges.get(i);
-                    e.component = this;
-                    this.edges.add(0, e);
-                }
-            }
-            else{
-                throw new RuntimeException();
-            }
-        }
-        else{
-            System.out.println(newRoute);
-            System.out.println(candidate.fromNode);
-            System.out.println(candidate.toNode);
-            throw new RuntimeException();
-        }
     }
 
     public Element getEnd(Candidate candidate){
@@ -776,10 +618,6 @@ public class Route implements Serializable {
     }
 
 
-
-    public boolean containsNodeI(int node){
-        return this.nodesInt.contains(node);
-    }
 
     public List<Integer> findOuterNodes(){
 //        if(edges.size() == 1){

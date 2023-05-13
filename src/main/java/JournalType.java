@@ -1,3 +1,3 @@
 public enum JournalType {
-    BASIC, NODE, EDGE
+    VANILLA, BASIC, NODE, EDGE
 }

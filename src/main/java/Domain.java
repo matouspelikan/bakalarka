@@ -1,6 +1,9 @@
 import java.io.Serializable;
 import java.util.Objects;
 
+/**
+ * Domain class represents the tuple of node and its edge
+ */
 public class Domain implements Serializable {
 
     public Edge edge;

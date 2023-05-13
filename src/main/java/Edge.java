@@ -43,6 +43,24 @@ public class Edge implements Serializable {
 
         this.leftEdges = edge.leftEdges;
         this.rightEdges = edge.rightEdges;
+
+//        this.component = edge.component;
+    }
+
+    public Edge(Edge edge, boolean second){
+        this.leftNumber = edge.leftNumber;
+        this.rightNumber = edge.rightNumber;
+        this.required = edge.required;
+        this.leftNode = edge.leftNode;
+        this.rightNode = edge.rightNode;
+
+        this.cost = edge.cost;
+        this.demand = edge.demand;
+
+        this.leftEdges = edge.leftEdges;
+        this.rightEdges = edge.rightEdges;
+
+        this.component = edge.component;
     }
 
     public void connect(List<Edge> adjacent, boolean recursive){
@@ -62,16 +80,6 @@ public class Edge implements Serializable {
             if(recursive) next.connect(new ArrayList<>(Arrays.asList(this)), false);
 
         }
-    }
-
-    public Route edgeToComponent(List<Route> routes){
-        for (int i = 0; i < routes.size(); i++) {
-            Route route = routes.get(i);
-            if(route.edges.contains(this)){
-                return route;
-            }
-        }
-        return null;
     }
 
     public Node otherNode(Node other){

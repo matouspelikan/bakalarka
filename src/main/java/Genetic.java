@@ -53,7 +53,8 @@ public class Genetic {
                     return 1;
                 }
                 else{
-                    return Double.compare(o1.evaluation.cost, o2.evaluation.cost);
+                    return Comparator.comparingInt(Individual::getVehicleCount).thenComparingDouble(Individual::getCost).compare(o1, o2);
+//                    return Double.compare(o1.evaluation.cost, o2.evaluation.cost);
                 }
             }
         };
@@ -61,55 +62,30 @@ public class Genetic {
 
     public Individual BEST = new Individual();
 
-    public void evolution(int popSize, int maxGen, double probCross, double probMutation, int M, int k, int N, int maxEpoch) throws IOException {
+    public static void testRoutes(List<Individual> population, int generation, PrintWriter writer){
+        writer.println("i: " + generation);
+        for (int i = 0; i < population.size(); i++) {
+            writer.println(population.get(i).printRoutes());
+        }
+    }
+
+
+    public void evolution(int popSize, int maxGen, double probCross, double probMutation, int M, int k, int N, int maxEpochSize) throws IOException {
         System.out.println(properties);
 
         JournalType journalType = properties.journalType;
 
-//        maxDuplicates = popSize;
-
-//        Map<Domain, Map<Domain, AnalysisNode>> journalEdge = new HashMap<>();
-//
-//        Edge e = config.edges.get(0);
-//        System.out.println(e);
-//        Node n = config.nodes.get(0);
-//        System.out.println(n);
-//
-//        Domain d = new Domain(e, n);
-//        Domain d2 = new Domain(new Edge(e), new Node(n));
-//
-//        System.out.println(d.edge.equals(d2.edge));
-//        System.out.println(d.node.equals(d2.node));
-//
-//        System.out.println(d == d2);
-//        System.out.println(d.equals(d2));
-//
-//        Map<Domain, AnalysisNode> subJournalEdge = new HashMap<>();
-//        subJournalEdge.put(d, new AnalysisNode(1));
-//        System.out.println(subJournalEdge.containsKey(d2));
-//        System.out.println(subJournalEdge.get(d2));
-//
-//        System.out.println(Objects.hash(n));
-//        System.out.println(n.hashCode());
-//
-//
-//        if(true) return;
-
-
         Map<Node, Map<Node, AnalysisNode>> journal = new HashMap<>(); //struktura, ve ktere se uchovavaji vysledky analyzy
-        boolean journaling = false; //priznak, podle ktereho se prepina vybirani sousedu podle vzdalenosti/analyzy
         Map<Domain, Map<Domain, AnalysisNode>> journalEdge = new HashMap<>();
-        JournalPair journalPair = new JournalPair(journal, journalEdge);
+        JournalPair journalPair = new JournalPair(journal, journalEdge, false);
 
         List<Individual> population;
         population = createInitialPopulation(popSize, journalPair, journalType);
         sortPopulation(population);
 //        printPopulation(population);
 
-        Map<Node, Map<Node, AnalysisNode>> bestSoFarJournal = null;
-        Map<Domain, Map<Domain, AnalysisNode>> bestSoFarJournalEdge = null;
-        Individual bestSoFarIndividual = new Individual(); //fitness nastaveno na infinity
-        JournalPair bestSoFarJournalPair = analyzePopulation(population, N, -1, true, journalType);
+        Individual bestSoFarIndividual = new Individual(population.get(0), -1);
+        JournalPair bestSoFarJournalPair = journalPair;
 
         int nbOfJournaling = 0;
         int nbOfEpoch = 0;
@@ -118,66 +94,49 @@ public class Genetic {
         pbb.setStyle(ProgressBarStyle.ASCII);
         pbb.setInitialMax(maxGen);
         pbb.setTaskName(properties.dataset);
-
         ProgressBar pb = pbb.build();
 
         journalWriter.println("best neighbors before analysis = distances");
-        for(Node node : config.nodes.stream().filter(_n -> _n.hasRequired).sorted(Comparator.comparingInt(Node::getNumber)).collect(Collectors.toList())) {
+        for(Node node : config.nodes.stream().filter(_n -> _n.hasRequired).sorted(Comparator.comparingInt(Node::getNumber)).collect(Collectors.toList())){
             printBestNeighbors(node, null);
         }
+
 
         for (int i = 0; i < maxGen; i++) {
             pb.setExtraMessage("| BSF cost: " + BEST.evaluation.cost);
             journalWriter.flush();
             convergenceWriter.flush();
-//            pb.step();
+            pb.step();
 
-            serializeBest(population, i);
-
-            boolean reevaluatePopRestart = false;
-
-            if((i == M) ||                              // v M-te generaci se poprve spusti analyza
-                    (i > M && (nbOfJournaling % k == 0)))    // kazdou k-tou iteraci se analyza prepocita
+            if(((i == M) ||                              // v M-te generaci se poprve spusti analyza
+                    (i > M && (nbOfJournaling % k == 0))) && // kazdou k-tou iteraci se analyza prepocita
+                journalType != JournalType.VANILLA)
             {
                 if(comparator.compare(population.get(0), bestSoFarIndividual) < 0){ //prvni jedinec v populaci je lepsi nez bestSoFar
                     bestSoFarIndividual = new Individual(population.get(0), i);
-                    journalPair = analyzePopulation(population, N, i, false, journalType);
+                    journalPair = analyzePopulation(population, N, i, true, journalType);
                     bestSoFarJournalPair = journalPair;
 //                    journal = analyzePopulation(population, N, i, false);
 //                    bestSoFarJournal = journal;
                     nbOfEpoch = 0; //dokud se nejlepsi jedinec zlepsuje, zustava epocha na zacatku
                 }
-                else if(nbOfEpoch < maxEpoch){
+                else if(nbOfEpoch < maxEpochSize){
                     nbOfEpoch++;
-                    journalPair = analyzePopulation(population, N, i, false, journalType);
+                    journalPair = analyzePopulation(population, N, i, true, journalType);
 //                    journal = analyzePopulation(population, N, i, false);
                 }
                 else{
                     nbOfEpoch = 0;
 //                    journal = bestSoFarJournal;
                     journalPair = bestSoFarJournalPair;
-                    reevaluatePopRestart = true; //pouze pro ucely population restart
                 }
 
-                journaling = true;
                 nbOfJournaling = 0;
-//                reevaluatePopRestart = true;
 
-                //pokud je journalovací verze, prepocita se vzdy, jinak pouze kdyz dojdou epochy
-                if(journalType == JournalType.EDGE || journalType == JournalType.NODE){
-                    for (Individual ind: population){
-                        ind.perturb(journalPair, true, journalType);
-                    }
-//                    sortPopulation(population);
+                for (Individual ind: population){
+                    ind.perturb(journalPair, journalType);
                 }
-                else if(reevaluatePopRestart){ //pro populationRestart variantu chceme zanechat prvnich N individuí a zbytek permutovat
-//                    System.out.println("perturbing basic");
-                    for (int j = 0; j < population.size(); j++) {
-                        if(j < N) continue; //prvnich N jedincu nechavame beze zmeny
-                        population.get(j).perturb(journalPair,true, journalType);
-                    }
-//                    sortPopulation(population);
-                }
+                sortPopulation(population);
             }
             nbOfJournaling++;
 
@@ -209,8 +168,8 @@ public class Genetic {
                     child2.mutate();
                 }
 
-                child1.evaluate(journalPair, journaling, journalType);
-                child2.evaluate(journalPair, journaling, journalType);
+                child1.evaluate(journalPair, journalType);
+                child2.evaluate(journalPair, journalType);
 
                 child1.localOptimisation(journalPair, journalType);
                 child2.localOptimisation(journalPair, journalType);
@@ -225,12 +184,6 @@ public class Genetic {
             int originalSize = population.size();
             population.addAll(interPop);
             sortPopulation(population);
-
-//            System.out.print(population.size() + "  i: " + i + " ");
-//            for (int j = 0; j < population.size(); j++) {
-//                System.out.print(population.get(j).evaluation + " ");
-//            }
-//            System.out.println();
 
 
             List<Individual> nonDuplicatedPopulation = deleteDuplicates(population);
@@ -260,12 +213,11 @@ public class Genetic {
 
             printPopulation(population, i, BEST);
 
+            if(properties.serialize){
+                serializeBest(population, i);
+            }
+
         }
-
-
-        System.out.println("end");
-        System.out.println(population);
-
 
         pb.close();
 
@@ -275,7 +227,7 @@ public class Genetic {
         List<Edge> newPriorityList = Main.deepCopy(requiredEdges);
         Collections.shuffle(newPriorityList, new Random(random.nextInt()));
         Individual individual = new Individual(newPriorityList);
-        individual.evaluate(journalPair, false, journalType);
+        individual.evaluate(journalPair, journalType);
         return individual;
     }
 
@@ -348,28 +300,6 @@ public class Genetic {
                 hashCounts.put(hash, 1);
                 newPopulation.add(individual);
             }
-
-            //obsolete latest
-//            if(!hashes.contains(hash) ){
-//                hashes.add(hash);
-//                newPopulation.add(individual);
-//            }
-
-            //obsolete way of checking for duplicates
-//            if(counts.containsKey(individual.evaluation)){
-//                int count = counts.get(individual.evaluation);
-//                if(count < maxDuplicates){
-//                    newPopulation.add(individual);
-//                    counts.put(individual.evaluation, count+1);
-//                }
-//                else{
-//                    //too many of same evaluation
-//                }
-//            }
-//            else{
-//                newPopulation.add(individual);
-//                counts.put(individual.evaluation, 1);
-//            }
         }
         return newPopulation;
     }
@@ -404,7 +334,7 @@ public class Genetic {
 //        population.get(0).printRoutes();
     }
 
-    public JournalPair analyzePopulation(List<Individual> population, int N, int generation, boolean distances,
+    public JournalPair analyzePopulation(List<Individual> population, int N, int generation, boolean journaling,
                                          JournalType journalType) throws IOException {
         Map<Node, Map<Node, AnalysisNode>> journal = new HashMap<>();
         Map<Domain, Map<Domain, AnalysisNode>> journalEdge = new HashMap<>();
@@ -412,13 +342,13 @@ public class Genetic {
         int sizeWorthy = N;
         List<Individual> populationWorthy = new ArrayList<>(population.stream().limit(sizeWorthy).collect(Collectors.toList()));
         for (Individual individual : populationWorthy) {
-            analyzeIndividual(individual, journal, distances, journalEdge);
+            analyzeIndividual(individual, journal, journalEdge);
         }
 
+
+        JournalPair journalPair = new JournalPair(journal, journalEdge, journaling);
+
         journalWriter.println("new analysis generation: " + generation);
-
-        JournalPair journalPair = new JournalPair(journal, journalEdge);
-
         for(Node node : config.nodes.stream().filter(n -> n.hasRequired).sorted(Comparator.comparingInt(Node::getNumber)).collect(Collectors.toList())){
             printBestNeighbors(node, journal);
         }
@@ -465,7 +395,7 @@ public class Genetic {
 //        }
 
         if(journalType == JournalType.EDGE){
-            printJournal(journalPair);
+//            printJournal(journalPair);
             journalObjectStream.writeObject(new SerialJournal(generation, journalPair));
         }
         else if(journalType == JournalType.NODE){
@@ -495,13 +425,6 @@ public class Genetic {
     public void serializeBest(List<Individual> population, int generation) throws IOException {
         bestObjectStream.writeObject(new SerialIndividual(generation,
                 populationDeepCopy(population)));
-
-//        for (int i = 0; i < properties.N; i++) {
-//            Individual individual = population.get(i);
-////            bestObjectStream.writeObject(individual);
-//            bestObjectStream.writeObject(individual);
-//        }
-
         bestObjectStream.flush();
     }
 
@@ -523,19 +446,19 @@ public class Genetic {
     }
 
     public void analyzeIndividual(Individual individual, Map<Node, Map<Node, AnalysisNode>> journal,
-                                  boolean distances, Map<Domain, Map<Domain, AnalysisNode>> journalEdge){
+                                  Map<Domain, Map<Domain, AnalysisNode>> journalEdge){
         List<Route> routes = individual.evaluation.routes;
         for (Route route : routes) {
             Element element = route.tail;
             while(element != null){
-                analyzeElement(element, individual.evaluation, journal, distances);
-                analyzeElement2(element, individual.evaluation, journalEdge, distances);
+                analyzeElement(element, individual.evaluation, journal);
+                analyzeElement2(element, individual.evaluation, journalEdge);
                 element = element.next;
             }
         }
     }
 
-    public void analyzeElement(Element element, Evaluation evaluation, Map<Node, Map<Node, AnalysisNode>> journal, boolean distances){
+    public void analyzeElement(Element element, Evaluation evaluation, Map<Node, Map<Node, AnalysisNode>> journal){
         if(element.previous != null){
             Map<Node, AnalysisNode> subJournal;
             if(journal.containsKey(element.previousLink)){
@@ -548,12 +471,8 @@ public class Genetic {
             if(subJournal.containsKey(element.previous.nextLink)){
                 AnalysisNode analysisNode = subJournal.get(element.previous.nextLink);
                 analysisNode.count += 1;
-                if(distances){
-                    analysisNode.sum += matrix[element.previousLink.number][element.previous.nextLink.number];
-                }
-                else{
-                    analysisNode.sum += evaluation.cost;
-                }
+                analysisNode.sum += evaluation.cost;
+//                analysisNode.sum += evaluation.cost * evaluation.vehicleCount;
             }
             else{
                 AnalysisNode analysisNode = new AnalysisNode(evaluation.cost);
@@ -572,12 +491,8 @@ public class Genetic {
             if(subJournal.containsKey(element.next.previousLink)){
                 AnalysisNode analysisNode = subJournal.get(element.next.previousLink);
                 analysisNode.count += 1;
-                if(distances){
-                    analysisNode.sum += matrix[element.nextLink.number][element.next.previousLink.number];
-                }
-                else{
-                    analysisNode.sum += evaluation.cost;
-                }
+                analysisNode.sum += evaluation.cost;
+//                analysisNode.sum += evaluation.cost * evaluation.vehicleCount;
             }
             else{
                 AnalysisNode analysisNode = new AnalysisNode(evaluation.cost);
@@ -586,7 +501,7 @@ public class Genetic {
         }
     }
 
-    public void analyzeElement2(Element element, Evaluation evaluation, Map<Domain, Map<Domain, AnalysisNode>> journalEdge, boolean distances){
+    public void analyzeElement2(Element element, Evaluation evaluation, Map<Domain, Map<Domain, AnalysisNode>> journalEdge){
         if(element.previous != null){
             Map<Domain, AnalysisNode> subJournalEdge;
 
@@ -605,12 +520,8 @@ public class Genetic {
             if(subJournalEdge.containsKey(domainTo)){
                 AnalysisNode analysisNode = subJournalEdge.get(domainTo);
                 analysisNode.count += 1;
-                if(distances){
-                    analysisNode.sum += matrix[element.previousLink.number][element.previous.nextLink.number];
-                }
-                else{
-                    analysisNode.sum += evaluation.cost;
-                }
+                analysisNode.sum += evaluation.cost;
+//                analysisNode.sum += evaluation.cost * evaluation.vehicleCount;
             }
             else{
                 AnalysisNode analysisNode = new AnalysisNode(evaluation.cost);
@@ -635,12 +546,8 @@ public class Genetic {
             if(subJournalEdge.containsKey(domainTo)){
                 AnalysisNode analysisNode = subJournalEdge.get(domainTo);
                 analysisNode.count += 1;
-                if(distances){
-                    analysisNode.sum += matrix[element.nextLink.number][element.next.previousLink.number];
-                }
-                else{
-                    analysisNode.sum += evaluation.cost;
-                }
+                analysisNode.sum += evaluation.cost;
+//                analysisNode.sum += evaluation.cost * evaluation.vehicleCount;
             }
             else{
                 AnalysisNode analysisNode = new AnalysisNode(evaluation.cost);

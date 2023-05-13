@@ -28,67 +28,28 @@ public class Delete {
         };
 
         ObjectInputStream OIS = new ObjectInputStream(
-                new FileInputStream("serializationn/egl-e1-A_1_n/journal.txt"));
+                new FileInputStream("testRoutes/egl-e1-A_1_p/journal.txt"));
 
+//        PrintWriter writer = new PrintWriter(new FileWriter(new File("outRoutes.txt")));
+//
 //
 //        SerialIndividual sindividual = null;
-//        SerialIndividual firstSindividual = null;
 //        int count = 0;
 //        try{
 //            while((sindividual = (SerialIndividual) OIS.readObject()) != null){
-//                if(count == 0){
-//                    firstSindividual = sindividual;
-//                }
 //                count++;
 //
-//
-//                System.out.println(sindividual.generation);
-//                System.out.println(sindividual.populationN);
-//
-//                if(true)continue;
-//
-//                if(sindividual.generation == 188){
-////                    Individual chosen = sindividual.populationN.get(0);
-////                    System.out.println(chosen.hashCustom());
-////                    System.out.println(chosen.evaluation);
-////
-////                    System.out.println(chosen.printRoutes());
-////                    System.out.println(chosen.evaluation.routes.get(0));
-////                    System.out.println(chosen.evaluation.routes.get(0).tail.candidate.edge.hash());
-//
-//                    System.out.println(sindividual.generation);
-//                    System.out.println(sindividual.populationN);
-//                    System.out.println();
-//                }
-//                if(sindividual.generation == 189){
-////                    Individual chosen = sindividual.populationN.get(0);
-////                    System.out.println(chosen.hashCustom());
-////                    System.out.println(chosen.evaluation);
-////
-////                    System.out.println(chosen.printRoutes());
-////                    System.out.println(chosen.evaluation.routes.get(0));
-////                    System.out.println(chosen.evaluation.routes.get(0).tail.candidate.edge.hash());
-////
-////                    for(Individual ind : sindividual.populationN){
-////                        System.out.println(ind.hashCustom());
-////                        System.out.println(ind.evaluation);
-////                    }
+////                System.out.println("i: " + sindividual.generation + " " + sindividual.populationN.get(0).printRoutes());
+//                Genetic.testRoutes(sindividual.populationN, sindividual.generation, writer);
 //
 //
-//                    System.out.println(sindividual.generation);
-//                    System.out.println(sindividual.populationN);
-//
-//
-//                    System.out.println();
-//                }
 //            }
 //        }
 //        catch (EOFException e){
 //
 //        }
-//
-
-
+//        System.out.println(count);
+//        writer.close();
 
         SerialJournal serial;
 //        Object serial;
@@ -100,8 +61,9 @@ public class Delete {
 //                System.out.println(serial.generation);
 ////                System.out.println(serial.journalPair.journal.entrySet().size());
 //                System.out.println();
-                Genetic.printJournal(serial.journalPair);
-
+//                Genetic.printJournal(serial.journalPair);
+                System.out.println("generation: " + serial.generation);
+                System.out.println(serial.journalPair.journal.get(new Node(60)));
 
                 count++;
 //                System.out.println(serial);

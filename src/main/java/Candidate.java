@@ -18,6 +18,10 @@ public class Candidate implements Serializable {
         this.distance = distance;
     }
 
+    public Candidate(Candidate candidate){
+        this.edge = new Edge(candidate.edge, true);
+    }
+
     public Double getDistance(){
         return distance;
     }
