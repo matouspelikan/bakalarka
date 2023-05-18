@@ -2,9 +2,11 @@ import me.tongfei.progressbar.ProgressBar;
 import me.tongfei.progressbar.ProgressBarBuilder;
 import me.tongfei.progressbar.ProgressBarStyle;
 
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.io.PrintWriter;
+import java.lang.instrument.Instrumentation;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -213,9 +215,12 @@ public class Genetic {
 
             printPopulation(population, i, BEST);
 
-            if(properties.serialize){
+            if(((i == M) ||
+                    (i > M && (nbOfJournaling % k == 0))) && properties.serialize){
                 serializeBest(population, i);
             }
+
+
 
         }
 
@@ -425,7 +430,9 @@ public class Genetic {
     public void serializeBest(List<Individual> population, int generation) throws IOException {
         bestObjectStream.writeObject(new SerialIndividual(generation,
                 populationDeepCopy(population)));
-        bestObjectStream.flush();
+
+
+//        bestObjectStream.flush();
     }
 
     class Foo{

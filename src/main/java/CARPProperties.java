@@ -100,6 +100,7 @@ public class CARPProperties extends Properties {
                 ", tournament1=" + tournament1 +
                 ", tournament2=" + tournament2 +
                 ", journalType=" + journalType.toString() +
+                ", serialize=" + serialize +
                 '}';
     }
 }

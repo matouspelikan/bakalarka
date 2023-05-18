@@ -9,6 +9,8 @@ public class Delete {
 
     public static void main(String[] args) throws IOException, ClassNotFoundException {
 
+        DataOutputStream dos = new DataOutputStream(new FileOutputStream("fff.txt"));
+
         comparator = new Comparator<Individual>() {
             @Override
             public int compare(Individual o1, Individual o2) {

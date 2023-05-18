@@ -16,12 +16,12 @@ public class Main {
     public static void main(String[] args) throws Exception {
 
 //        System.out.println(args.length);
-        if(args.length < 1){
-            System.out.println("Please provide input config file...");
-            return;
-        }
-        String configFile = args[0];
-//        String configFile = "config.properties";
+//        if(args.length < 1){
+//            System.out.println("Please provide input config file...");
+//            return;
+//        }
+//        String configFile = args[0];
+        String configFile = "config.properties";
 
         CARPProperties properties = CARPProperties.getInstance();
         properties.readConfigFile(configFile);
@@ -84,7 +84,14 @@ public class Main {
 
         PrintWriter solutionWriter = new PrintWriter(new FileWriter(outSolution.toFile()));
         PrintWriter journalWriter = new PrintWriter(new FileWriter(outJournal.toFile()));
+
         ObjectOutputStream OOS = new ObjectOutputStream(new FileOutputStream(outJournalObj.toFile()));
+//        ObjectOutputStream OOS = new ObjectOutputStream(new BufferedOutputStream(new FileOutputStream(outJournalObj.toFile())));
+
+//        RandomAccessFile raf = new RandomAccessFile(outJournalObj.toFile(), "rw");
+//        FileOutputStream fos = new FileOutputStream(raf.getFD());
+//        ObjectOutputStream OOS = new ObjectOutputStream(fos);
+
         ObjectOutputStream bestOOS = new ObjectOutputStream(new FileOutputStream(outSerializeBest.toFile()));
 
         PrintWriter convergenceWriter = new PrintWriter(new FileWriter(outConvergence.toFile()));
