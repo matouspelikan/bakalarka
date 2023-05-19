@@ -1,5 +1,6 @@
 import com.opencsv.CSVReader;
 import com.opencsv.exceptions.CsvValidationException;
+import me.tongfei.progressbar.wrapped.ProgressBarWrappedInputStream;
 
 import java.io.*;
 import java.nio.file.Files;
@@ -12,9 +13,21 @@ import java.util.stream.Collectors;
 public class Graph {
 
     public static void main(String[] args) throws IOException, CsvValidationException {
-        String directory = "resultfinalag/exp_edge_M100_k20_g300/egl-e1-A";
 
+        PrintWriter outpw = new PrintWriter(new FileWriter("outall.csv"));
 
+        analyzeDirectory("resultfinalag", "exp_vanilla_M100_k100_g1000", outpw);
+        analyzeDirectory("resultfinalag", "exp_basic_M100_k100_g1000", outpw);
+        analyzeDirectory("resultfinalag", "exp_node_M100_k100_g1000", outpw);
+//        analyzeDirectory("resultfinalag", "exp_edge_M100_k100_g1000", outpw);
+
+        outpw.close();
+
+        if(true){
+            return;
+        }
+
+        String directory = "resultfinalagok/exp_edge_M100_k20_g300/egl-e1-A";
         Path jarPath = Paths.get("").toAbsolutePath();
         Path dirPathRelative = Paths.get(directory);
 
@@ -81,6 +94,9 @@ public class Graph {
         System.out.println(means);
         System.out.println(means.size());
 
+        System.out.println(meansp);
+        System.out.println(meansp.size());
+
         File out = dirPathAbsolute.resolve("out.csv").toFile();
         PrintWriter pw = new PrintWriter(new FileWriter(out));
         int size = means.size();
@@ -101,6 +117,131 @@ public class Graph {
         pw.println();
 
         pw.close();
+
+    }
+
+    public static void analyzeDirectory(String directory, String configuration, PrintWriter pw) throws IOException, CsvValidationException {
+
+        Path jarPath = Paths.get("").toAbsolutePath();
+        Path dirPathRelative = Paths.get(directory);
+        Path confPathRelative = Paths.get(configuration);
+
+        Path dirPathAbsolute = jarPath.resolve(dirPathRelative).resolve(confPathRelative);
+        File dirFile = dirPathAbsolute.toFile();
+
+        System.out.println(dirFile);
+        System.out.println(dirFile.exists());
+
+        List<File> files = new ArrayList<>(Arrays.stream(dirFile.listFiles(File::isDirectory)).sorted().collect(Collectors.toList()));
+
+        List[] bsfs = new List[30];
+        List[] bsps = new List[30];
+        int bsfi = 0;
+
+        System.out.println(files.size());
+        for (int i = 0; i < files.size(); i++) {
+            File file = files.get(i);
+            String[] s = file.getPath().split("\\\\");
+            String dataset = s[s.length-1].split("_")[0];
+
+            String last = s[s.length-1];
+            String c = last.substring(last.length()-1, last.length());
+            System.out.println(c);
+            if(c.equals("b")){
+                continue;
+            }
+
+            System.out.println(file.getPath());
+            System.out.println(dataset);
+
+
+            File convergence = file.toPath().resolve("convergence.csv").toFile();
+            CSVReader reader = new CSVReader(new InputStreamReader(new FileInputStream(convergence)));
+
+            String[] line;
+
+            List<Double> bsf = new ArrayList<>();
+            bsfs[bsfi] = bsf;
+
+            List<Double> bsp = new ArrayList<>();
+            bsps[bsfi] = bsp;
+
+            int in = 0;
+            while((line = reader.readNext()) != null){
+                if(in > 0){
+                    bsf.add(Double.parseDouble(line[4]));
+                    bsp.add(Double.parseDouble(line[1]));
+                }
+                in++;
+            }
+
+            reader.close();
+
+            bsfi++;
+            if(bsfi >= 30){
+                //together
+
+                List<Double> means = new ArrayList<>();
+                List<Double> meansp = new ArrayList<>();
+
+                for (int j = 0; j < 30; j++) {
+                    System.out.println(bsfs[j].size());
+                }
+
+                for (int k = 0; k < 850; k++) {
+                    List<Double> intermediate = new ArrayList<>();
+                    List<Double> intermediatep = new ArrayList<>();
+                    for (int j = 0; j < bsfs.length; j++) {
+                        System.out.println(j + " " + k);
+                        intermediate.add((Double) bsfs[j].get(k));
+                        intermediatep.add((Double) bsps[j].get(k));
+                    }
+
+                    Collections.sort(intermediate);
+                    means.add(intermediate.get(intermediate.size()/2));
+
+                    Collections.sort(intermediatep);
+                    meansp.add(intermediatep.get(intermediatep.size()/2));
+                }
+
+                System.out.println(means);
+                System.out.println(means.size());
+
+                System.out.println(meansp);
+                System.out.println(meansp.size());
+
+                File outt = jarPath.resolve(dirPathRelative).resolve(dataset + ".csv").toFile();
+                System.out.println(outt);
+
+                PrintWriter appendPw = new PrintWriter(new FileWriter(outt, true));
+
+                for (int j = 0; j < means.size(); j++) {
+                    appendPw.print(means.get(j));
+                    if(j < means.size() - 1){
+                        appendPw.print(",");
+                    }
+                }
+                appendPw.println();
+
+                for (int j = 0; j < meansp.size(); j++) {
+                    appendPw.print(meansp.get(j));
+                    if(j < meansp.size() - 1){
+                        appendPw.print(",");
+                    }
+                }
+                appendPw.println();
+
+                appendPw.close();
+
+                bsfs = new List[30];
+                bsps = new List[30];
+                bsfi = 0;
+            }
+        }
+
+    }
+
+    public static void analyzeDataset(String dataset){
 
     }
 
