@@ -30,45 +30,22 @@ public class Delete {
         };
 
         ObjectInputStream OIS = new ObjectInputStream(
-                new FileInputStream("testRoutes/egl-e1-A_1_p/journal.txt"));
+                new FileInputStream("singleExpriment/egl-e1-A_1_e/bestSerialized.txt"));
 
-//        PrintWriter writer = new PrintWriter(new FileWriter(new File("outRoutes.txt")));
-//
-//
-//        SerialIndividual sindividual = null;
-//        int count = 0;
-//        try{
-//            while((sindividual = (SerialIndividual) OIS.readObject()) != null){
-//                count++;
-//
-////                System.out.println("i: " + sindividual.generation + " " + sindividual.populationN.get(0).printRoutes());
-//                Genetic.testRoutes(sindividual.populationN, sindividual.generation, writer);
-//
-//
-//            }
-//        }
-//        catch (EOFException e){
-//
-//        }
-//        System.out.println(count);
-//        writer.close();
+        PrintWriter writer = new PrintWriter(new FileWriter(new File("outRoutes.txt")));
 
-        SerialJournal serial;
-//        Object serial;
+        PrintWriter populationWriter = new PrintWriter(new FileWriter("singleExpriment/populationDelete.txt"));
 
+        SerialIndividual sindividual = null;
         int count = 0;
-        try {
-            while ((serial = (SerialJournal)OIS.readObject()) != null) {
-
-//                System.out.println(serial.generation);
-////                System.out.println(serial.journalPair.journal.entrySet().size());
-//                System.out.println();
-//                Genetic.printJournal(serial.journalPair);
-                System.out.println("generation: " + serial.generation);
-                System.out.println(serial.journalPair.journal.get(new Node(60)));
-
+        try{
+            while((sindividual = (SerialIndividual) OIS.readObject()) != null){
                 count++;
-//                System.out.println(serial);
+
+                populationWriter.println("i: " + sindividual.generation + " " + sindividual.populationN);
+                populationWriter.flush();
+//                Genetic.testRoutes(sindividual.populationN, sindividual.generation, writer);
+
 
             }
         }
@@ -76,6 +53,33 @@ public class Delete {
 
         }
         System.out.println(count);
+        populationWriter.close();
+        writer.close();
+
+
+
+//        SerialJournal serial;
+//
+//        int count = 0;
+//        try {
+//            while ((serial = (SerialJournal)OIS.readObject()) != null) {
+//
+////                System.out.println(serial.generation);
+//////                System.out.println(serial.journalPair.journal.entrySet().size());
+////                System.out.println();
+////                Genetic.printJournal(serial.journalPair);
+//                System.out.println("generation: " + serial.generation);
+//                System.out.println(serial.journalPair.journal.get(new Node(60)));
+//
+//                count++;
+////                System.out.println(serial);
+//
+//            }
+//        }
+//        catch (EOFException e){
+//
+//        }
+//        System.out.println(count);
 
 
 

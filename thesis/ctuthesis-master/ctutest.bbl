@@ -1,0 +1,145 @@
+\newcommand{\etalchar}[1]{$^{#1}$}
+\providecommand{\bysame}{\leavevmode\hbox to3em{\hrulefill}\thinspace}
+\providecommand{\MR}{\relax\ifhmode\unskip\space\fi MR }
+% \MRhref is called by the amsart/book/proc definition of \MR.
+\providecommand{\MRhref}[2]{%
+  \href{http://www.ams.org/mathscinet-getitem?mr=#1}{#2}
+}
+\providecommand{\href}[2]{#2}
+\begin{thebibliography}{WMZY21}
+
+\bibitem[AU18]{arakaki2018hybrid}
+Rafael~Kendy Arakaki and F{\'a}bio~Luiz Usberti, \emph{Hybrid genetic algorithm
+  for the open capacitated arc routing problem}, Computers \& Operations
+  Research \textbf{90} (2018), 221--231.
+
+\bibitem[BB03]{BELENGUER2003705}
+José~M. Belenguer and Enrique Benavent, \emph{A cutting plane algorithm for
+  the capacitated arc routing problem}, Computers \& Operations Research
+  \textbf{30} (2003), no.~5, 705--728.
+
+\bibitem[BCL13]{bartolini2013improved}
+Enrico Bartolini, Jean-Fran{\c{c}}ois Cordeau, and Gilbert Laporte,
+  \emph{Improved lower bounds and exact algorithm for the capacitated arc
+  routing problem}, Mathematical Programming \textbf{137} (2013), no.~1,
+  409--452.
+
+\bibitem[BI12]{bode2012cut}
+Claudia Bode and Stefan Irnich, \emph{Cut-first branch-and-price-second for the
+  capacitated arc-routing problem}, Operations research \textbf{60} (2012),
+  no.~5, 1167--1182.
+
+\bibitem[BMCV03]{BEULLENS2003629}
+Patrick Beullens, Luc Muyldermans, Dirk Cattrysse, and Dirk {Van Oudheusden},
+  \emph{A guided local search heuristic for the capacitated arc routing
+  problem}, European Journal of Operational Research \textbf{147} (2003),
+  no.~3, 629--643.
+
+\bibitem[FLM15]{foulds2015compact}
+Les Foulds, Humberto Longo, and Jean Martins, \emph{A compact transformation of
+  arc routing problems into node routing problems}, Annals of Operations
+  Research \textbf{226} (2015), no.~1, 177--200.
+
+\bibitem[GW81]{golden1981capacitated}
+Bruce~L Golden and Richard~T Wong, \emph{Capacitated arc routing problems},
+  Networks \textbf{11} (1981), no.~3, 305--315.
+
+\bibitem[HLM00]{hertz2000tabu}
+Alain Hertz, Gilbert Laporte, and Michel Mittaz, \emph{A tabu search heuristic
+  for the capacitated arc routing problem}, Operations research \textbf{48}
+  (2000), no.~1, 129--135.
+
+\bibitem[HM01]{hertz2001variable}
+Alain Hertz and Michel Mittaz, \emph{A variable neighborhood descent algorithm
+  for the undirected capacitated arc routing problem}, Transportation science
+  \textbf{35} (2001), no.~4, 425--434.
+
+\bibitem[Koz92]{koza1992genetic}
+John~R Koza, \emph{Genetic programming, on the programming of computers by
+  means of natural selection. a bradford book}, MIT Press (1992).
+
+\bibitem[KS14]{kubalik2014novel}
+Ji{\v{r}}{\'\i} Kubal{\'\i}k and Michal Sn{\'\i}{\v{z}}ek, \emph{A novel
+  evolutionary algorithm with indirect representation and extended nearest
+  neighbor constructive procedure for solving routing problems}, 2014 14th
+  International Conference on Intelligent Systems Design and Applications,
+  IEEE, 2014, pp.~156--161.
+
+\bibitem[LdU06]{LONGO20061823}
+Humberto Longo, Marcus~Poggi {de Aragão}, and Eduardo Uchoa, \emph{Solving
+  capacitated arc routing problems using a transformation to the cvrp},
+  Computers \& Operations Research \textbf{33} (2006), no.~6, 1823--1837.
+
+\bibitem[LPRC01]{lacomme2001genetic}
+Philippe Lacomme, Christian Prins, and Wahiba Ramdane-Ch{\'e}rif, \emph{A
+  genetic algorithm for the capacitated arc routing problem and its
+  extensions}, Workshops on applications of evolutionary computation, Springer,
+  2001, pp.~473--483.
+
+\bibitem[LZJQ18]{lai2018forest}
+Qidong Lai, Zizhen Zhang, Xin Jin, and Hu~Qin, \emph{Forest-based tabu search
+  to the split-delivery capacitated arc-routing problem}, 2018 IEEE 14th
+  International Conference on Automation Science and Engineering (CASE), IEEE,
+  2018, pp.~1237--1242.
+
+\bibitem[M{\etalchar{+}}89]{moscato1989evolution}
+Pablo Moscato et~al., \emph{On evolution, search, optimization, genetic
+  algorithms and martial arts: Towards memetic algorithms}, Caltech concurrent
+  computation program, C3P Report \textbf{826} (1989), no.~1989, 37.
+
+\bibitem[MLRR11]{martinez2011brkga}
+Cristian Martinez, Irene Loiseau, Mauricio~GC Resende, and S~Rodriguez,
+  \emph{Brkga algorithm for the capacitated arc routing problem}, Electronic
+  Notes in Theoretical Computer Science \textbf{281} (2011), 69--83.
+
+\bibitem[MLY13]{mei2013decomposing}
+Yi~Mei, Xiaodong Li, and Xin Yao, \emph{Decomposing large-scale capacitated arc
+  routing problems using a random route grouping method}, 2013 IEEE Congress on
+  Evolutionary Computation, IEEE, 2013, pp.~1013--1020.
+
+\bibitem[MLY14]{mei2014variable}
+\bysame, \emph{Variable neighborhood decomposition for large scale capacitated
+  arc routing problem}, 2014 IEEE Congress on Evolutionary Computation (CEC),
+  IEEE, 2014, pp.~1313--1320.
+
+\bibitem[PAG87]{PEARN1987285}
+Wen-Lea Pearn, Arjang Assad, and Bruce~L. Golden, \emph{Transforming arc
+  routing into node routing problems}, Computers \& Operations Research
+  \textbf{14} (1987), no.~4, 285--288.
+
+\bibitem[SH00]{stutzle2000max}
+Thomas St{\"u}tzle and Holger~H Hoos, \emph{Max--min ant system}, Future
+  generation computer systems \textbf{16} (2000), no.~8, 889--914.
+
+\bibitem[SP97]{storn1997differential}
+Rainer Storn and Kenneth Price, \emph{Differential evolution--a simple and
+  efficient heuristic for global optimization over continuous spaces}, Journal
+  of global optimization \textbf{11} (1997), no.~4, 341--359.
+
+\bibitem[TAH{\etalchar{+}}19]{TIRKOLAEE2019457}
+Erfan~Babaee Tirkolaee, Mehdi Alinaghian, Ali Asghar~Rahmani Hosseinabadi,
+  Mani~Bakhshi Sasi, and Arun~Kumar Sangaiah, \emph{An improved ant colony
+  optimization for the multi-trip capacitated arc routing problem}, Computers
+  \& Electrical Engineering \textbf{77} (2019), 457--470.
+
+\bibitem[TMY09a]{tang2009memetic}
+Ke~Tang, Yi~Mei, and Xin Yao, \emph{Memetic algorithm with extended
+  neighborhood search for capacitated arc routing problems}, IEEE Transactions
+  on Evolutionary Computation \textbf{13} (2009), no.~5, 1151--1166.
+
+\bibitem[TMY09b]{5200351}
+\bysame, \emph{Memetic algorithm with extended neighborhood search for
+  capacitated arc routing problems}, IEEE Transactions on Evolutionary
+  Computation \textbf{13} (2009), no.~5, 1151--1166.
+
+\bibitem[Ulu85]{ULUSOY1985329}
+Gündüz Ulusoy, \emph{The fleet size and mix problem for capacitated arc
+  routing}, European Journal of Operational Research \textbf{22} (1985), no.~3,
+  329--337.
+
+\bibitem[WMZY21]{wang2021genetic}
+Shaolin Wang, Yi~Mei, Mengjie Zhang, and Xin Yao, \emph{Genetic programming
+  with niching for uncertain capacitated arc routing problem}, IEEE
+  Transactions on Evolutionary Computation \textbf{26} (2021), no.~1, 73--87.
+
+\end{thebibliography}

@@ -110,7 +110,7 @@ public class Main {
 
         List<Edge> requiredEdges = config.edges.stream().filter(e -> e.required).collect(Collectors.toList());
 
-        Genetic genetic = new Genetic(requiredEdges, journalWriter, convergenceWriter, OOS, bestOOS, properties);
+        Genetic genetic = new Genetic(requiredEdges, journalWriter, convergenceWriter, OOS, bestOOS, properties, resultDir);
         genetic.evolution(properties.popSize, properties.maxGen, properties.pCross, properties.pMutation, properties.M, properties.k, properties.N, properties.maxEpoch);
 
         System.out.println("best solution: " + genetic.BEST.evaluation.cost + " " + genetic.BEST.evaluation.vehicleCount + " found at generation: " + genetic.BEST.nbofGeneration);

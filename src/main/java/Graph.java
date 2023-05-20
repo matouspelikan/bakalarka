@@ -16,10 +16,15 @@ public class Graph {
 
         PrintWriter outpw = new PrintWriter(new FileWriter("outall.csv"));
 
-        analyzeDirectory("resultfinalag", "exp_vanilla_M100_k100_g1000", outpw);
-        analyzeDirectory("resultfinalag", "exp_basic_M100_k100_g1000", outpw);
-        analyzeDirectory("resultfinalag", "exp_node_M100_k100_g1000", outpw);
-//        analyzeDirectory("resultfinalag", "exp_edge_M100_k100_g1000", outpw);
+
+        analyzeDirectory("resultfinalag", "exp_basic_M100_k20_g300", outpw);
+        analyzeDirectory("resultfinalag", "exp_node_M100_k20_g300", outpw);
+        analyzeDirectory("resultfinalag", "exp_edge_M100_k20_g300", outpw);
+
+//        analyzeDirectory("resultfinalag", "exp_vanilla_M100_k100_g1000", outpw);
+//        analyzeDirectory("resultfinalag", "exp_basic_M100_k100_g1000", outpw);
+//        analyzeDirectory("resultfinalag", "exp_node_M100_k100_g1000", outpw);
+
 
         outpw.close();
 
@@ -138,6 +143,9 @@ public class Graph {
         List[] bsps = new List[30];
         int bsfi = 0;
 
+        boolean next = true;
+        String previous = "";
+
         System.out.println(files.size());
         for (int i = 0; i < files.size(); i++) {
             File file = files.get(i);
@@ -146,13 +154,24 @@ public class Graph {
 
             String last = s[s.length-1];
             String c = last.substring(last.length()-1, last.length());
-            System.out.println(c);
+//            System.out.println(c);
+
+            System.out.println(dataset + Arrays.asList(s));
+
+            if(next){
+                if(dataset.equals(previous)){
+                    continue;
+                }
+
+                previous = dataset;
+                next = false;
+            }
+
             if(c.equals("b")){
                 continue;
             }
 
-            System.out.println(file.getPath());
-            System.out.println(dataset);
+            previous = dataset;
 
 
             File convergence = file.toPath().resolve("convergence.csv").toFile();
@@ -174,25 +193,24 @@ public class Graph {
                 }
                 in++;
             }
+            System.out.println(in);
 
             reader.close();
 
             bsfi++;
             if(bsfi >= 30){
+                next = true;
                 //together
 
                 List<Double> means = new ArrayList<>();
                 List<Double> meansp = new ArrayList<>();
 
-                for (int j = 0; j < 30; j++) {
-                    System.out.println(bsfs[j].size());
-                }
 
-                for (int k = 0; k < 850; k++) {
+                for (int k = 0; k < in-1; k++) {
                     List<Double> intermediate = new ArrayList<>();
                     List<Double> intermediatep = new ArrayList<>();
-                    for (int j = 0; j < bsfs.length; j++) {
-                        System.out.println(j + " " + k);
+                    for (int j = 0; j < 30; j++) {
+//                        System.out.println(j + " " + k);
                         intermediate.add((Double) bsfs[j].get(k));
                         intermediatep.add((Double) bsps[j].get(k));
                     }
@@ -204,14 +222,14 @@ public class Graph {
                     meansp.add(intermediatep.get(intermediatep.size()/2));
                 }
 
-                System.out.println(means);
-                System.out.println(means.size());
-
-                System.out.println(meansp);
-                System.out.println(meansp.size());
+//                System.out.println(means);
+//                System.out.println(means.size());
+//
+//                System.out.println(meansp);
+//                System.out.println(meansp.size());
 
                 File outt = jarPath.resolve(dirPathRelative).resolve(dataset + ".csv").toFile();
-                System.out.println(outt);
+//                System.out.println(outt);
 
                 PrintWriter appendPw = new PrintWriter(new FileWriter(outt, true));
 

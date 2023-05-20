@@ -2,11 +2,9 @@ import me.tongfei.progressbar.ProgressBar;
 import me.tongfei.progressbar.ProgressBarBuilder;
 import me.tongfei.progressbar.ProgressBarStyle;
 
-import java.io.DataOutputStream;
-import java.io.IOException;
-import java.io.ObjectOutputStream;
-import java.io.PrintWriter;
+import java.io.*;
 import java.lang.instrument.Instrumentation;
+import java.nio.file.Path;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -26,10 +24,12 @@ public class Genetic {
     public ObjectOutputStream bestObjectStream;
 
     public CARPProperties properties;
+    public Path outputDirectory;
 
     public Genetic(List<Edge> requiredEdges, PrintWriter journalWriter, PrintWriter convergenceWriter,
                    ObjectOutputStream journalObjectStream, ObjectOutputStream bestObjectStream,
-                   CARPProperties properties){
+                   CARPProperties properties, Path outputDirectory){
+        this.outputDirectory = outputDirectory;
         this.bestObjectStream = bestObjectStream;
         this.journalObjectStream = journalObjectStream;
         this.journalWriter = journalWriter;
@@ -73,6 +73,10 @@ public class Genetic {
 
 
     public void evolution(int popSize, int maxGen, double probCross, double probMutation, int M, int k, int N, int maxEpochSize) throws IOException {
+        PrintWriter populationWriter = new PrintWriter(new FileWriter(outputDirectory.resolve("population.txt").toFile()));
+        List<Double> bsf = new ArrayList<>();
+        List<Double> bsp = new ArrayList<>();
+
         System.out.println(properties);
 
         JournalType journalType = properties.journalType;
@@ -215,16 +219,22 @@ public class Genetic {
 
             printPopulation(population, i, BEST);
 
-            if(((i == M) ||
-                    (i > M && (nbOfJournaling % k == 0))) && properties.serialize){
+            bsf.add(BEST.evaluation.cost);
+            bsp.add(population.get(0).evaluation.cost);
+
+
+            populationWriter.println("i: " + i + " " + population);
+            populationWriter.flush();
+
+            if(properties.serialize){
                 serializeBest(population, i);
             }
-
-
-
         }
 
+
+
         pb.close();
+        populationWriter.close();
 
     }
 

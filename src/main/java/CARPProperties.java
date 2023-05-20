@@ -26,8 +26,6 @@ public class CARPProperties extends Properties {
 
     public String configFileName;
 
-
-
     private static CARPProperties instance;
     private CARPProperties(){}
     public static CARPProperties getInstance(){
@@ -101,6 +99,7 @@ public class CARPProperties extends Properties {
                 ", tournament2=" + tournament2 +
                 ", journalType=" + journalType.toString() +
                 ", serialize=" + serialize +
+                ", resultDir=" + resultDir +
                 '}';
     }
 }
