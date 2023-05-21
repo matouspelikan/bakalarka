@@ -8,6 +8,7 @@
 \usepackage{algorithmicx}
 \usepackage{algpseudocode}
 \usepackage{algorithm}
+
 \algdef{SE}[DOWHILE]{Do}{doWhile}{\algorithmicdo}[1]{\algorithmicwhile\ #1}%
 
 
@@ -113,7 +114,7 @@ However, given the nature of IREANN's indirect representation functionality, imp
 
 The objective of this thesis is to propose an extension to the IREANN algorithm that enables the propagation of valuable information about high-quality features of individual solutions across the entire population during computation. This extension aims to ensure that the entire population can potentially benefit from the insights gained from individually discovered superior features, thereby enhancing the overall performance and optimization capabilities of the algorithm.
 
-The principle of enhancing the algorithm si to incorporate a mechanism that during computation captures and retains information about the features that contibute the most to high-quality solutions. The mechanism involves periodically storing the relevant information which is subsequently used in the nearest neighbor heuristic, and serves as a proxy to information about distance. The whole algorithm was specifically designed to solve the Capacitated arc routing problem (CARP), which is more challenging than the famous TSP and introduces more constraints.
+The principle of enhancing the algorithm si to incorporate a mechanism that during computation captures and retains information about the features that contibute the most to high-quality solutions. The mechanism involves periodically storing the relevant information which is subsequently used in the nearest neighbor heuristic, and serves as a proxy to information about the actual distance. The whole algorithm was specifically designed to solve the Capacitated arc routing problem (CARP), which is more challenging than the famous TSP and introduces more constraints.
 
 Several slight modifications of above mentioned approach have been implemented as a result of this thesis. The effects of proposed extension on solution quality were empirically verified by testing on standard available CARP benchmark datasets.
 
@@ -186,7 +187,8 @@ The main operators utilized within EAs are selection, crossover (or recombinatio
 
 While all EAs share these commonalities, different types of EAs have emerged, fine-tuning these concepts to particular problem types or application areas. Each type has its unique features and specializations, with notable examples including Genetic Algorithms, Genetic Programming, Differential Evolution, Evolution Strategies, and Evolutionary Programming. These will be discussed in further detail below.
 
-\section{Genetic Algorithms}
+
+\subsection{Genetic Algorithms}
 
 Genetic Algorithms (GAs) constitute a significant branch of EAs, with a strong emphasis on the mechanisms of natural selection and genetics. Taking inspiration from Charles Darwin's theory of natural evolution, GAs maintain a population of candidate solutions that evolve over generations.
 
@@ -203,45 +205,31 @@ GA operates using three main genetic operators:
 
 While GAs are a part of the broader EA family, their distinctive feature lies in their particular implementation of the evolutionary principles. The concrete representation of solutions as chromosomes, the clear distinction of generations, and the straightforward usage of genetic operators make GAs a robust and versatile tool for a wide array of optimization problems.
 
-\section{Evolutionary algorithms}
-
-Evolutionary algorithms are population-based metaheuristics that are inspired by the process of natural selection. They are used to generate solutions to optimization and search problems by mimicking the process of biological evolution. Evolutionary algorithms typically involve the use of a population of candidate solutions, which are evolved over time through the application of genetic operators such as selection, crossover (recombination), and mutation. These operators are applied in a stochastic manner, allowing the population of solutions to explore different regions of the search space.
-
-The basic idea behind evolutionary algorithms is to start with an initial population of solutions, and then repeatedly apply genetic operators to generate new generations of solutions. The solutions are typically represented as binary strings, real-valued vectors, or other data structures, depending on the specific problem being solved. The genetic operators are designed to mimic the processes of natural selection and genetic variation that occur in biological populations. For example, selection is used to select the most fit individuals from the current population, which are then used to generate the next generation. Crossover (recombination) is used to combine the genetic material of two parents to create a new offspring, while mutation is used to introduce small random changes into the genetic material.
-
-The main advantage of evolutionary algorithms is their ability to explore large and complex search spaces, even when the fitness function is poorly understood or highly nonlinear. They are also highly robust, and can often find near-optimal solutions even when the initial population is poorly chosen. However, they can also be computationally intensive and may require a large number of function evaluations to converge.
-
-The whole family of evolutionary optimization algorithms is referred to as evolutionary computation (EC) algorithms. In the evolutionary computation domain, the following algorithms are worth mentioning: the genetic algorithm, genetic programming, differential evolution, evolution strategy, and evolutionary programming. Each of these techniques has many different varieties and is used in many different industrial applications.
-
-\section{Genetic algorithms}
-The genetic algorithm is one of the oldest and most known optimization techniques, which are based on nature. In the GA, the search for solution space imitates the natural process which takes place in the environment, and the Darwinian theory of species evolution is taken into consideration. In GAs, we have a population of individuals. Each individual, characterized by a set of parameters called a chromosome, represents a potential solution to the problem. The problem being solved is defined by the objective function. Depending on how good the individual is according to the objective function, the value which represents its quality is attributed to it. This value is called the fitness of the individual, and it is its main evaluating factor. Individuals with better fitness values are more likely to be selected to the new generation of the population. In genetic algorithms, we usually have three operators: selection (a new population of individuals is created based on the fitness values of individuals from the previous generation), crossover (typically parts of individuals chromosomes are exchanged between two individuals selected to the crossover), and mutation (the values of particular genes are changed randomly)
-
-
-\section{Genetic programming}
+\subsection{Genetic programming}
 Genetic programming (GP) is specialized form of GA which operates on very specific types of solution, using modified genetic operators. The GP was developed by Koza \cite{koza1992genetic} in an attempt to find the way for the automatic generation of the program codes when the evalution criteria for their proper operation is known. Because the searched solution is a program, the evolved potential solutions are coded in the form of trees instead of linear chromosomes which are common for GAs. The genetic operators are specialized for working on trees, for example, crossover is exchanging the subtrees, mutation is changing nodes or leaves.
 
-\section{Differential evolution}
+\subsection{Differential evolution}
 The differential evolution (DE) is a type of evolutionary algorithm useful mainly for the function optimization in continuous search space. The principal version of the algorithm was discussed by Storn and Price \cite{storn1997differential} While its basic mechanism is similar to a GA, its mutation operator is quite different. It involves selecting two search points from the population, taking their vector difference, scaling by a constant, and then adding this to a third search, again sampled randomly from the population. The crossover operator of differential evolution recombines the mutated search point (the mutant vector) with another existing search point (the target vector), replacing it if the child solution (trial vector) has greater objective value.
 
-\section{Evolution strategies}
+\subsection{Evolution strategies}
 The evolution strategies are different when compared to the genetic algorithms, mainly in the selection procedure. Genetic algorithms create new population by choosing individuals from the parent population based on their fitness value, keeping constant size of the population. In evolution strategies, a temporary population is created. It has different size then the parental population (depending on the parameters). Fitness value does not matter in this step, individuals in the temporary population undergo crossover and mutations. From such populations, a number of the best individuals are selected to the next generation of the population. Evolution strategies usually operate on the vectors of floating point numbers, whereas classical genetic algorithms operate on binary vectors.
 
-\section{Evolution programming}
+\subsection{Evolution programming}
 In evolutionary programming, the new population of individuals is created by mutating every mutating every individual from the parental population. The mutation is based on the random perturbation of the values of the particular genes of the mutated individual. The newly created and the parental population are the same sizes. The new generation is of the population is created using the ranking selection of the individuals from both, the parental and the mutated populations.
 
-\section{Memetic Algorithms}
+\subsection{Memetic Algorithms}
 Memetic algorithms (MAs) represent an extension of the traditional genetic algorithms, which on top the genetic framework employ local search operators during the computation. They were invented by Moscato in \cite{moscato1989evolution}. MAs are described by Moscato as "a marriage between a population-based global search and the heuristic local search made by the individuals." The word "meme", which was the inspiration for the term memetic algorithms, denotes the idea of a unit of imitation. Moscato uses the analogy of martial arts to describe memes as those undecomposable movements, which when individually composed form a more complex movement. Put simply, memetic algorithms improve genetic algorithm, which rely almost entirely upon recombination mechanisms to improve solution quality, by combining them with some kind of local optimisation of each individual in population. 
 
 \section{IREANN}
 The foundation for the proposed extension in this thesis is based on the work of Kubalík and Snížek \cite{kubalik2014novel}. Their research introduces an evolutionary algorithm with indirect representation and extended nearest neighbor nonstructive procedure (IREANN), specifically designed for solving the Traveling Salesman Problem (TSP). The functionality and effectiveness of the IREANN algorithm in addressing the TSP are demonstrated in their study.
 
-The proposed evolutionary algorithm uses an indirect representation as a sequence of required arcs (edges) which is called a priority list, where the order of arcs define the order in which the nodes will be inserted into an existing tour via extended nearest neighbor heuristic.
-The optimal solution might be, depending on the nature of problem being solved and the instance, represented by many different priority lists, which is beneficial, because the optimum will be attracted by multiple different priority lists. On the other hand, the opposite might also happen, which is that the optimal solution would not be reachable by given representation because there exists no priority list that would represent it.
+\subsection{Indirect representation}
+IREANN uses an indirect representation as a sequence of required nodes which is called a priority list, where the order of nodes define the order in which they will be inserted into an existing tour via extended nearest neighbor heuristic. For example, a priority list {5, 2, 4, 1, 3} represents a solution that is constructed through steps of application of the nearest neighbor heuristic to the cities 5, 2, 4, 1 and 3, in this order.
 
-\subsection{Algorithm pseudocode}
- The extended nearest neighbor construction procedure:
-\begin{algorithm}
- 	\caption{CNNP for TSP}\label{alg:cap}
+The optimal solution can be represented by various priority lists, depending on the nature of a specific TSP instance which is being solved. This flexibility is advantageous as it allows the optimal solution to be attracted by multiple different priority lists. However, it is also possible that the given representation may not be able to reach the optimal solution if there is no priority list that accurately represents it.
+
+
+\begin{figure}
 \begin{algorithmic}[1]
 \State Initialize \emph{n} single node components \emph{$ start_i = i, end_i = i $} for \emph{$ i = 1, ..., n $}
 \State $j \gets 1$
@@ -264,16 +252,17 @@ The optimal solution might be, depending on the nature of problem being solved a
 \doWhile{$j \leq n$}
 
 \end{algorithmic}
-\end{algorithm}
+	\caption{The extended nearest neighbor construction procedure}
+	\label{fig:cnnptsp}
+\end{figure}
 
+\begin{figure}
+	\includegraphics[width=\linewidth]{tspexample.png}
+	\caption{Example of the extended nearest neighbor constructive
+		procedure.}
+	\label{fig:tsp}
+\end{figure}
 
-\subsection{Indirect representation}
-Crucial part of the algorithm, which is different from standard genetic algorithm approaches, is the indirect representation. It means that the chromosome does not represent the literal order of nodes in a route, but instead the chromosome is considered to be a priority list, where the order of nodes expresses an order in which the nodes will be inserted into a developed tour by means of the extended nearest neighbor heuristic.
-
-For example, a priority
-list {5, 2, 4, 1, 3} represents a solution that is constructed
-through steps of application of the nearest neighbor heuristic
-to the cities 5, 2, 4, 1 and 3, in this order.
 
 \subsection{Extended nearest neighbor constructive procedure}
 The procedure must be able to produce a valid tour of length \emph{n} for any input priority list.
@@ -287,18 +276,6 @@ In each step, two component are merged into a single one. The procedure repeats 
 Figure \ref{fig:tsp} shows an illustration of the working of this procedure, which constructs a route from the priority list \emph{P} = \{ A, I, H, F, J, E, C, D, G, B \}. As you can see, \ref{fig:tsp} a) is the result of processing \{A, I, H, F\}, where nothing unexpected happens. Each time, a shortest link to node's neighbor is selected and added to a component, resulting in two components \{A, J, I\} and \{F, G, H\}. But when it comes to the node J, it is already a part of a component and is not a boundary node. That is why a nearest neighbor is looked for from nodes I and A. Link between I and H is shorter than the one from A to B, which is why the components are merged through the I and H edge. The final route depicted in \ref{fig:tsp} c) is obtained by applying the same rules for the rest of the priority list.
 As already mentioned, there might be several priority lists which represent the same route in the end. In the case of this simple instance,  \{A, I, H, F, J, E, C, D, G, B\}, \{I, C, E, B, H, F, A, J, G, D\}, and \{F, A, C, H, I, E, D, B, G, J \} all lead to this same route. 
 
-\subsection{Crossover, mutation, evolutionary algorithm}
-The rest of the algorithm uses standard operators common to evolutionary approaches which are not particularly important for the CARP modification.
-
-
-\begin{figure}
-	\includegraphics[width=\linewidth]{tspexample.png}
-	\caption{Example of the extended nearest neighbor constructive
-		procedure.}
-	\label{fig:tsp}
-\end{figure}
-
-
 \section{IREANN modification to CARP}
 We already defined the IREANN algorithm and its application of the Traveling salesman problem. In order to solve the Capacitated arc routing problem using similar approach, we need to develop multiple mechanisms specific to the CARP domain.
 
@@ -306,49 +283,41 @@ The biggest difference, obviously, is the fact that TSP deals with nodes, wherea
 
 One of the most crucial tasks is to develop a way of evaluating which neighbor of the so far developed route is the most suitable for extension, i.e. define a function which for every arc return a priority list of neighbors sorted by the aformentioned criterion. We absolutely need this functionality in order for the constructive nearest neighbor heuristic to work properly. For this purpose, we will draw some inspiration from \cite{5200351} and \cite{ULUSOY1985329}, which consider multiple rules for selecting the best neighboring edge, as well as the path scanning heuristic, a few traditional move operators used by the local search procedure along with the Merge-Split operator.
 
-\subsection{Merge-Split operator}
-In \cite{5200351}, the mentioned selection rules are used inside the Merge-Split operator, a local search procedure which aims to improve a given solution by modifying multiple routes of it. MS operator randomly selects \emph{p} routes from a given solution and merges them into an ordered list which contains all of the edges present in the \emph{p} routes that it previously selected. Then the path-scanning (PS) heuristics is used to construct a feasible set of routes. PS iteratively adds edges to the end of the current path (This is different to the IREANN approach, where we consider both ends of the current node for the selection) as long as they do satisfy the capacity constraints. If neighboring edge would satisfy the capacity constraints, then then the end of the route is connected to depot via shortest path. If more than one task satisfy the constraints, the aformentioned selection rules finally come to play: 1) maximize
-the distance from the head of task to the depot; 2) minimize
-the distance from the head of task to the depot; 3) maximize
-the term \emph{dem}(t)/\emph{sc}(t), where \emph{dem}(t) and \emph{sc}(t) are demand
-and serving cost of task t, respectively; 4) minimize the term
-\emph{dem}(t)/\emph{sc}(t); 5) use rule 1) if the vehicle is less than halffull, otherwise use rule 2)
-These 5 criteria are used to produce 5 different ordered lists of tasks, which are then passed to to Ulusoy's splitting procedure, defined in \cite{ULUSOY1985329}, which is an exact algorithm that finds the optimal way to split the ordered list into different routes. The best one out of these 5 candidates is chosen as the output of the MS operator. Major drawback of MS operator is its time complexity, which is considerably greater than the traditional local search operators.
-
-\subsection{Traditional move operators for local search}
-Some of the traditional, less computationally demanding operators for local search will also be utilized. We listed only the most fundamental move operators, but many others might be utilized, some of them are mention in \cite{BEULLENS2003629}.
-\subsubsection{Single insertion}
-This move operator works by taking an element from a current solution, and inserting it into a different position in the same solution. This creates a new solution that is a small variation of the original. 
-\subsubsection{Double insertion}
-Very similar to single insertion, double insertion takes two consecutive elements and inserts them elsewhere as opposed to only one element.
-\subsubsection{Swap}
-Similary to single insertion, two tasks are selected a their position is exchanged.
-\subsubsection{2-opt}
-2-opt tries to reconnect edges for single or double routes and looks for improvements in the objective cost function. Again it selects the one with which reconnects edges that result in the best value of objective function.
-
 \section{IREANN extensions}
-The work is to be extended with a mechanism that identifies high-level solution components on the fly during the evolutionary process and uses them as new elements that can be used in the priority lists. A considerable challenge is posed when considering which parts of the priority lists are most valuable and should be considered as one indivisible part. The algorithm looks for similar patterns in population of candidates among the individuals with the best fitness score and them treats those parts the same way as it treats individual edges. Improvements in performance are expected as a result of employing this approach. Optimal size of such chunks has to be determined.	
+The work is to be extended with a mechanism that identifies high-level solution components on the fly during the evolutionary process and uses them as new elements that can be used in the priority lists. A considerable challenge is posed when considering which parts of the priority lists are most valuable and should be considered as one indivisible part. The algorithm looks for similar patterns in population of candidates among the individuals with the best fitness score and them treats those parts the same way as it treats individual edges. Improvements in performance are expected as a result of employing this approach. Optimal size of such chunks has to be determined.
 
-\chapter{Thesis}
-\section{Memetic Algorithms}
-Memetic algorithms (MAs) represent an extension of the traditional genetic algorithms, which on top the genetic framework employ local search operators during the computation. They were invented by Moscato in \cite{moscato1989evolution}. MAs are described by Moscato as "a marriage between a population-based global search and the heuristic local search made by the individuals." The word "meme", which was the inspiration for the term memetic algorithms, denotes the idea of a unit of imitation. Moscato uses the analogy of martial arts to describe memes as those undecomposable movements, which when individually composed form a more complex movement. Put simply, memetic algorithms improve genetic algorithm, which rely almost entirely upon recombination mechanisms to improve solution quality, by combining them with some kind of local optimisation of each individual in population. 
+\chapter{Proposed method}
+To tackle the task of the capacitated arc routing problem (CARP), we will implement an algorithm which falls into the category of memetic algorithms, introduced in section [...]. 
 
-\section{Proposed approach}
-To tackle the task of the capacitated arc routing problem (CARP), we will implement an algorithm which falls into the category of memetic algorithms, introduced in section [...]. Standard memetic approach will be enhanced with a mechanism which, at given generation, looks at the population of candidate solutions and identifies traits that lead to high-quality solutions amongst the best individuals, we call this 
+IREANN algorithm and its components, namely the indirect representation and constructive procedure will both be adopted for the implementation. However, given that IREANN was specifically designed to solve the TSP, several non-trivial modifications have to be employed to suit the needs of the capacitated arc routing problem.
 
-\subsection{Carp modifications}
+As a main contribution of this thesis, above mentioned approach is then enhanced with a mechanism which captures information about traits that lead to high-quality solutions and propagates it to every individual in population. This mechanism is called the "analysis" and is described in detail in [...] (TODO).
 
-\subsubsection{Constructive procedure}
-In section [...], constructive nearest neighbor procedure was introduced and its functionality was demonstrated on the travelling salesman problem. However, applying the same concept of CNNP to the capacitated arc routing problem inevitably calls for a couple of modifications to suit its need and constraints.
+
+
+\subsection{CARP modifications}
+
+\subsubsection{Extended nearest neighbor constructive procedure}
+In section [...], constructive nearest neighbor procedure was introduced and its functionality was demonstrated on the travelling salesman problem. However, applying the same concept of CNNP to the capacitated arc routing problem inevitably calls for a couple of modifications to suit its needs and constraints.
+
+The process starts with \emph{n} independent tour components, where \emph{n} is the number of required edges. Each required edge initially belongs to its own component. Each component is defined by its boundary nodes {\emph{$start_k$}, \emph{$end_k$}}. A boundary node is a node which belongs to a boundary edge, which is not connected to any other edge via that node. Which means that in the beginning, boundary nodes of all components are the two nodes of each corresponding required edge. 
+
+In each step of the procedure, either two components are merged together if their conjunction satisfies the capacity constraints, or nothing is done if there is no other route would still meet the constraints after being merged with.
+
+In particular, in \emph{i}-th step the corresponding edge at \emph{i}-th position in the priority list, denoted as working edge \emph{$P_i$}, is taken and the component to which edge \emph{$P_i$} belongs, \emph{$C_k$}, is identified. As opposed to the original IREANN, this modified version for the CARP is simplified and does care whether the edge \emph{$P_i$} is boundary edge of \emph{$C_k$}. Nearest available neigbors to the \emph{$start_k$} and \emph{$end_k$} boundary nodes of the component \emph{$C_k$}, \emph{$N_1$} and \emph{$N_2$}, are found. \emph{$N_1$} and \emph{$N_2$} have to meet several conditions which are in place because of the CARP. Firstly, both \emph{$N_1$} and \emph{$N_2$} have to be boundary nodes of some other component \emph{$C_j$}, \emph{k} $\neq$ \emph{j}. Such possible candidates have to be filtered out if the sum of demands of required edges in components \emph{$C_k$} and \emph{$C_j$} is greater than \emph{Q}, which would result in a violation of the maximum vehicle capacity constraint \emph{Q}. Finally, the shorter path out of (\emph{$N_1$}, \emph{$start_k$}) and (\emph{$N_2$}, \emph{$end_k$}) is added to constructed tour of component \emph{$C_k$}. Note, that it is possible that no node satifies mentioned constrained, which results in continuing to (\emph{i}+1)-th step right away without extending any component.
+
+
+
+
+
 	
-\begin{algorithm}
-\caption{CNNP for CARP}\label{alg:cap}
+\begin{figure}
 \begin{algorithmic}[1]
 	\State Initialize \emph{n} single edge components \emph{$ start_i = i, end_i = i $} for \emph{$ i = 1, ..., n $}
 	\State $j \gets 1$
 	\While{$j \leq n$}
-	\State Take \emph{j}-th edge, \emph{P[j]}, from the priority list \emph{P}
-	\State Identify component \emph{$ C_k $} to which edge \emph{P[j]} belongs
+	\State Take \emph{j}-th edge, \emph{P}[\emph{j}], from the priority list \emph{P}
+	\State Identify component \emph{$ C_k $} to which edge \emph{P}[\emph{j}] belongs
 	
 	TODO
 	
@@ -357,7 +326,9 @@ In section [...], constructive nearest neighbor procedure was introduced and its
 	
 	
 \end{algorithmic}
-\end{algorithm}
+	\caption{Extended nearest neighbor constructive procedure modified for CARP}
+\label{fig:cnnpcarp}
+\end{figure}
 
 
  
