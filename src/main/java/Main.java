@@ -110,6 +110,13 @@ public class Main {
 
         List<Edge> requiredEdges = config.edges.stream().filter(e -> e.required).collect(Collectors.toList());
 
+//        ObjectOutputStream _oos = new ObjectOutputStream(new FileOutputStream("konfigurace.txt"));
+//        _oos.writeObject(config);
+//        _oos.close();
+//
+//        if(true) return;
+
+
         Genetic genetic = new Genetic(requiredEdges, journalWriter, convergenceWriter, OOS, bestOOS, properties, resultDir);
         genetic.evolution(properties.popSize, properties.maxGen, properties.pCross, properties.pMutation, properties.M, properties.k, properties.N, properties.maxEpoch);
 

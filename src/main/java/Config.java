@@ -1,6 +1,7 @@
+import java.io.Serializable;
 import java.util.*;
 
-public class Config {
+public class Config implements Serializable {
 
     public List<Node> nodes;
     public List<Edge> edges;
@@ -21,7 +22,7 @@ public class Config {
         this.vehicles = vehicles;
         this.capacity = capacity;
 
-        createEdgeMap();
+//        createEdgeMap();
     }
 
     public void createEdgeMap(){
