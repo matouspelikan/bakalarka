@@ -113,21 +113,32 @@ public class Delete {
         Individual.config = config;
         Individual.random = new Random(0);
 //        System.out.println(individual.priorityList);
-        for (int i = 0; i < 300; i++) {
-            individual.perturb(journalPair, JournalType.EDGE);
-            if(individual.evaluation.cost == 3548){
-                System.out.println(individual);
-                System.out.println(Main.evaluateRoutes(individual.evaluation.routes, config));
-                System.out.println(individual.priorityList);
-                System.out.println(individual.printRoutes());
-
-                if(i==1) break;
+        int qualityCount = 0;
+        int iterations = 300;
+        int sum = 0;
+        for (int j = 0; j < serialJournals.size(); j++) {
+            journalPair = serialJournals.get(j).journalPair;
+            sum=0;
+            qualityCount= 0;
+            for (int i = 0; i < iterations; i++) {
+                individual.perturb(journalPair, JournalType.EDGE);
+                sum += individual.evaluation.cost;
+                if (individual.evaluation.cost < 3600) {
+                    qualityCount++;
+                }
+                //            if(individual.evaluation.cost == 3548){
+                //                System.out.println(individual);
+                //                System.out.println(Main.evaluateRoutes(individual.evaluation.routes, config));
+                //                System.out.println(individual.priorityList);
+                //                System.out.println(individual.printRoutes());
+                //
+                //                if(i==1) break;
+                //            }
             }
+            System.out.println("Quality count: " + qualityCount);
+            System.out.println("average: " + (double) sum / iterations);
+
         }
-
-
-
-
     }
 
     public static void method(int a){

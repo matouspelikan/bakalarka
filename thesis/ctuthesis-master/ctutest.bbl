@@ -29,12 +29,6 @@ Claudia Bode and Stefan Irnich, \emph{Cut-first branch-and-price-second for the
   capacitated arc-routing problem}, Operations research \textbf{60} (2012),
   no.~5, 1167--1182.
 
-\bibitem[BMCV03]{BEULLENS2003629}
-Patrick Beullens, Luc Muyldermans, Dirk Cattrysse, and Dirk {Van Oudheusden},
-  \emph{A guided local search heuristic for the capacitated arc routing
-  problem}, European Journal of Operational Research \textbf{147} (2003),
-  no.~3, 629--643.
-
 \bibitem[FLM15]{foulds2015compact}
 Les Foulds, Humberto Longo, and Jean Martins, \emph{A compact transformation of
   arc routing problems into node routing problems}, Annals of Operations
@@ -53,10 +47,6 @@ Alain Hertz, Gilbert Laporte, and Michel Mittaz, \emph{A tabu search heuristic
 Alain Hertz and Michel Mittaz, \emph{A variable neighborhood descent algorithm
   for the undirected capacitated arc routing problem}, Transportation science
   \textbf{35} (2001), no.~4, 425--434.
-
-\bibitem[Koz92]{koza1992genetic}
-John~R Koza, \emph{Genetic programming, on the programming of computers by
-  means of natural selection. a bradford book}, MIT Press (1992).
 
 \bibitem[KS14]{kubalik2014novel}
 Ji{\v{r}}{\'\i} Kubal{\'\i}k and Michal Sn{\'\i}{\v{z}}ek, \emph{A novel
@@ -111,10 +101,9 @@ Wen-Lea Pearn, Arjang Assad, and Bruce~L. Golden, \emph{Transforming arc
 Thomas St{\"u}tzle and Holger~H Hoos, \emph{Max--min ant system}, Future
   generation computer systems \textbf{16} (2000), no.~8, 889--914.
 
-\bibitem[SP97]{storn1997differential}
-Rainer Storn and Kenneth Price, \emph{Differential evolution--a simple and
-  efficient heuristic for global optimization over continuous spaces}, Journal
-  of global optimization \textbf{11} (1997), no.~4, 341--359.
+\bibitem[Sys91]{syswerda1991schedule}
+Gilbert Syswerda, \emph{Schedule optimization using genetic algorithms},
+  Handbook of genetic algorithms (1991).
 
 \bibitem[TAH{\etalchar{+}}19]{TIRKOLAEE2019457}
 Erfan~Babaee Tirkolaee, Mehdi Alinaghian, Ali Asghar~Rahmani Hosseinabadi,
@@ -122,20 +111,10 @@ Erfan~Babaee Tirkolaee, Mehdi Alinaghian, Ali Asghar~Rahmani Hosseinabadi,
   optimization for the multi-trip capacitated arc routing problem}, Computers
   \& Electrical Engineering \textbf{77} (2019), 457--470.
 
-\bibitem[TMY09a]{tang2009memetic}
+\bibitem[TMY09]{tang2009memetic}
 Ke~Tang, Yi~Mei, and Xin Yao, \emph{Memetic algorithm with extended
   neighborhood search for capacitated arc routing problems}, IEEE Transactions
   on Evolutionary Computation \textbf{13} (2009), no.~5, 1151--1166.
-
-\bibitem[TMY09b]{5200351}
-\bysame, \emph{Memetic algorithm with extended neighborhood search for
-  capacitated arc routing problems}, IEEE Transactions on Evolutionary
-  Computation \textbf{13} (2009), no.~5, 1151--1166.
-
-\bibitem[Ulu85]{ULUSOY1985329}
-Gündüz Ulusoy, \emph{The fleet size and mix problem for capacitated arc
-  routing}, European Journal of Operational Research \textbf{22} (1985), no.~3,
-  329--337.
 
 \bibitem[WMZY21]{wang2021genetic}
 Shaolin Wang, Yi~Mei, Mengjie Zhang, and Xin Yao, \emph{Genetic programming

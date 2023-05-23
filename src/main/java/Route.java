@@ -453,7 +453,6 @@ public class Route implements Serializable {
                 if((diff = singleInsert(i, j)) < 0){
 
 
-
                     double score = Main.evaluateRoute(this, matrix);
 //                    System.out.println("improvement single " + diff);
 //                    System.out.println(i + " " + j + "  : " + len);
