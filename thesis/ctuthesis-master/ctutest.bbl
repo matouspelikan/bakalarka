@@ -18,6 +18,11 @@ José~M. Belenguer and Enrique Benavent, \emph{A cutting plane algorithm for
   the capacitated arc routing problem}, Computers \& Operations Research
   \textbf{30} (2003), no.~5, 705--728.
 
+\bibitem[BBKK14]{burke2014search}
+Edmund~K Burke, Edmund~K Burke, Graham Kendall, and Graham Kendall,
+  \emph{Search methodologies: introductory tutorials in optimization and
+  decision support techniques}, Springer, 2014.
+
 \bibitem[BCL13]{bartolini2013improved}
 Enrico Bartolini, Jean-Fran{\c{c}}ois Cordeau, and Gilbert Laporte,
   \emph{Improved lower bounds and exact algorithm for the capacitated arc
@@ -41,6 +46,11 @@ Les Foulds, Humberto Longo, and Jean Martins, \emph{A compact transformation of
 \bibitem[GW81]{golden1981capacitated}
 Bruce~L Golden and Richard~T Wong, \emph{Capacitated arc routing problems},
   Networks \textbf{11} (1981), no.~3, 305--315.
+
+\bibitem[HGBT]{glogs}
+Wilfried Jakob Hartmut Pohlheim Bernhard~Sendhof Hans-Georg~Beyer,
+  Eva~Brucherseifer and Thanh~Binh To, \emph{Evolutionary algorithms - terms
+  and definitions, https://homepages.fhv.at/hgb/ea-glossary/}.
 
 \bibitem[HLM00]{hertz2000tabu}
 Alain Hertz, Gilbert Laporte, and Michel Mittaz, \emph{A tabu search heuristic
@@ -83,6 +93,11 @@ Pablo Moscato et~al., \emph{On evolution, search, optimization, genetic
 
 \bibitem[M{\etalchar{+}}18]{marte2018handbook}
 Rafael Marte et~al., \emph{Handbook of heuristics}, Springer,, 2018.
+
+\bibitem[MG{\etalchar{+}}95]{miller1995genetic}
+Brad~L Miller, David~E Goldberg, et~al., \emph{Genetic algorithms, tournament
+  selection, and the effects of noise}, Complex systems \textbf{9} (1995),
+  no.~3, 193--212.
 
 \bibitem[MLRR11]{martinez2011brkga}
 Cristian Martinez, Irene Loiseau, Mauricio~GC Resende, and S~Rodriguez,

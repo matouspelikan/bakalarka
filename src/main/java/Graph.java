@@ -17,18 +17,21 @@ public class Graph {
         PrintWriter outpw = new PrintWriter(new FileWriter("outall.csv"));
 
 //        analyzeDirectory("resultfinalag", "exp_node_M100_k100_g1000", outpw);
-        analyzeDirectory("resultfinalag", "exp_basic_M200_k200_g1000", outpw);
+//        analyzeDirectory("resultfinalag", "exp_basic_M200_k200_g1000", outpw);
 //        analyzeDirectory("resultfinalag", "exp_node_M100_k20_g300", outpw);
-        analyzeDirectory("resultfinalag", "exp_node_M200_k200_g1000", outpw);
+//        analyzeDirectory("resultfinalag", "exp_node_M200_k200_g1000", outpw);
 
-        analyzeDirectory("resultfinalag", "exp_edge_M100_k20_g300", outpw);
+//        analyzeDirectory("resultfinalag", "exp_edge_M100_k20_g300", outpw);
 
 
 
 
 //        analyzeDirectory("resultfinalag", "exp_basic_M100_k20_g300", outpw);
 //        analyzeDirectory("resultfinalag", "exp_node_M100_k20_g300", outpw);
-//        analyzeDirectory("resultfinalag", "exp_edge_M100_k20_g300", outpw);
+        analyzeDirectory("resultfinalag", "exp_edge_M100_k20_g300", outpw);
+        analyzeDirectory("resultfinalag", "exp_basic_M200_k200_g1000", outpw);
+        analyzeDirectory("resultfinalag", "exp_node_M200_k200_g1000", outpw);
+
 
 //        analyzeDirectory("resultfinalag", "exp_vanilla_M100_k100_g1000", outpw);
 //        analyzeDirectory("resultfinalag", "exp_basic_M100_k100_g1000", outpw);
@@ -234,13 +237,13 @@ public class Graph {
 
 
                 for (int k = 0; k < 1000; k++) {
-                    if(k >= in-1){
-                        double _last = means.get(means.size()-1);
-                        means.add(_last);
-                        double _last2 = meansp.get(meansp.size()-1);
-                        meansp.add(_last2);
-                        continue;
-                    }
+//                    if(k >= in-1){
+//                        double _last = means.get(means.size()-1);
+//                        means.add(_last);
+//                        double _last2 = meansp.get(meansp.size()-1);
+//                        meansp.add(_last2);
+//                        continue;
+//                    }
 
                     List<Double> intermediate = new ArrayList<>();
                     List<Double> intermediatep = new ArrayList<>();
@@ -249,6 +252,41 @@ public class Graph {
                         intermediate.add((Double) bsfs[j].get(k));
                         intermediatep.add((Double) bsps[j].get(k));
                     }
+
+                    File outstat = jarPath.resolve(dirPathRelative).resolve(dataset + ".csv").toFile();
+                    PrintWriter appendstat = new PrintWriter(new FileWriter(outstat, true));
+
+
+                    if(k == in - 2){
+                        System.out.println(intermediate.size());
+                        System.out.println(dataset);
+                        System.out.println(intermediate);
+                        for (int j = 0; j < intermediate.size(); j++) {
+                            appendstat.print(intermediate.get(j));
+                            System.out.println(intermediate.get(j));
+                            if(j < intermediate.size() - 1)
+                                appendstat.print(",");
+                        }
+                        appendstat.println();
+                        appendstat.flush();
+                        appendstat.close();
+                        break;
+                    }
+
+//                    if(k == 299){
+//                        System.out.println(intermediate.size());
+//                        System.out.println(dataset);
+//                        System.out.println(intermediate);
+//                        for (int j = 0; j < intermediate.size(); j++) {
+//                            appendstat.print(intermediate.get(j));
+//                            System.out.println(intermediate.get(j));
+//                            if(j < intermediate.size() - 1)
+//                                appendstat.print(",");
+//                        }
+//                        appendstat.println();
+//                    }
+
+
 
                     Collections.sort(intermediate);
                     means.add(intermediate.get(intermediate.size()/2));
@@ -263,7 +301,7 @@ public class Graph {
 //                System.out.println(meansp);
 //                System.out.println(meansp.size());
 
-                File outt = jarPath.resolve(dirPathRelative).resolve(dataset + ".csv").toFile();
+                File outt = jarPath.resolve(dirPathRelative).resolve(dataset + ".csdvv").toFile();
 //                System.out.println(outt);
 
                 PrintWriter appendPw = new PrintWriter(new FileWriter(outt, true));
