@@ -16,15 +16,25 @@ public class Graph {
 
         PrintWriter outpw = new PrintWriter(new FileWriter("outall.csv"));
 
+//        analyzeDirectory("resultfinalag", "exp_node_M100_k100_g1000", outpw);
+        analyzeDirectory("resultfinalag", "exp_basic_M200_k200_g1000", outpw);
+//        analyzeDirectory("resultfinalag", "exp_node_M100_k20_g300", outpw);
+        analyzeDirectory("resultfinalag", "exp_node_M200_k200_g1000", outpw);
 
-        analyzeDirectory("resultfinalag", "exp_basic_M100_k20_g300", outpw);
-        analyzeDirectory("resultfinalag", "exp_node_M100_k20_g300", outpw);
         analyzeDirectory("resultfinalag", "exp_edge_M100_k20_g300", outpw);
+
+
+
+
+//        analyzeDirectory("resultfinalag", "exp_basic_M100_k20_g300", outpw);
+//        analyzeDirectory("resultfinalag", "exp_node_M100_k20_g300", outpw);
+//        analyzeDirectory("resultfinalag", "exp_edge_M100_k20_g300", outpw);
 
 //        analyzeDirectory("resultfinalag", "exp_vanilla_M100_k100_g1000", outpw);
 //        analyzeDirectory("resultfinalag", "exp_basic_M100_k100_g1000", outpw);
 //        analyzeDirectory("resultfinalag", "exp_node_M100_k100_g1000", outpw);
 
+//        analyzeDirectory("resultfinalag", "exp_edge_M100_k20_g300", outpw);
 
         outpw.close();
 
@@ -48,6 +58,8 @@ public class Graph {
 
         List[] bsfs = new ArrayList[seedCount];
         List[] bsps = new ArrayList[seedCount];
+
+
 
         int bsfi = 0;
         for(File f : Arrays.asList(dirFile.listFiles(File::isDirectory))){
@@ -146,6 +158,9 @@ public class Graph {
         boolean next = true;
         String previous = "";
 
+        double BEST = Double.POSITIVE_INFINITY;
+        int CEST = Integer.MAX_VALUE;
+
         System.out.println(files.size());
         for (int i = 0; i < files.size(); i++) {
             File file = files.get(i);
@@ -155,6 +170,8 @@ public class Graph {
             String last = s[s.length-1];
             String c = last.substring(last.length()-1, last.length());
 //            System.out.println(c);
+
+
 
             System.out.println(dataset + Arrays.asList(s));
 
@@ -185,15 +202,25 @@ public class Graph {
             List<Double> bsp = new ArrayList<>();
             bsps[bsfi] = bsp;
 
+            int vehicleC = 0;
+
             int in = 0;
             while((line = reader.readNext()) != null){
                 if(in > 0){
                     bsf.add(Double.parseDouble(line[4]));
                     bsp.add(Double.parseDouble(line[1]));
+                    vehicleC = Integer.parseInt(line[5]);
+                    if(vehicleC < CEST)
+                        CEST = vehicleC;
                 }
                 in++;
             }
             System.out.println(in);
+            double B = bsf.get(bsf.size()-1);
+            if(B < BEST){
+                BEST = B;
+            }
+
 
             reader.close();
 
@@ -206,7 +233,15 @@ public class Graph {
                 List<Double> meansp = new ArrayList<>();
 
 
-                for (int k = 0; k < in-1; k++) {
+                for (int k = 0; k < 1000; k++) {
+                    if(k >= in-1){
+                        double _last = means.get(means.size()-1);
+                        means.add(_last);
+                        double _last2 = meansp.get(meansp.size()-1);
+                        meansp.add(_last2);
+                        continue;
+                    }
+
                     List<Double> intermediate = new ArrayList<>();
                     List<Double> intermediatep = new ArrayList<>();
                     for (int j = 0; j < 30; j++) {
@@ -233,6 +268,14 @@ public class Graph {
 
                 PrintWriter appendPw = new PrintWriter(new FileWriter(outt, true));
 
+
+                File outt2 = jarPath.resolve(dirPathRelative).resolve(dataset + ".txt").toFile();
+                PrintWriter appendPw2 = new PrintWriter(new FileWriter(outt2, true));
+                appendPw2.println(means.get(means.size()-1) + "," + vehicleC+","+BEST);
+
+
+
+
                 for (int j = 0; j < means.size(); j++) {
                     appendPw.print(means.get(j));
                     if(j < means.size() - 1){
@@ -250,10 +293,13 @@ public class Graph {
                 appendPw.println();
 
                 appendPw.close();
+                appendPw2.close();
 
                 bsfs = new List[30];
                 bsps = new List[30];
                 bsfi = 0;
+                BEST = Double.POSITIVE_INFINITY;
+                CEST = Integer.MAX_VALUE;
             }
         }
 

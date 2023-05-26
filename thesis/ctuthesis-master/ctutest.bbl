@@ -29,6 +29,10 @@ Claudia Bode and Stefan Irnich, \emph{Cut-first branch-and-price-second for the
   capacitated arc-routing problem}, Operations research \textbf{60} (2012),
   no.~5, 1167--1182.
 
+\bibitem[Egl94]{EGLESE1994231}
+R.W. Eglese, \emph{Routeing winter gritting vehicles}, Discrete Applied
+  Mathematics \textbf{48} (1994), no.~3, 231--244.
+
 \bibitem[FLM15]{foulds2015compact}
 Les Foulds, Humberto Longo, and Jean Martins, \emph{A compact transformation of
   arc routing problems into node routing problems}, Annals of Operations
@@ -76,6 +80,9 @@ Qidong Lai, Zizhen Zhang, Xin Jin, and Hu~Qin, \emph{Forest-based tabu search
 Pablo Moscato et~al., \emph{On evolution, search, optimization, genetic
   algorithms and martial arts: Towards memetic algorithms}, Caltech concurrent
   computation program, C3P Report \textbf{826} (1989), no.~1989, 37.
+
+\bibitem[M{\etalchar{+}}18]{marte2018handbook}
+Rafael Marte et~al., \emph{Handbook of heuristics}, Springer,, 2018.
 
 \bibitem[MLRR11]{martinez2011brkga}
 Cristian Martinez, Irene Loiseau, Mauricio~GC Resende, and S~Rodriguez,
