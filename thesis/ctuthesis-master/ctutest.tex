@@ -628,27 +628,29 @@ To counter this, a mechanism allowing to get the computation back on track is in
 
 Furthermore, the whole process runs in \emph{epochs}. An epoch is a sequence of periods during which the algorithm is permitted to continue without finding a new best solution. The parameter \emph{maxEpochSize} is introduced to set the maximum size of the epoch. This value is essentially a patience parameter that dictates how long the algorithm will persist with the current journal before considering it unproductive. As a result, after these \emph{maxEpochSize} periods have taken place, the journal is reset to \emph{BSF\_journal} and a new epoch starts, see lines 18-19 of \ref{fig:evoalg}.
 
-At the start of each new period, a new journal is derived from the analysis of elite individuals. Hence, the whole population is reevaluated using this new journal. Additionally, the whole population is perturbed (see line 21) . This means that the priority lists of every individual in population are randomly shuffled. At the end of each period, the population is not really diverse (i.e., priority lists of individuals are similar), due to the effects of the evolutionary process. By shuffling the whole population, we aim to incentize more exploration.
+At the start of each new period, a new journal is derived from the analysis of elite individuals. Hence, the whole population is reevaluated using this new journal. Additionally, the whole population is perturbed (see line 21), meaning that the priority lists of every individual in population are randomly shuffled. The reason behind, is that at the end of each period, the population is not diverse (i.e., priority lists of individuals are similar), due to the effects of the evolutionary process. By shuffling the whole population, we aim to incentivize more exploration.
 
- Reason behind shuffling the priority lists of the whole population is the fact, that at the end of each period, their diversity is limited due to the evolutionary process.
 
+\subsection{Extension versions}
+\label{sec:extensionversions}
 In this work, we implemented two variants of the analysis procedure that will be described below.
 
-The first version of analysis only considers individual nodes on the graph \emph{G} and is referred to as ``node analysis''. As mentioned above, when analyzing a set of routes of a given individual, the average fitness of every connection is used as a metric for the nearest neighbor heuristic. A single connection is understood as a link between two required edges. 
-In this version, such a connection is defined by a pair of the boundary nodes, which are linked. This implies that during the CNNP, the nearest neighbor heuristic used only the boundary node as a key, upon which the journal returns the sequence of ordered nearest neighbors.
+The first version of analysis only considers individual nodes on the graph \emph{G} and is referred to as ``node analysis''. As mentioned above, when analyzing a set of routes of a given individual, the average fitness of every connection is used as new metric for the nearest neighbor heuristic. A single connection is understood as a link between two required edges. 
+In this version, such a connection is defined by a pair of the boundary nodes, which are linked. This implies that during the CNNP, the nearest neighbor heuristic used only the boundary node as a key, upon which the journal returns the sequence of ordered nearest neighbors, ordered based on the new metric.
 
-This version, as shown in chapter \ref{sec:experiments} yields better performance, but only to a limited degree. The reason is that the node analysis only considers the boundary nodes when assembling the journal and when constructing a new route. It does not consider the corresponding boundary edges at all. The reason behind its poor performance is the fact, that by the design of CARP, a single node might be a part of multiple edges. Implying that it does not differentiate between two candidate components, which have the same boundary node, but a different boundary edge. That inevitably leads to a loss of precision
+This version, as shown in chapter \ref{sec:experiments} yields better performance, but only to a limited degree. The reason is that the node analysis only considers the boundary nodes when assembling the journal and when constructing a new route in CNNP. It does not consider the corresponding boundary edges at all. However, by the design of CARP, a single node might be part of multiple edges. This approach implies that CNNP does not differentiate between two candidate components, which have the same boundary node, but a different boundary edge. That inevitably leads to the loss of precision.
 
-The second version, referred to as ``edge analysis'', corrects this behaviour by changing what defines a single connection. Edge analysis considers a single connection to be not just a pair of boundary nodes. Rather, a connection is defined by a pair of a combination of boundary node and the boundary edge it belongs to. This approach aligns more closely with the specific structure of the CARP. It does not neglect to which boundary edge does the boundary node belong to, as it is the case with node analysis.
+The second version, referred to as ``edge analysis'', corrects this behaviour by changing what defines a single connection. In the case of edge analysis, it is the combination of boundary node and boundary edge, which defines each of the endpoints of a single connection.
+ This approach aligns more closely with the specific structure of the CARP. It does not neglect to which boundary edge does the boundary node belong to, as it is the case with node analysis.
 
 As a result, the journal captures much more precise information. It contains far more entries, because now the keys to the table provided by journal, are the pairs of nodes and edges, instead of solely nodes. 
 This enables the CNNP to make better decisions when it comes to selecting the nearest neighbor of a component's boundary node.
 Performance of both version of analyses is displayed in chapter \ref{sec:experiments}.
 
 
-
-...tenhle odstavec je nejspis zbytecny...
-Let's illustrate on an example. Let \emph{r} = (\emph{$e_1, e_2$}) be a single route \emph{r} consisting of only two required edges in this order \emph{$e_1, e_2$}. Let's look at the connection between edges \emph{$e_1$} and \emph{$e_2$}. Each edge \emph{e} is further described by its two boundary nodes \emph{$u_e$} and \emph{$v_e$}, rewriting the sequence of (\emph{$e_1, e_2$}) to (\emph{$(u_{\substack{e_1}}, v_{\substack{e_1}}), (u_{\substack{e_2}}, v_{\substack{e_2}}) $}). This notation implies, that edges \emph{$e_1$} and \emph{$e_2$} are connected through nodes \emph{$v_{\substack{e_1}}$} and \emph{$u_{\substack{e_2}}$}. ....
+%
+%...tenhle odstavec je nejspis zbytecny...
+%Let's illustrate on an example. Let \emph{r} = (\emph{$e_1, e_2$}) be a single route \emph{r} consisting of only two required edges in this order \emph{$e_1, e_2$}. Let's look at the connection between edges \emph{$e_1$} and \emph{$e_2$}. Each edge \emph{e} is further described by its two boundary nodes \emph{$u_e$} and \emph{$v_e$}, rewriting the sequence of (\emph{$e_1, e_2$}) to (\emph{$(u_{\substack{e_1}}, v_{\substack{e_1}}), (u_{\substack{e_2}}, v_{\substack{e_2}}) $}). This notation implies, that edges \emph{$e_1$} and \emph{$e_2$} are connected through nodes \emph{$v_{\substack{e_1}}$} and \emph{$u_{\substack{e_2}}$}. ....
 
 
 
@@ -663,20 +665,24 @@ Let's illustrate on an example. Let \emph{r} = (\emph{$e_1, e_2$}) be a single r
 \label{sec:experiments}
 
 \section{Compared algorithms}
-The primary goal of this chapter is to validate the effectiveness of proposed extension to the IREANN algorithm. This will be done by comparing the performance of both versions of extended IREANN, described in detail in section \ref{sec:extension}. First version uses the node analysis and is labeled as the ``node version'', the second one uses edge analysis and is referred to as ``edge version''.
-The perfomance of both versions will be compared against the original IREANN, one which does not incorporate any analyzing functionality and its journal relies solely on the information from the distance table. This version is referred to as the ``vanilla version''.
+The primary goal of this chapter is to validate the effectiveness of proposed extension to the IREANN algorithm. This will be done by comparing the performance of both versions of extended IREANN, described in detail in section \ref{sec:extension}, on standard CARP datasets. 
+Versions of algorithms that will be compared in this experimental study:
+\begin{enumerate}
+	\item ``\textbf{node}'' version - version of the extended IREANN that employs the ``node'' analysis, introduced in \ref{sec:extensionversions}
+	\item ``\textbf{edge}'' version - extended IREANN which uses the ``edge'' analysis, see \ref{sec:extensionversions} for details
+	\item ``\textbf{vanilla}'' version - original IREANN version, one which does not incorporate any analysis functionality, thus its journal relies solely on the information provided by the distance table
+	\item ``\textbf{basic}'' version - yet another version of the original IREANN created for experimental purposes. It is only a slighty modified vanilla version, which has the functionality of population perturbation at the start of each period, just as it is the case in versions node and edge. The motivation behind the creation of this basic version is as follows. We wanted to prove, that the superiority of solution quality of versions node and edge over version vanilla was not achieved just because the vanilla does implement perturbation functionality.
+\end{enumerate}
 
-Yet another version of the algorithm was implemented, only for the experimental purposes. This one is referred to as the ``basic version''. This version is only a slighty modified vanilla version, which has the functionality of population perturbation at the start of each period, just as it is the case in version node and edge. The motivation behind the creation of this basic version is as follows. We wanted to prove, that the superiority of solution quality of versions node and edge over version vanilla was not achieved just because the vanilla does implement perturbation functionality.
-
-To sum up, the performance of four versions of the IREANN algorithms are compared. Namely vanilla and basic versions, none of which utilizes the extension of IREANN this thesis proposes. The remaining two being node and edge versions, which both utilize the extended IREANN algorithm, but differ in the versions of analysis they employ.
+To sum up, performance of four versions of the IREANN algorithms is compared. Namely vanilla and basic versions, none of which utilizes the extension of IREANN this thesis proposes. The remaining two being node and edge versions, which both utilize the extended IREANN algorithm, but differ in the versions of analysis they employ.
 
 \section{Configuration of algorithms}
 
-The goal of this thesis was to propose an extension to the original IREANN algorithm and compare its performance with the original version. Hence, hyperparameter values were not tunes to achieve optimal performance. Instead, we aimed for a common set of hyperparameters that are consistently applied across all versions of the algorithm, ensuring a fair comparison. 
+The goal of this thesis was to propose an extension to the original IREANN algorithm and compare its performance with the original IREANN. Hence, hyperparameter values were not tuned to achieve optimal performance. Instead, we aimed for a common set of hyperparameters that are consistently applied across all versions of the algorithm, to ensure a fair comparison. 
 
-All the hyperparameters the values chosen for them are displayed in table \ref{tab:params}. 
+All the common hyperparameters to every version are displayed in table \ref{tab:params}. 
 
-Most of hyperparameters are necessary for all four versions, except for \emph{N, M, k} and \emph{maxEpoch}, which are specific to versions node and edge. Node version also uses the parameters \emph{M} and \emph{k}. Explanation of the parameters is provided in chapter \ref{sec:proposedmethod}.
+Most of the hyperparameters are necessary for all four versions, except for \emph{N, M, k} and \emph{maxEpoch}, which are specific to versions node and edge. Node version also uses the parameters \emph{M} and \emph{k}. Explanation of the parameters is provided in chapter \ref{sec:proposedmethod}.
 
 The number of generations and periods size vary in each experiment, more details are provided in \ref{sec:expdesc}
 
@@ -689,7 +695,7 @@ The number of generations and periods size vary in each experiment, more details
 		\textbf{Hyperparameter} & \textbf{Value} \\
 		\hline
 		Population Size (\emph{popSize}) & 300 \\
-		Number of Generations (\emph{maxGen}) & 300, 1000 \\
+		Number of Generations (\emph{maxGen}) & 300 or 1000 \\
 		Number of Duplicate Solutions (\emph{duplicates}) & 1 \\
 		Probability of Mutation (\emph{pMutation}) & 0.2 \\
 		Probability of Crossover (\emph{pCross}) & 0.9 \\
@@ -697,7 +703,7 @@ The number of generations and periods size vary in each experiment, more details
 		Tournament Size for Child 2 (\emph{tournament2}) & 1 \\
 		Number of Elite Individuals (\emph{N}) & 10 \\
 		Warm-up Phase Length (\emph{M}) & 100 \\
-		Period Size (\emph{k}) & 20, 100, 200 \\
+		Period Size (\emph{k}) & 20 or 100 or 200 \\
 		Maximum Number of Epochs (\emph{maxEpoch}) & 2 \\
 		\hline
 	\end{tabular}
@@ -705,7 +711,7 @@ The number of generations and periods size vary in each experiment, more details
 
 
 \section{Datasets}
-All the experiments were carried out on one benchmark test set of CARP instances, called the \emph{egl} set. We chose this dataset because of its reasonable size and variety of its characteric properties, which enables us to showcase various aspects of the proposed approach. The egl set was generated by Eglese and described in \cite{EGLESE1994231}. There are total of 24 instances. These instances are derived from two graphs, each characterized by unique sets of required edges and capacity constraints. For our testing purposes, a subset of 8 of these instance was selected. Properties of each of them are presented in table \ref{tab:dataset}. It includes the total number of nodes on the graph \emph{G}, number of required and unrequired edges and the constrained maximum number of vehicles a the capacity of single vehicle.
+All the experiments were carried out on a single renowned benchmark test set of CARP instances, called the \emph{egl} set. We chose this dataset because of its reasonable size and variety of its characteric properties, which enables us to showcase various aspects of the proposed extended IREANN. The egl set was generated by Eglese and described in \cite{EGLESE1994231}. There are total of 24 instances. These instances are derived from two graphs, each characterized by unique sets of required edges and capacity constraints. For our testing purposes, a subset of 8 of these instance was selected. Properties of each of them are presented in table \ref{tab:dataset}. It includes the total number of nodes on the graph \emph{G}, number of required and unrequired edges and the constrained maximum number of vehicles a the capacity of single vehicle.
 
 \begin{table}[htbp]
 	\centering
@@ -730,38 +736,37 @@ All the experiments were carried out on one benchmark test set of CARP instances
 
 \section{Experiments}
 \label{sec:expdesc}
-Total of 3 experimental setting was created. Every experiment ran on each of 8 selected data instances.
+Total of 3 experimental settings were created. Every experiment ran on each of 8 selected data instances.
 In order to ensure statistical reliability, each individual experiment for given data instance was executed 30 times with different seed configuration.
-The goal of each experiment, the version of algorithm compared and the parameter settings are described in individual sections below.
+The goal of each experiment is described in individual sections below.
 The results presented in form of tables and graphs are layed out in individual section \ref{sec:results}
 
 \subsection{Experiment A}
-vanilla vs node and edge
+\label{sec:expadesc}
+In the first experiment setting, we want to validate the effects of the extended IREANN (represented by versions node and edge) against the vanilla version, which does not implement analysis. Parameters common to all algorithms are listed in table \ref{tab:params}.
 
-
-In the first experiment setting, we want to validate the effects of the extended IREANN (represented by versions node and edge) against the vanilla version. Parameters common to all algorithms are listed in table \ref{tab:params}.
-
-Number of generations was set to 1000 for versions vanilla and node, edge only runs for 300. \emph{M} is the same for node and edge version, but different \emph{k} was selected. Parameter \emph{k} for node version sits at 100, while it is only 20 for the edge version. That puts the edge version into a disadvantage against the node, because it is given less generations to find new optima before reassembling the journal and perturbing the whole population. And secondly, its computation runs only for 300 generation as opposed to 1000.
+Number of generations was set to 1000 for versions vanilla and node, edge only runs for 300. \emph{M} is the same for node and edge versions, but different \emph{k} was selected. Parameter \emph{k} for node version sits at 100, while it is only 20 for the edge version. That puts the edge version into a disadvantage against the node version, because it is given less generations to find new optima before reassembling the journal and perturbing the whole population. And secondly, its computation runs only for 300 generation as opposed to 1000.
 
 
 \subsection{Experiment B}
-\label{sec:expb}
+\label{sec:expbdesc}
 
-The objective of the second experiment setting is to find out whether the basic version of the algorithm (vanilla version with population perturbation) can achieve similar results to version node and edge, which implement the extended IREANN.
+The objective of the second experiment setting is to find out whether the basic version (vanilla version with population perturbation) can outperform the vanilla version, or even achieve similar results to versions node and edge.
 
 All three versions share the same parameters, they run for 300 generations, \emph{M} is set to 100 and \emph{k} is 20.
 
 \subsection{Experiment C}
+\label{sec:expcdesc}
 
-In this experiment, versions basic, node and edge are compared again. But this time, with different parameters \emph{M} and \emph{k} of versions basic and node. Version edge is the same as in experiment \ref{sec:expb}. We set both \emph{M} and \emph{k} of versions basic and node to 200. Making these parameters greater, than it was the case in experiment \ref{sec:expb}, has two implications. Firstly the warm-up phase is longer, a secondly more generations within a single period are provided to the algorithm. We want to find out, if that might lead to discovering new better solutions which would not be possible in the previous case with shorter periods.
+In this experiment, versions basic, node and edge are compared again. But this time, with different values of parameters \emph{M} and \emph{k} for versions basic and node. Version edge is the same as in experiment \ref{sec:expbdesc}. We set both \emph{M} and \emph{k} of versions basic and node to 200. Raising the values of these parameters has two implications. Firstly, the warm-up phase is longer. Secondly, more generations within a single period are provided to the computation. We want to find out, giving the algorithm more ``space'', potentially leads to discovering new better solutions, which would not be discovered otherwise.
 
 
 
 \section{Results}
 \label{sec:results}
 
-Results of all experiments are included in comprehensive table \ref{tab:tablebig}. Detailed description of the algorithm versions used for each experiment is provided in section \ref{sec:expdesc}.
-Let us clarify the abbreviations behind each version of algorithm used in headers of each subtable in \ref{tab:tablebig}. The used abbreviation along with selected parameters for \emph{M}, \emph{k} and \emph{maxGenerations} are listed in table \ref{tab:algorithm-versions}. Through tweaking parameters \emph{M} and \emph{k}, which influence the workings of the analysis component, we achieve different behaviour of the respective version of algorithms. Effects of different values of these parameters are discussed in individual sections for experiment A, B and C.
+Results of all experiments are included in table \ref{tab:tablebig}. Detailed description of the algorithm versions used for each experiment is provided in section \ref{sec:expdesc}.
+Let us clarify the abbreviations behind each version of algorithm used in headers of each subtable in table \ref{tab:tablebig}. Used abbreviations along with selected parameters for \emph{M}, \emph{k} and \emph{maxGenerations} are listed in table \ref{tab:algorithm-versions}, rest of the hyperparameters are listed in table \ref{tab:params}. Parameters \emph{M} and \emph{k} influence the workings of the analysis component. Through tweaking them, we achieve different behaviour of the versions of the IREANN algorithm. Effects of different values of these parameters are discussed in individual sections for experiments A, B and C.
 
 Thirty independent runs were executed for each instance. Presented quality measures in table \ref{tab:tablebig} are:
 \begin{itemize}
@@ -780,7 +785,7 @@ The last column of the results table \ref{tab:tablebig} includes the integer sol
 		\hline
 		\textbf{Version} & \textbf{\emph{M}} & \textbf{\emph{k}} & \textbf{\emph{maxGenerations}} \\
 		\hline
-		Vanilla100 & - & - & 1000 \\
+		Vanilla & - & - & 1000 \\
 		Node100 & 100 & 100 & 1000 \\
 		Edge20 & 100 & 20 & 300 \\
 		Basic20 & 100 & 20 & 300 \\
@@ -793,16 +798,12 @@ The last column of the results table \ref{tab:tablebig} includes the integer sol
 
 
 Further, the convergence of all the algorithm versions for every instance is captured in graphs, available in appendix of this thesis. Only a few notable ones are displayed separately in this chapter.
-Graphs capture the convergence of the median value of the best-so-far solution's cost (BSF\_solution) and of the median value
 
-Measures captured in graphs are the convergences of values:
+Data captured in graphs are the convergences of values:
 \begin{itemize}
-	\item BSF\_solution - median value of the cost of best-so-far solution over 30 runs, full lines
-	\item BOP\_solution - median value of the cost of best solution in current population over 30 lines, dashed lines
+	\item BSF\_solution - median value of the cost of best-so-far solution over 30 runs, drawn by full lines
+	\item BOP\_solution - median value of the cost of best solution in current population over 30 lines, drawn by thinner dashed lines
 \end{itemize}
-
-
-The full lines in graphs represent the median of the BSF\_solution cost over the 30 different seed runs. Whereas the corresponding thin dashed lines represent the medians of best solution of population in given generation, the \emph{BOP\_solution}.
 
 
 \begin{table}[htbp]
@@ -812,54 +813,74 @@ The full lines in graphs represent the median of the BSF\_solution cost over the
 	\begin{tabular}{|c|c|cc|cc|cc|c|}
 		\hline
 		\multicolumn{9}{|c|}{\textbf{Experiment A}}\\ 
-		\multicolumn{1}{|c}{\textbf{Dataset}}&\multicolumn{1}{c}{}&\multicolumn{2}{c}{\textbf{Vanilla100}}&\multicolumn{2}{c}{\textbf{Node100}}&\multicolumn{2}{c}{\textbf{Edge20}}&\textbf{Optimal} \\ \hline
+		\multicolumn{1}{|c}{\textbf{Dataset}}&\multicolumn{1}{c}{}&\multicolumn{2}{c}{\textbf{Vanilla}}&\multicolumn{2}{c}{\textbf{Node100}}&\multicolumn{2}{c}{\textbf{Edge20}}&\textbf{Optimal} \\ \hline
 		&vehicles&median&best&median&best&median&best& \\ \hline
-		egl-e1-A &5& 3561&3548&3548&3548&3548&3548&3548 \\ \hline
+		egl-e1-A &5&3561&\textbf{3548}&\textbf{3548}&\textbf{3548}&\textbf{3548}&\textbf{3548}&3548 \\ \hline
 		egl-e1-C &10& 5760&5668&5687&5603&5680&5613&5595\\ \hline
 		egl-e4-A &9& 6726&6578&6721&6617&6611&6507&6395\\ \hline
 		egl-e4-C &20& 11956&11764&11966&11790&11853&11649&11529 \\ \hline
-		egl-s1-A &7& 5143&5035&5019&5018&5018&5018&5018 \\ \hline
-		egl-s1-C &14& 8690&8545&8605&8519&8593&8518&8518\\ \hline
+		egl-s1-A &7& 5143&5035&5019&\textbf{5018}&\textbf{5018}&\textbf{5018}&5018 \\ \hline
+		egl-s1-C &14& 8690&8545&8605&8519&8593&\textbf{8518}&8518\\ \hline
 		egl-s4-A &19& 13192&12951&13272&12982&12678&12561&12140 \\ \hline
 		egl-s4-C &36& 21720&21245&21909&21626&21210&21071&20380\\ \hhline{|=========|}
 		\multicolumn{9}{|c|}{\textbf{Experiment B}}\\ 
 		\multicolumn{1}{|c}{\textbf{Dataset}}&\multicolumn{1}{c}{}&\multicolumn{2}{c}{\textbf{Basic20}}&\multicolumn{2}{c}{\textbf{Node20}}&\multicolumn{2}{c}{\textbf{Edge20}}&\textbf{Optimal} \\ \hline
 		&vehicles&median&best&median&best&median&best&\\ \hline
-		egl-e1-A &5&3610&3548&3561&3548&3548&3548&3548\\ \hline
+		egl-e1-A &5&3610&\textbf{3548}&3561&\textbf{3548}&\textbf{3548}&\textbf{3548}&3548\\ \hline
 		egl-e1-C &10&5791&5703&5719&5639&5680&5613&5595\\ \hline
 		egl-e4-A &9&6793&6644&6808&6644&6611&6507&6395\\ \hline
 		egl-e4-C &20&12008&11841&12022&11841&11853&11649&11529\\ \hline
-		egl-s1-A &7&5183&5066&5074&5038&5018&5018&5018\\ \hline
-		egl-s1-C &14&8766&8634&8748&8562&8593&8518&8518\\ \hline
+		egl-s1-A &7&5183&5066&5074&5038&\textbf{5018}&\textbf{5018}&5018\\ \hline
+		egl-s1-C &14&8766&8634&8748&8562&8593&\textbf{8518}&8518\\ \hline
 		egl-s4-A &19&13354&13221&13336&13221&12678&12561&12140\\ \hline
 		egl-s4-C &36&22000&21646&22000&21646&21210&21071&20380\\ \hhline{|=========|}
 		\multicolumn{9}{|c|}{\textbf{Experiment C}}\\ 
 		\multicolumn{1}{|c}{\textbf{Dataset}}&\multicolumn{1}{c}{}&\multicolumn{2}{c}{\textbf{Basic200}}&\multicolumn{2}{c}{\textbf{Node200}}&\multicolumn{2}{c}{\textbf{Edge20}}&\textbf{Optimal} \\ \hline
 		&vehicles&median&best&median&best&median&best&\\ \hline
-		egl-e1-A&5&3561&3548&3548&3548&3548&3548&3548\\ \hline
+		egl-e1-A&5&3561&\textbf{3548}&\textbf{3548}&\textbf{3548}&\textbf{3548}&\textbf{3548}&3548\\ \hline
 		egl-e1-C&10&5728&5677&5687&5634&5680&5613&5595\\ \hline
 		egl-e4-A&9&6689&6598&6732&6594&6611&6507&6395\\ \hline
 		egl-e4-C&20&11941&11783&11960&11783&11853&11649&11529\\ \hline
-		egl-s1-A&7&5128&5054&5027&5018&5018&5018&5018\\ \hline
-		egl-s1-C&14&8660&8587&8652&8518&8593&8518&8518\\ \hline
+		egl-s1-A&7&5128&5054&5027&\textbf{5018}&\textbf{5018}&\textbf{5018}&5018\\ \hline
+		egl-s1-C&14&8660&8587&8652&\textbf{8518}&8593&\textbf{8518}&8518\\ \hline
 		egl-s4-A&19&13123&12924&13232&12989&12678&12561&12140\\ \hline
 		egl-s4-C&36&21712&21334&21752&21549&21210&21071&20380\\ \hline
 	\end{tabular}
 \end{table}
 
 \subsection{Experiment A}
-Results of the experiments are presented in table \ref{tab:tablea}. 
+\label{exp:expA}
+
+\begin{figure}[htbp]
+	\label{fig:expasub}
+	\centering
+	\begin{subfigure}{0.49\textwidth}
+		\centering
+		\includegraphics[width=\linewidth]{expA/egl-e1-C.png}
+		\caption{egl-e1-A}
+		\label{fig:subfig1}
+	\end{subfigure}
+	\hfill
+	\begin{subfigure}{0.49\textwidth}
+		\centering
+		\includegraphics[width=\linewidth]{expA/egl-s4-C.png}
+		\caption{egl-s4-C}
+		\label{fig:subfig2}
+	\end{subfigure}
+	\caption{Experiment A comparison}
+\end{figure}
+Results of this experiment are presented in subtable ``Experiment A'' of table \ref{tab:tablebig}. 
+
+We can see, that edge version always achieves better results than the vanilla version. Edge version find the optimum for 3 of the data instances, while the vanilla version does so only for the first instance.
 
 
-By observing the results in the second and fourth column of the table, we conclude that the medians of the best solutions' cost found by the edge version are consistently superior to the medians of the best cost found by vanilla on every single instance. It is important to stress, that the edge version runs only for 300 generations, as opposed to the vanilla, which runs for 1000 generations. 
+The overall perfomance of the node version is not as convincing as the edge version. To a great extent, the node version's perfomance is influenced by the nature of data instances is solves. It performs reasonably well on instances, which with larger number of unrequired edges. On the other hand, its perfomance is very poor on instances which have little to no unrequired edges. On the data instances egl-s4-A and egl-s4-C, the node version yield even worse results than the vanilla version.
 
-The vanilla version was not able to converge to 
-The optimal value was reached for two of the tested instances, egl-e1-A and egl-s1-A by the edge version. In the case of the node version, only one of these optima was reached. The overall perfomance of the node version is not as convincing as the edge version. 
- 
+The absence of unrequired edges in a data instance does not seem to be a problem for the edge version.
 
-As soon as the \emph{M}-th generation is reached, which implies the first time the journal is derived from analysis of elite individuals, the cost of the BSF\_solution of the edge version starts to improve dramatically in contrast with the vanilla version.
+Two data instances egl-e1-C and egl-s4-C have been picked as an illustrative example in figure 6.1. In the left picture, the node version (blue) performs almost as well as the edge version, because this instance has lot of unrequired edges, as shown in table \ref{tab:dataset}. Data instance on the right does not have any unrequired edges, which results in the node version performing worse than the vanilla (magenta). 
 
-
+From the two figures, we can see the superioty in convergence speed of the edge version (green), despite having only 300 generations ang \emph{k} of 20.
 
 
 
@@ -907,12 +928,54 @@ As soon as the \emph{M}-th generation is reached, which implies the first time t
 %\end{table}
 
 
+In the second experiment B, from the table \ref{tab:tablebig} we observe similar pattern as in the previous experiment. Edge version of extended IREANN dominates both of the two remaining versions. With version basic being even worse than version vanilla from previous experiment with given parameter setting.
 
+Examining the convergence graphs for each data instance in this experiment reveals that the edge variant of the proposed extension effectively utilizes the information from the analysis. This results in continuous improvement of solution cost throughout the computation.
 
+As illustrated in figure 6.2, edge version of extended IREANN does not seem to be bothered by instances, that the node analysis fails as. As discussed in previous experiment \ref{exp:expA}. Although we can speculate, that by looking at the graph of egl-e4-C, the convergence speed of the edge version seems to be slower than in egl-e1-C.
 
+By looking at convergence graphs of the basic BOP\_solution (red dashed line), we hypothesize, that better solutions might be found by raising the value of \emph{k}, which is examined in the next experiment.
+
+\begin{figure}[htbp]
+\label{f:fff}
+	\centering
+	\begin{subfigure}{0.49\textwidth}
+		\centering
+		\includegraphics[width=\linewidth]{expB/egl-e1-C.png}
+		\caption{egl-e1-A}
+	\end{subfigure}
+	\hfill
+	\begin{subfigure}{0.49\textwidth}
+		
+		\centering
+		\includegraphics[width=\linewidth]{expB/egl-s4-C.png}
+		\caption{egl-s4-C}
+	\end{subfigure}
+	\caption{Experiment B comparison}
+\end{figure}
 
 \subsection{Experiment C}
 
+By raising the parameters \emph{M} and \emph{k} of basic and node versions, a minor improvement was achieved. Both versions were able to benefit from longer periods, which results in version basic outperforming the vanilla version by a little. Node version notices a slight boost in performance too, however still behaves poorly on instances with no unrequired edges.
+
+
+\begin{figure}[htbp]
+	\label{f:fff}
+	\centering
+	\begin{subfigure}{0.49\textwidth}
+		\centering
+		\includegraphics[width=\linewidth]{expC/egl-e1-C.png}
+		\caption{egl-e1-A}
+	\end{subfigure}
+	\hfill
+	\begin{subfigure}{0.49\textwidth}
+		
+		\centering
+		\includegraphics[width=\linewidth]{expC/egl-s4-C.png}
+		\caption{egl-s4-C}
+	\end{subfigure}
+	\caption{Experiment C comparison}
+\end{figure}
 %\begin{table}[htbp]
 %	\centering
 %	\caption{Experiment C}
@@ -933,6 +996,7 @@ As soon as the \emph{M}-th generation is reached, which implies the first time t
 %\end{table}
 
 
+\chapter{Conclusion}
 
 
 
@@ -961,38 +1025,50 @@ As soon as the \emph{M}-th generation is reached, which implies the first time t
 
 \begin{figure}[htbp]
 	\centering
+	\includegraphics[width=0.9\textwidth]{expA/egl-e1-A.png}
+	\caption{Experiment A}
+	\label{fig:your-figure}
+\end{figure}
+\begin{figure}[htbp]
+	\centering
+	\includegraphics[width=0.9\textwidth]{expA/egl-e1-C.png}
+	\caption{Experiment A}
+	\label{fig:your-figure}
+\end{figure}
+\begin{figure}[htbp]
+	\centering
 	\includegraphics[width=0.9\textwidth]{expA/egl-e4-A.png}
-	\caption{Caption of the figure.}
+	\caption{Experiment A}
 	\label{fig:your-figure}
 \end{figure}
 \begin{figure}[htbp]
 	\centering
 	\includegraphics[width=0.9\textwidth]{expA/egl-e4-C.png}
-	\caption{Caption of the figure.}
+	\caption{Experiment A}
 	\label{fig:your-figure}
 \end{figure}
 \begin{figure}[htbp]
 	\centering
 	\includegraphics[width=0.9\textwidth]{expA/egl-s1-A.png}
-	\caption{Caption of the figure.}
+	\caption{Experiment A}
 	\label{fig:your-figure}
 \end{figure}
 \begin{figure}[htbp]
 	\centering
 	\includegraphics[width=0.9\textwidth]{expA/egl-s1-C.png}
-	\caption{Caption of the figure.}
+	\caption{Experiment A}
 	\label{fig:your-figure}
 \end{figure}
 \begin{figure}[htbp]
 	\centering
-	\includegraphics[width=0.8\textwidth]{expA/egl-s4-A.png}
-	\caption{Caption of the figure.}
+	\includegraphics[width=0.9\textwidth]{expA/egl-s4-A.png}
+	\caption{Experiment A}
 	\label{fig:your-figure}
 \end{figure}
 \begin{figure}[htbp]
 	\centering
-	\includegraphics[width=0.8\textwidth]{expA/egl-s4-C.png}
-	\caption{Caption of the figure.}
+	\includegraphics[width=0.9\textwidth]{expA/egl-s4-C.png}
+	\caption{Experiment A}
 	\label{fig:your-figure}
 \end{figure}
 
@@ -1000,53 +1076,101 @@ As soon as the \emph{M}-th generation is reached, which implies the first time t
 %\section{Experiment B}
 \begin{figure}[htbp]
 	\centering
-	\includegraphics[width=0.8\textwidth]{expB/egl-e1-A.png}
-	\caption{Caption of the figure.}
+	\includegraphics[width=0.9\textwidth]{expB/egl-e1-A.png}
+	\caption{Experiment B}
 	\label{fig:your-figure}
 \end{figure}
 \begin{figure}[htbp]
 	\centering
-	\includegraphics[width=0.8\textwidth]{expB/egl-e1-C.png}
-	\caption{Caption of the figure.}
+	\includegraphics[width=0.9\textwidth]{expB/egl-e1-C.png}
+	\caption{Experiment B}
 	\label{fig:your-figure}
 \end{figure}
 \begin{figure}[htbp]
 	\centering
-	\includegraphics[width=0.8\textwidth]{expB/egl-e4-A.png}
-	\caption{Caption of the figure.}
+	\includegraphics[width=0.9\textwidth]{expB/egl-e4-A.png}
+	\caption{Experiment B}
 	\label{fig:your-figure}
 \end{figure}
 \begin{figure}[htbp]
 	\centering
-	\includegraphics[width=0.8\textwidth]{expB/egl-e4-C.png}
-	\caption{Caption of the figure.}
+	\includegraphics[width=0.9\textwidth]{expB/egl-e4-C.png}
+	\caption{Experiment B}
 	\label{fig:your-figure}
 \end{figure}
 \begin{figure}[htbp]
 	\centering
-	\includegraphics[width=0.8\textwidth]{expB/egl-s1-A.png}
-	\caption{Caption of the figure.}
+	\includegraphics[width=0.9\textwidth]{expB/egl-s1-A.png}
+	\caption{Experiment B}
 	\label{fig:your-figure}
 \end{figure}
 \begin{figure}[htbp]
 	\centering
-	\includegraphics[width=0.8\textwidth]{expA/egl-s1-C.png}
-	\caption{Caption of the figure.}
+	\includegraphics[width=0.9\textwidth]{expB/egl-s1-C.png}
+	\caption{Experiment B}
 	\label{fig:your-figure}
 \end{figure}
 \begin{figure}[htbp]
 	\centering
-	\includegraphics[width=0.8\textwidth]{expB/egl-s4-A.png}
-	\caption{Caption of the figure.}
+	\includegraphics[width=0.9\textwidth]{expB/egl-s4-A.png}
+	\caption{Experiment B}
 	\label{fig:your-figure}
 \end{figure}
 \begin{figure}[htbp]
 	\centering
-	\includegraphics[width=0.8\textwidth]{expB/egl-s4-C.png}
-	\caption{Caption of the figure.}
+	\includegraphics[width=0.9\textwidth]{expB/egl-s4-C.png}
+	\caption{Experiment B}
 	\label{fig:your-figure}
 \end{figure}
 
+\begin{figure}[htbp]
+	\centering
+	\includegraphics[width=0.9\textwidth]{expC/egl-e1-A.png}
+	\caption{Experiment C}
+	\label{fig:your-figure}
+\end{figure}
+\begin{figure}[htbp]
+	\centering
+	\includegraphics[width=0.9\textwidth]{expC/egl-e1-C.png}
+	\caption{Experiment C}
+	\label{fig:your-figure}
+\end{figure}
+\begin{figure}[htbp]
+	\centering
+	\includegraphics[width=0.9\textwidth]{expC/egl-e4-A.png}
+	\caption{Experiment C}
+	\label{fig:your-figure}
+\end{figure}
+\begin{figure}[htbp]
+	\centering
+	\includegraphics[width=0.9\textwidth]{expC/egl-e4-C.png}
+	\caption{Experiment C}
+	\label{fig:your-figure}
+\end{figure}
+\begin{figure}[htbp]
+	\centering
+	\includegraphics[width=0.9\textwidth]{expC/egl-s1-A.png}
+	\caption{Experiment C}
+	\label{fig:your-figure}
+\end{figure}
+\begin{figure}[htbp]
+	\centering
+	\includegraphics[width=0.9\textwidth]{expC/egl-s1-C.png}
+	\caption{Experiment C}
+	\label{fig:your-figure}
+\end{figure}
+\begin{figure}[htbp]
+	\centering
+	\includegraphics[width=0.9\textwidth]{expC/egl-s4-A.png}
+	\caption{Experiment C}
+	\label{fig:your-figure}
+\end{figure}
+\begin{figure}[htbp]
+	\centering
+	\includegraphics[width=0.9\textwidth]{expC/egl-s4-C.png}
+	\caption{Experiment C}
+	\label{fig:your-figure}
+\end{figure}
 
 
 
