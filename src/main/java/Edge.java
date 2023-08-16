@@ -1,8 +1,7 @@
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.io.Serializable;
+import java.util.*;
 
-public class Edge {
+public class Edge implements Serializable {
 
     public int leftNumber;
     public int rightNumber;
@@ -18,13 +17,8 @@ public class Edge {
     public boolean required;
 
     public Route component = null;
-    public Route component2 = null;
 
-    public boolean taken = false;
-
-    public Edge(){
-
-    }
+    public Edge(){}
 
     public Edge(int leftNumber, int rightNumber, boolean required, Node leftNode, Node rightNode){
         this.leftNumber = leftNumber;
@@ -35,6 +29,38 @@ public class Edge {
 
         leftNode.edges.add(this);
         rightNode.edges.add(this);
+    }
+
+    public Edge(Edge edge){
+        this.leftNumber = edge.leftNumber;
+        this.rightNumber = edge.rightNumber;
+        this.required = edge.required;
+        this.leftNode = edge.leftNode;
+        this.rightNode = edge.rightNode;
+
+        this.cost = edge.cost;
+        this.demand = edge.demand;
+
+        this.leftEdges = edge.leftEdges;
+        this.rightEdges = edge.rightEdges;
+
+//        this.component = edge.component;
+    }
+
+    public Edge(Edge edge, boolean second){
+        this.leftNumber = edge.leftNumber;
+        this.rightNumber = edge.rightNumber;
+        this.required = edge.required;
+        this.leftNode = edge.leftNode;
+        this.rightNode = edge.rightNode;
+
+        this.cost = edge.cost;
+        this.demand = edge.demand;
+
+        this.leftEdges = edge.leftEdges;
+        this.rightEdges = edge.rightEdges;
+
+        this.component = edge.component;
     }
 
     public void connect(List<Edge> adjacent, boolean recursive){
@@ -51,19 +77,9 @@ public class Edge {
                 throw new RuntimeException("spatne adjacent vyber");
             }
 
-            if(recursive) next.connect(List.of(this), false);
+            if(recursive) next.connect(new ArrayList<>(Arrays.asList(this)), false);
 
         }
-    }
-
-    public Route edgeToComponent(List<Route> routes){
-        for (int i = 0; i < routes.size(); i++) {
-            Route route = routes.get(i);
-            if(route.edges.contains(this)){
-                return route;
-            }
-        }
-        return null;
     }
 
     public Node otherNode(Node other){
@@ -83,11 +99,29 @@ public class Edge {
 
     @Override
     public String toString() {
-        return "Edge{" +
-                "leftNumber=" + leftNumber +
-                ", rightNumber=" + rightNumber +
-                ", cost=" + cost +
-                ", demand=" + demand +
-                '}';
+//        return "Edge{" +
+//                "leftNumber=" + leftNumber +
+//                ", rightNumber=" + rightNumber +
+//                ", cost=" + cost +
+//                ", demand=" + demand +
+//                '}';
+        return "(" + leftNumber + ", " + rightNumber + ") " + cost + " " + demand;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Edge edge = (Edge) o;
+        return leftNumber == edge.leftNumber && rightNumber == edge.rightNumber && cost == edge.cost && demand == edge.demand;
+    }
+
+    @Override
+    public int hashCode() {
+        return new Random(Objects.hash(leftNumber, rightNumber, cost, demand)).nextInt();
+    }
+
+    public int hash(){
+        return new Random(this.hashCode()).nextInt();
     }
 }

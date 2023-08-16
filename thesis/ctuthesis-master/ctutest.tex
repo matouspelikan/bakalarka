@@ -1,0 +1,1297 @@
+% arara: pdflatex: { synctex: yes }
+% arara: makeindex: { style: ctuthesis }
+% arara: bibtex
+
+% The class takes all the key=value arguments that \ctusetup does,
+% and a couple more: draft and oneside
+\documentclass[twoside]{ctuthesis}
+\usepackage{algorithmicx}
+\usepackage{algpseudocode}
+\usepackage{algorithm}
+\usepackage{mathtools}
+
+\usepackage{graphicx}
+\usepackage{subcaption}
+\usepackage{multirow}
+\usepackage[table]{xcolor}% http://ctan.org/pkg/xcolor
+\usepackage{xcolor,colortbl}
+\usepackage{hhline}
+
+\usepackage{tabularx} % for adjusting table width
+\usepackage{caption} % for customizing table caption
+
+\algdef{SE}[DOWHILE]{Do}{doWhile}{\algorithmicdo}[1]{\algorithmicwhile\ #1}%
+
+
+\ctusetup{
+%	preprint = \ctuverlog,
+%	mainlanguage = english,
+%	titlelanguage = czech,
+	mainlanguage = english,
+	otherlanguages = {czech,english},
+	title-czech = {Evoluční algoritmy s nepřímou reprezentací},
+	title-english = {Evolutionary Algorithms with Indirect Representation},
+	subtitle-czech = {},
+	subtitle-english = {},
+	doctype = B,
+	faculty = F3,
+	department-czech = {Katedra kybernetiky},
+	department-english = {Department of Cybernetics},
+	author = {Matouš Pelikán},
+	supervisor = {Ing. Jiří Kubalík, Ph.D.},
+%	supervisor-address = {Ústav X, \\ Uliční 5, },
+%	supervisor-specialist = {John Doe},
+	fieldofstudy-english = {Open Informatics},
+	subfieldofstudy-english = {Artificial Intelligence and Computer Science},
+	fieldofstudy-czech = {Otevřená informatika},
+	subfieldofstudy-czech = {Základy umělé inteligence a počítačových věd},
+	keywords-czech = {evoluční algoritmus, lokální prohledávání, metaheuristiky, genetický algoritmus, heuristika nejbližšího souseda},
+	keywords-english = {evolutionary computation, local search, metaheuristics, genetic algorithm, nearest neighbor heuristic},
+	day = 26,
+	month = 5,
+	year = 2023,
+	specification-file = spec.pdf,
+	front-specification = true,
+%	front-list-of-figures = false,
+%	front-list-of-tables = false,
+%	monochrome = true,
+%	layout-short = true,
+}
+
+\begin{abstract-english}
+	This thesis proposes an extension to the IREANN evolutionary algorithm to enhance its performance in combinatorial optimization problems, specifically the Capacitated Arc Routing Problem (CARP). The extension allows valuable information about superior solution features to be shared across the entire population during computation. This propagation mechanism, applied periodically, enhances the nearest neighbor heuristic, thereby improving the overall optimization capabilities of the algorithm. The effectiveness of these modifications is empirically tested using standard CARP benchmark datasets.
+\end{abstract-english}
+\begin{abstract-czech}
+	Tato práce navrhuje rozšíření evolučního algoritmu IREANN s cílem zvýšit jeho výkonnost v kombinatorických optimalizačních problémech, konkrétně v problému CARP (Capacitated Arc Routing Problem). Rozšíření umožňuje, aby se během výpočtu sdílely cenné informace o vynikajících vlastnostech řešení napříč celou populací. Tento pravidelně aplikovaný mechanismus šíření informací vylepšuje heuristiku nejbližšího souseda, a tím zlepšuje celkové optimalizační schopnosti algoritmu. Účinnost těchto úprav je empiricky testována pomocí standardních referenčních datových sad CARP.
+\end{abstract-czech}
+
+\begin{thanks}
+	Firstly, I would like to express my sincere
+	gratitude to my supervisor Ing. Jiří Kubalík, Ph.D. for his guidance, patience,
+	motivation, and immense knowledge. Besides
+	my advisor, I would like to thank
+	my family for supporting me throughout
+	writing this thesis.
+\end{thanks}
+
+\begin{declaration}
+	I declare that the presented work was developed
+	independently and that I have
+	listed all sources of information used
+	within it in accordance with the methodical
+	instructions for observing the ethical
+	principles in the preparation of university
+	theses.
+	
+	Prague, 26. May 2023
+\end{declaration}
+
+\ctuprocess
+
+\addto\ctucaptionsczech{%
+	\def\supervisorname{Vedoucí}%
+	\def\subfieldofstudyname{Studijní program}%
+}
+
+\ctutemplateset{maketitle twocolumn default}{
+	\begin{twocolumnfrontmatterpage}
+
+		\ctutemplate{twocolumn.abstract.in.titlelanguage}
+		\ctutemplate{twocolumn.abstract.in.secondlanguage}
+		\ctutemplate{twocolumn.tableofcontents}
+		\ctutemplate{twocolumn.listoffigures}
+	\end{twocolumnfrontmatterpage}
+}
+
+% Theorem declarations, this is the reasonable default, anybody can do what they wish.
+% If you prefer theorems in italics rather than slanted, use \theoremstyle{plainit}
+\theoremstyle{plain}
+\newtheorem{theorem}{Theorem}[chapter]
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{proposition}[theorem]{Proposition}
+
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{example}[theorem]{Example}
+\newtheorem{conjecture}[theorem]{Conjecture}
+
+\theoremstyle{note}
+\newtheorem*{remark*}{Remark}
+\newtheorem{remark}[theorem]{Remark}
+
+\setlength{\parskip}{0.5ex plus 0.2ex minus 0.2ex}
+
+
+
+
+
+
+% Only for testing purposesf
+%\listfiles
+\usepackage[pagewise]{lineno}
+\usepackage{lipsum,blindtext}
+
+\begin{document}
+	
+\maketitle
+
+
+\chapter{Introduction}
+
+
+
+
+Combinatorial optimization problems are a class of challenging tasks that involve finding the best arrangement or combination of discrete elements from a large set of possibilities. These problems arise in various fields, such as logistics, scheduling, network design, and resource allocation. Examples of combinatorial optimization problems include the traveling salesman problem (TSP), the knapsack problem, or the graph coloring problem to name only a few. The complexity of these problems lies in the exponential growth of possible solutions as the problem size increases, making it computationally infeasible to search the entire solution space.
+
+Metaheuristics have emerged as a powerful technique to face the computational challenges posed by complex combinatorial problems. Metaheuristics provide a flexible and robust framework for addressing optimization challenges by operating at a higher level of abstraction. These algorithms offer a unique approach to problem-solving by exploring large solution spaces efficiently and effectively. They are particularly well-suited for combinatorial optimization problems where traditional methods, such as linear programming, integer programming, etc., struggle due to the high-dimensional and non-linear nature of the search space.
+
+Among many other, evolutionary algorithms (EAs) represent a powerful class of metaheuristics that have demonstrated remarkable effectiveness in solving combinatorial optimization problems. Inspired by the principles of natural evolution, these algorithms emulate the process of natural selection and adaptation to guide the search for optimal or near-optimal solutions. They typically work with a population of individuals, where each individual represents a possible solution to the problem at hand. On top of what EAs can offer, it is common practise to integrate local search techniques in order to enhance the performance. Local search focuses on exploring the neighborhood of a given solution to find better nearby solutions. By combining local search with evolutionary algorithms, the search process benefits from both global exploration and local exploitation, leading to improved solution quality and convergence.
+
+An example of such evolutionary based algorithm is IREANN, introduced by Kubalík and Snížek in \cite{kubalik2014novel}. IREANN uses an indirect representation and a so-called nearest neighbor heuristic, which is a constructive procedure suited for routing problems. Both of these concepts used in IREANN are heavily exploited in this thesis. Local search heuristics might be incorporated to IREANN to yield even better performance.
+
+However, given the nature of IREANN's indirect representation functionality, improvements made by local search heuristics would only affect the single individual whose neighborhood of solution space was searched. The information about local improvements can not be easily passed between other individuals in a population. 
+
+The objective of this thesis is to propose an extension to the IREANN algorithm that enables the propagation of valuable information about high-quality features of individual solutions across the entire population during computation. This extension aims to ensure that the entire population can potentially benefit from the insights gained from individually discovered superior features, thereby enhancing the overall performance and optimization capabilities of the algorithm.
+
+The principle of enhancing the algorithm si to incorporate a mechanism that during computation captures and retains information about the features that contibute the most to high-quality solutions. The mechanism involves periodically storing the relevant information which is subsequently used in the nearest neighbor heuristic, and serves as a proxy to information about the actual distance. The whole algorithm was specifically designed to solve the Capacitated arc routing problem (CARP), which is more challenging than the famous TSP and introduces more constraints.
+
+Several slight modifications of above mentioned approach have been implemented as a result of this thesis. The effects of proposed extension on solution quality were empirically verified by testing on standard available CARP benchmark datasets.
+
+The thesis is structured as follows. Chapter 2 formally defines the Capacitated Arc Routing Problem. Chapter 3 gives an overview of related work. Preliminaries are introduced in chapter 4. The extension to IREANN is proposed in chapter 5 a the experiments are carried out in chapter 6.
+
+\chapter{Problem definition}
+The capacitated arc routing problem (CARP), firstly introduced by Golden and Wong \cite{golden1981capacitated}, is a subject in combinatorial optimization, commonly appearing in operations research and transportation logistics. In this chapter, we will provide a formal definition of the CARP, establish relevant terminology, and underline the basic properties that characterize this complex problem.
+
+The Capacitated Arc Routing Problem (CARP) is a variant of the arc routing problem where a fleet of vehicles of uniform capacity is used to service a set of arcs or edges in a network. The fundamental challenge is to design the minimum cost set of routes such that each vehicle originates and terminates at a depot, each edge in the network requiring service is traversed by exactly one vehicle, and the total demand serviced by any vehicle does not exceed its capacity.
+
+The problem is defined on a connected, undirected graph \emph{G} = (\emph{V, E}), where V is the set of vertices and E is the set of edges. Every edge \emph{e} $\in$ \emph{E} has a non-negative cost or length \emph{$ c_e $} and a non-negative demand for service \emph{$ d_e $}. The edges with positive demand make up the subset of the required edges \emph{$ E_R $}. In CARP, the graph is typically undirected, meaning that each edge can be traversed in either direction with equal cost. Throughout this thesis, the terms cost and distance are used interchangibly.
+The demand \emph{$ d_e $} of an edge \emph{e} represents the quantity of some resource or service that must be delivered along that edge. Each vehicle has a maximum capacity Q and the total demand of all edges in its route cannot exceed this capacity.
+Given a vehicle capacity \emph{Q}, the CARP consists
+of finding a set of vehicle routes of minimum cost,
+such that every required edge is serviced by exactly
+one vehicle, each route starts and ends at a prespecified vertex \emph{$ v_0 $} $\in$ \emph{V} (the depot) and the total
+demand serviced by a route does not exceed the
+vehicle capacity \emph{Q}. The number of maximum vehicles \emph{K} used is also constrained.  Golden and Wong \cite{golden1981capacitated} show that the CARP is NP-hard. 
+
+
+\chapter{Related work}
+Capacitated Arc Routing Problems (CARP) are known to be NP-hard problems. Due to its complexity, it is possible to solve it exactly only for small-sized instances. Instances of larges size usually make use of heuristic, more specifically metaheuristic approaches.
+
+This chapter gives an overview of known 
+
+\section{Exact and lower bound methods}
+Lower bound methods provide a tight lower bound on its optimal cost. Such a bound is helpful when evaluating larger CARP instances, where heuristic approach has to be employed, since solving them exactly would be computationally too demanding and not feasible at all. Thus, achieving a solution which is close to a lower bound might be a good measure of quality for heuristic algorithms.
+A simplified integer linear model was proposed by Belenguer and Benavent \cite{BELENGUER2003705}. The sparse formulation used does not lead to a valid CARP solutions, but presents very tight lower bounds for the problem. Only one integer is used for each edge, which results in not being able to say which vehicles service which edges.
+
+First possible way of solving CARP is based on transforming the problem into a node routing problem and then using existing VRP methods to solve it. Quality of the solution depends on how well, meaning how compact such a transformation can get. The goal is for the dimension to not increase drastically.
+First transformation of its kind was introduced by Pearn, Assad and Golden \cite{PEARN1987285} which reduced the CARP problem into CVRP problem, but was regarded as unpractical, since the transformed CVRP problem had a graph with 3e + 1 vertices, where e is the number of required edges in CARP. Similar transformation was then proposed by Longo, Aragao and Uchoa \cite{LONGO20061823}, which further reduced the number of vertices to 2e + 1. Combined with a branch-and-cut-and-price algorithm, they observed effective results, solving all gdb instances for the first time and finding new optimum for val files and two for egl files.
+More recently, a compact transformation was introduced recently by Les Foulds et al. \cite{foulds2015compact} where the number of nodes is at most larger only by one than the number of edges. Again, an adapted version of branch-and-cut-and-price algorithm for CVRPs was used to obtain the results. The authors managed to solve all of the instances from the gdb dataset, however some instances in the larger dataset egl were not solved satisfactorily.
+
+As mentioned by Bode and Irnich \cite{bode2012cut}, converting arc routing problems into node routing ones has significant drawbacks, which are models with inherent symmetry, dense underlying networks or models with huge number of vertices. Therefore, it is worth considering specialized CARP methods to address these issues. 
+Specialized exact algorithms for CARP often involve solving integer programs using branch-and-cut or branch-and-bound combined with column generation. Branch-and-cut uses a cutting plane approach, in which inequalities are added to the optimization problem.  By adding these cuts, the feasible region of the subproblems can be further restricted, which can help the algorithm find the optimal solution more efficiently. Column generation, on the other hand, involves iteratively generating and adding columns (variables) to the problem's constraint matrix until an optimal solution is found. Mentioned algorithms are used in \cite{bode2012cut}, \cite{bartolini2013improved} to solve instances with up to 190 nodes to optimality. Instances with number of nodes greater than 200 remain unsolved by exact approaches. 
+
+\section{Heuristics}
+Heuristics algorithms are approximate methods that are used to quickly find a solution to an optimization problem that is likely to be close to the optimal solution. They are typically used when the exact optimization problem is too computationally expensive to solve in a reasonable amount of time, which is the case for solving larger instances of the CARP. The main focus will be on meta-heuristics, which represent more general techniques applicable to wide range of optimization problems.
+
+One of the most famous algorithms for solving CARP is a tabu search algorithm called CARPET proposed by Hertz, Laporte and Mitaz \cite{hertz2000tabu}. In CARPET, a solution in represented by a set of nodes representing all traversed edges. Solutions violating vehicle capacity are accepted but penalized. The search process in a tabu search is guided by the tabu rules, which specify which moves are allowed and which are "tabu" (forbidden) at each step. Number of improvement procedures which are used in the search process are presented in CARPET (Shorten, Drop, Add, Paste, Cut, Switch and Postopt).
+
+Subsequently, Hertz and Mittaz in \cite{hertz2001variable} applied a new algorithm to solve the CARP, which is the Variable Neighborhood Descent algorithm (VND). It replaces the framework of the tabu search with the framework of the variable neighborhood search and achieves slightly better solutions. It involves exploring a sequence of neighborhoods around the current solution. Several descents with different neighborhoods are performed until a local optimum for all considered neighborhoods is reached. However successful the solutions, the encoding used by CARPET and VND leads to intricate improving procedure, thus potentially making the search space vast.
+
+Lacomme, Prins and Ramdane-Ch{\'e}rif \cite{lacomme2001genetic} proposed a memetic algorithm (MA), a genetic algorithm hybridized with a local search). Genetic part of the algorithm is inspired by the process of natural evolution and use techniques such as selection, crossover, and mutation to search for the optimal solution to a problem. Based on this evaluation, the algorithm selects the fittest individuals to survive and reproduce, and combines their genetic material through crossover to create new offspring. Mutation is then used to introduce random changes to the genetic material of the offspring, in order to explore a wider range of potential solutions. MA uses a more compact and natural encoding. Each edge is represented by only two indices, one for each direction. A route can then be defined by a list of such indices. Two consecutive edges in a route are connected by implicit shortest paths, which can be computed in advance. This encoding scheme is very useful when only fraction of edges are required and has been used in almost all metaheuristics published after CARPET and VND. MA achieves is more successful on the standard testing sets than CARPET, while also being twice as fast.
+
+Are recent tabu search algorithm for solving a modified version of the original CARP problem was recently proposed in \cite{lai2018forest}. They consider split-delivery CARP (SDCARP), which generalizes conventional CARP by allowing an arc to be serviced by more than one vehicle. Forest-based tabu search utilizing forest-based neighborhood operators is used in this approach.
+
+A similar memetic algorithm to (MA) with extended neighborhood search (MAENS) was proposed in \cite{tang2009memetic}. This work proposed a novel local search operator, which is capable of searching using large step sizes and is less likely to become trapped in locally optimal solutions.
+
+To tackle the largest CARP benchmark instances, Mei, Tang and Yao \cite{mei2013decomposing} present a mechanism called Random Route Grouping (RRG) designed to decompose the large-scale CARP (LSCARP). RRG is combined with a cooperative co-evolution (CC) model to give yield impressive result on large datasets. The cooperative co-evolution framework is a natural way to implement divide-and-conquer strategy. Generally, CC is a type of evolutionary algorithm that involves the simultaneous evolution of multiple subpopulations, or "species," that are interdependent and work together to find a solution to a problem. A bit later, authors of \cite{mei2014variable} improve on the decomposition procedure by incorporating information about the quality of the best solution found in the search.
+
+Another group of possible meta-heuristic approaches are ant-colony algorithms, which are inspired by the behaviour of ant colonies. A set of artificial ants is initialized at selected locations of the network, the network is then explored by the ants which are combining local information (the cost of the arc connecting the current node to the next one), with the global information (pheromone levels on the arcs). Pheromone levels store the information about the quality of the solutions found so far. Ants deposit pheromones on the arcs as they traverse, which influences the behaviour of other ants. 
+Tirkolaee et al. \cite{TIRKOLAEE2019457} introduce an ant colony based metaheuristic with some modifications. They use a modified version of the Ant Colony Optimization algorithm derived from Ant System called Max-Min Ant System (MMAS). MMAS was firstly presented by Stützle and Hoos in \cite{stutzle2000max}, their main contribution was the introduction of upper and lower bounds for the value of the pheromones which avoids stagnation of the search. \cite{TIRKOLAEE2019457} further improves the performance of MMAS by utilizing a mechanism called Pheromone Trial Smoothing (PTS), which results in preventing premature convergence, avoiding local optima and increasing efficient search space.
+
+In \cite{martinez2011brkga}, a biased random key genetic algorithm is combined with a local search. Optimal or near optimal solutions were obtained while achieving small computation times during testing on sets of CARP benchmark instances. Classical local search methods which “fine-tune” its solutions are used to potentially find better ones. Local search might be applied in different ways. One is to pass the best solution found by RKGA to a local search algorithm to be further optimized, another possibility is to use local search as a mutation operator within RKGA.
+
+Open CARP is a variant of the original CARP problem which releases the constraint which states that tours must begin and end at a depot, which means that the tours in this variant do not have form cycles. A recent work of \cite{arakaki2018hybrid} deals with the open CARP by introducing a Hybrid genetic algorithm, whose main features is standard genetic algorithm combined with local search and feasibilization procedure which is responsible for obtaining a feasible solution from chromosome. Feasibilization proved to have substantial role on performance. It also includes a population restart which avoids premature convergence of the population, which happens when the genetic diversity is low and only small are of the search space is being explored.
+
+In some cases, the demand for a product or service may be uncertain or subject to random fluctuations. Such behaviour is modeled by one of the most recently studied variant of the CARP problem, the Uncertain CARP (UCARP). It was proposed to better reflect reality. In UCARP, the travel cost between vertices in the graph and demand of tasks is unknown in advance, and is revealed during the process of executing the services. In this case, a preplanned solution may become worse or even infeasible. Authors of \cite{wang2021genetic} propose a novel genetic programming approach, which simplifies the routing policies during the evolutionary process using a niching technique, which leads to a more interpretable policies. Niching is a technique used to preserve diversity among populations of solutions. It avoids aforementioned premature convergence, where the algorithm would get stuck in a local optimum. Instead of having a single population of solutions that all evolve together, niching involves dividing the population into subpopulations, or niches. These niches contain solutions that are similar to each other, but distinct from those in other niches. This way, the search space is expanded, increasing the chances of finding the best solution.
+
+
+\chapter{Preliminaries}
+
+
+\section{Evolutionary Algorithms}
+\label{sec:evolutionbasic}
+
+Evolutionary Algorithms (EAs) are a diverse family of optimization techniques rooted in the principles of biological evolution. Mimicking nature's underlying processes, they use mechanisms inspired by natural selection and genetics to solve complex search and optimization problems. The general approach of EAs is to maintain a population of candidate solutions for the problem at hand and to iteratively improve this population over time. They are characterized by their population-based search approach, their utilization of stochastic processes, and their capability of maintaining and exploring a diversity of solutions. This provides an inherent robustness, allowing for a versatile exploration of the search space, and makes EAs well-suited for a wide range of problems, including those with large and intricate search spaces, non-linear relationships, or poorly understood fitness landscapes. The versatility of EAs is showcased in the ``Humies'' competition, hosted at \url{https://human-competitive.org/}. This competition serves as a platform to demonstrate how EAs can excel in various domains by producing solutions that are comparable to or even outperform those created by human designers.
+
+The main operators utilized within EAs are selection, crossover (or recombination), and mutation, which emulate the mechanisms of survival of the fittest, mating, and random genetic mutation respectively.
+
+Pseudocode of a general evolutionary algorithm:
+\begin{algorithmic}[1]
+	\State Initialize population $P_0$
+	\While{termination condition is not met} 
+	\State Evaluate fitness of individuals in $P_t$
+	\State Select parents from $P_t$
+	\State Generate offspring by crossover and mutation
+	\State Evaluate fitness of offspring
+	\State Select individuals for $P_{t+1}$ from parents and offspring
+	\EndWhile
+\end{algorithmic}
+
+Above, the provided pseudocode outlines a general evolutionary algorithm in five steps. First, it initializes the initial population of candidate solutions. Then, the algorithm iteratively evaluates the fitness of individuals in the current population. Next, parents are selected from the population, and offspring are generated through crossover and mutation operations. The fitness of the offspring is then evaluated. Finally, individuals for the next population are selected from both the parents and the offspring. This iterative process continues until the termination condition is met, which usually is the maximum number of generations. The pseudocode serves as a flexible template for implementing various evolutionary algorithms tailored to specific optimization problems.
+
+It is necessary to provide a summary of key terms and concepts commonly used in evolutionary algorithms. A few of the most important terms were selected from \cite{glogs} by Beyer et al.
+\begin{table}[htbp]
+	\caption{Key Concepts in Evolutionary Algorithms}
+	\label{tab:key-concepts}
+	\begin{tabularx}{\textwidth}{lX}
+		\hline
+		\textbf{Term} & \textbf{Description} \\
+		\hline
+		Gene & The fundamental unit in an individual's solution, representing a specific piece of information or parameter. \\
+		Genotype & The complete set of genes that make up an individual's solution. It represents the encoded solution in the search space. \\
+		Phenotype & The manifestation of the genotype in the problem space, denoting the actual solution to the problem. \\
+		Individual & Represents a single solution to the optimization problem, characterized by its genotype and associated phenotype. \\
+		Fitness & The quality or suitability of a solution, measured by a problem-specific fitness function. \\
+		Population & The collection of individuals in a given generation, representing the pool of current solutions in the search space. \\
+		Evolution & The iterative process of generating new populations with potentially improved fitness over generations through selection, crossover, and mutation. \\
+		\hline
+	\end{tabularx}
+\end{table}
+
+
+While all EAs share these commonalities, different types of EAs have emerged, customizing these concepts to particular problem types or application areas. Each type has its unique features and specializations, with notable examples including Genetic Algorithms, Genetic Programming, Differential Evolution, Evolution Strategies, and Evolutionary Programming \cite{marte2018handbook}. Genetic algorithms and their memetic extension will be discussed in further detail below.
+
+Genetic Algorithms (GAs) constitute a significant branch of EAs, with a strong emphasis on the mechanisms of natural selection and genetics. Taking inspiration from Charles Darwin's theory of natural evolution, GAs maintain a population of candidate solutions that evolve over generations. They were introduced by Holland and Goldberg \cite{miller1995genetic}.
+
+Although GAs are a part of the broader EA family, their distinctive feature lies in their particular implementation of the evolutionary principles. The concrete representation of solutions as chromosomes, the clear distinction of generations, and the straightforward usage of genetic operators make GAs a robust and versatile tool for a wide array of optimization problems.
+
+Each individual solution in a GA is characterized by a set of parameters or variables, encoded in a data structure analogous to a chromosome. These chromosomes can be binary strings, real-valued vectors, or other appropriate structures depending on the specific problem being addressed.
+
+The fitness of each individual is assessed using an objective function specific to the problem, similar to how an individual organism's fitness for survival might be measured in nature. This objective function acts as the primary evaluator and driver for the progression of solutions, pushing the evolution process towards optimal or near-optimal solutions.
+
+GA operates using three main genetic operators:
+\begin{itemize}
+	\item Selection: This operator mimics the survival of the fittest principle. It selects the individuals with higher fitness values to pass their genes to the next generation.
+	\item Crossover (or Recombination): It emulates the genetic recombination observed in nature, where offspring inherit genetic information from their parents. In GA, it is a method to create new candidate solutions by combining parts of the 'chromosomes' of two or more selected individuals from the current population.
+	\item Mutation: This operator introduces random modifications in the chromosome of individuals, promoting genetic diversity and enabling the exploration of new areas of the search space.
+\end{itemize}
+
+\section{Local Search Procedures}
+\label{sec:localsearch}
+Local search optimization is a crucial aspect of evolutionary algorithms, providing an exploration of the neighborhood of solutions to refine the global search. It can greatly enhance the performance of the evolutionary algorithm by allowing it to find better solutions that might be missed in the course of the global search. \cite{burke2014search}
+
+A local search is conducted by perturbing the current solution slightly to create a neighboring solution, then comparing the fitness of the new solution to the fitness of the current solution. If the new solution is better (i.e., it has a higher fitness), it replaces the current solution, and the process is repeated. This is commonly known as hill climbing, since it can be visualized as climbing the peak of a fitness landscape.
+
+Given the stochastic nature of evolutionary algorithms, the incorporation of local search techniques adds an additional layer of robustness and effectiveness to the solution process. As a result, evolutionary algorithms provide a strong global search capability, local search on the other hand allows for refinement and exploitation of the best solutions found, which again provides a balance between exploring and exploiting possible solutions.
+
+\section{Memetic Algorithms}
+\label{sec:memetic}
+Memetic algorithms (MAs) represent an extension of the traditional genetic algorithms, which on top the genetic framework employ local search operators during the computation. They were introduced by Moscato in \cite{moscato1989evolution}. MAs are described by Moscato as ``a marriage between a population-based global search and the heuristic local search made by the individuals.'' The word ``meme'', which was the inspiration for the term memetic algorithms, denotes the idea of a unit of imitation. Moscato uses the analogy of martial arts to describe memes as those undecomposable movements, which when individually composed form a more complex movement. Put simply, memetic algorithms improve genetic algorithm, which rely almost entirely upon recombination mechanisms to improve solution quality, by combining them with some kind of local optimisation of each individual in population. 
+
+\section{IREANN}
+The foundation for the proposed extension in this thesis is based on the work of Kubalík and Snížek \cite{kubalik2014novel}. Their research introduces an Evolutionary Algorithm with Indirect Representation and Extended Nearest Neighbor Constructive Procedure (IREANN), specifically designed for solving the Traveling Salesman Problem (TSP). The functionality and effectiveness of the IREANN algorithm in addressing the TSP are demonstrated in their study.
+
+\subsection{Indirect representation}
+IREANN uses an indirect representation as a sequence of required nodes which is called a priority list, where the order of nodes define the order in which they will be inserted into an existing tour via extended nearest neighbor heuristic. For example, a priority list {5, 2, 4, 1, 3} represents a solution that is constructed through steps of application of the nearest neighbor heuristic to the cities 5, 2, 4, 1 and 3, in this order.
+
+The optimal solution can be represented by various priority lists, depending on the nature of a specific TSP instance which is being solved. This flexibility is advantageous as it allows the optimal solution to be attracted by multiple different priority lists. However, it is also possible that the given representation may not be able to reach the optimal solution if there is no priority list that accurately represents it.
+
+
+\begin{figure}
+\begin{algorithmic}[1]
+\State Initialize \emph{n} single node components \emph{$ start_i = i, end_i = i $} for \emph{$ i = 1, ..., n $}
+\State $j \gets 1$
+\Do
+\State Take \emph{j}-th city, \emph{P}[\emph{j}], from the priority list \emph{P}
+\State Identify component \emph{$ C_k $} to which city \emph{P}[\emph{j}] belongs
+\If{\emph{P}[\emph{j}] is either \emph{$ start_k $} or \emph{$ end_k $} of \emph{$ C_k $}}
+\State \emph{N} $\gets$ {\tt nearestNeighbor}(\emph{P}[\emph{j}])
+\State add edge (\emph{N}, \emph{P}[\emph{j}])
+\Else
+\State \emph{$ N_1 $} $\gets$ {\tt nearestNeighbor}(\emph{$ start_k $})
+\State \emph{$ N_2 $} $\gets$ {\tt nearestNeighbor}(\emph{$ end_k $})
+\If{{\tt dist}(\emph{$ N_1, start_k $}) $\leq$ {\tt dist}(\emph{$ N_1, end_k $})}
+\State add edge (\emph{$ N_1, start_k $})
+\Else
+\State add edge (\emph{$ N_2, end_k $})
+\EndIf
+\EndIf
+\State \emph{j}++
+\doWhile{$j \leq n$}
+
+\end{algorithmic}
+	\caption{The extended nearest neighbor construction procedure}
+	\label{fig:cnnptsp}
+\end{figure}
+
+\begin{figure}
+	\includegraphics[width=\linewidth]{tspexample.png}
+	\caption{Example of the extended nearest neighbor constructive
+		procedure (source: \cite{kubalik2014novel})}
+	\label{fig:tsp}
+\end{figure}
+
+
+\subsection{Extended Nearest Neighbor Constructive Procedure}
+\label{sec:CNNP}
+The central objective of the Constructive Nearest Neighbor Procedure (CNNP) is to formulate a valid tour of length \emph{n} based on any given priority list. Note, that the terms ``Extended Nearest Neighbor Constructive Procedure'' and ``Constructive Nearest Neighbor Procedure'' are used interchangibly in this thesis. The procedure begins with \emph{n} separate tour components. Each tour component, denoted as \emph{$ C_k $}, is marked by its boundary cities \emph{$ start_k, end_k $}. Initially, every city serves as its own distinct component, implying \emph{$ start_i = i $} and \emph{$ end_i = i $} for each city \emph{i} from 1 to \emph{n}.
+
+Throughout the procedure, the algorithm iterates over the priority list, using the nearest neighbor heuristic at each step. At each iteration \emph{i}, it processes an element from the priority list \emph{P}[\emph{i}]. Depending on \emph{P}[\emph{i}], a component \emph{$ C_k $} is identified, which may contain one or multiple nodes.
+
+If \emph{P}[\emph{i}] turns out to be a boundary node of \emph{$ C_k $}, the procedure picks the city closest to \emph{P}[\emph{i}] and adds it to the tour. Alternatively, if \emph{P}[\emph{i}] is not a boundary node, it locates the nearest neighbors of the boundary nodes \emph{$ start_k $} and \emph{$ end_k $} of the component \emph{$ C_k $}, labeled as \emph{$ N_1 $} and \emph{$ N_2 $}. Of the two possible edges (\emph{$ N_1, start_k $}) and (\emph{$ N_2, end_k $}), the one with the shorter distance is chosen and added to the tour.
+
+At every step, the process merges two components into a single one. This sequence of actions repeats until only a single component is left, symbolizing the final route.
+
+Figure \ref{fig:tsp} provides a graphical illustration of this procedure, constructing a route from the priority list \emph{P} =\{A, I, H, F, J, E, C, D, G, B\}. As observed, \ref{fig:tsp} a) processes \{A, I, H, F\}, wherein each step selects the shortest link to a node's neighbor, leading to two components \{A, J, I\} and \{F, G, H\}. However, when the node J is considered, it's already part of a component and not a boundary node. Hence, the nearest neighbor is sought from nodes I and A. Since the link between I and H is shorter than that between A and B, the components are connected through the I and H edge. The final route, as shown in \ref{fig:tsp} c), is derived by applying the same rules to the remaining priority list.
+
+As previously mentioned, several priority lists might eventually represent the same route. In this straightforward instance, \{A, I, H, F, J, E, C, D, G, B\}, \{I, C, E, B, H, F, A, J, G, D\}, and \{F, A, C, H, I, E, D, B, G, J\} all lead to the same final route.
+
+\chapter{Proposed method}
+\label{sec:proposedmethod}
+This chapter proposes an extended version of the original IREANN algorithm, whose main contribution is the incorporation of a feature extraction and propagation mechanism. This mechanism aims to leverage high-quality features from individual solutions and propagate the knowledge across the entire population. The primary purpose is to increase the algorithm's effectiveness in dealing with complex combinatorial optimization problems. This mechanism is described in detail in section \ref{sec:extension}.
+
+As a test case for the extended IREANN, an arc routing problem named the Capacitated Arc Routing Problem (CARP) was chosen. However, IREANN was originally designed to solve the Travelling Salesman Problem, a vehicle routing problem. That implies some changes to the core IREANN algorithm were necessary to adapt it to the nuances of CARP. CARP introduces additional complexities not present in the Travelling Salesman Problem. It is a more complex problem that not only requires routing, but also involves servicing edges or arcs with specific demands while defining capacity constraints of the vehicles.
+
+The adjustment of the inner representation of routes for each individual in the population and the modification of the nearest neighbor heuristic is crucial for the domain of the CARP, furthermore the adaptation of local search operators specifically for CARP, which play a crucial role in the algorithm's efficiency, is also required.
+
+On the other hand, the core components of the evolutionary framework, specifically, the selection, crossover, and mutation operators remain largely unchanged. This is because these genetic operators are fundamentally problem-independent and can be applied in the same way across a wide variety of combinatorial optimization problems.
+
+\section{IREANN customizations to CARP}
+In CARP, the atomic element shifts from a node to an edge. Instead of cities as it is the case in TSP, the entities to be visited are now the required edges of a graph, each having a specific demand to be serviced. This change in representation has a direct impact on the design of the nearest neighbor heuristic as well, which is a key component in constructing new solutions.
+
+\subsection{Indirect representation}
+\label{sec:indirectcarp}
+Proposed customized version of IREANN, uses priority list of edges instead of nodes. Similarly to the original IREANN \cite{kubalik2014novel} for TSP, the priority list represents the order in which the nearest neighbor heuristic will be applied, but in this case, on edges during the process of developing the set of tours.
+
+The priority list, serving as the genotype within the evolutionary framework, shifts from representing a sequence of nodes or cities in TSP to representing a sequence of required edges in CARP. The overall functionality remains the same as it was the case in the original version, which means that the priority list represent the order in which the nearest neighbor heuristic is applied.
+
+\subsection{Extended nearest neighbor constructive procedure}
+\label{sec:CNNPCARP}
+In section \ref{sec:CNNP}, the constructive nearest neighbor procedure (CNNP) was introduced and its functionality was demonstrated on the TSP. However, directly applying the same CNNP to the Capacitated Arc Routing Problem is not possible. The transition to CARP requires several modifications to the CNNP to effectively handle the distinct requirements and constraints of this more complex problem.
+
+Procedure is formally described in Fig. \ref{fig:cnnpcarp}
+The process starts with \emph{n} independent tour components, where \emph{n} is the number of required edges. Each required edge initially belongs to its own component. Each component \emph{$C_k$} is defined by its boundary nodes {\emph{$start_k$}, \emph{$end_k$}}. Let us define boundary edge as a required edge which on either of its two ends, is not connected to any other required edge. Futher, a boundary node is a node belonging to a boundary edge, through which the edge is not linked to any other required edge. Which means that in the beginning of the CNNP, boundary nodes of all components are the two nodes of each corresponding required edge.
+
+In each step of the constructive procedure, either two components are merged together if their conjunction satisfies the capacity constraints, or nothing is done if there is no pair of route components that would meet the maximum capacity constraint \emph{Q} after they were merged together.
+
+In particular, in \emph{i}-th step the corresponding requried edge at \emph{i}-th position in the priority list, denoted as working edge \emph{P}[\emph{i}], is taken and the component to which the edge \emph{P}[\emph{i}] belongs, \emph{$C_i$}, is identified. Nearest available neigbors to the \emph{$start_i$} and \emph{$end_i$} boundary nodes of the component \emph{$C_i$}, \emph{$N_1$} and \emph{$N_2$}, are found. \emph{$N_1$} and \emph{$N_2$} have to meet several constraints imposed by the CARP definition. Firstly, both \emph{$N_1$} and \emph{$N_2$} have to be boundary nodes of some other components \emph{$C_j$}, \emph{$C_k$} where \emph{i} $\neq$ \emph{j} and \emph{i} $\neq$ \emph{k}. 
+
+Secondly, only boundary nodes of \emph{$C_l$}, such that the sum of demands along components \emph{$C_i$} and \emph{$C_l$} is less or equal to the maximum capacity \emph{Q}, are considered. This is to ensure that the maximum vehicle capacity constraint $Q$ will not be violated.
+
+Finally, the shorter path out of (\emph{$N_1$}, \emph{$start_i$}) and (\emph{$N_2$}, \emph{$end_i$}) is added to a constructed solution while merging together the component \emph{$C_i$} with the component containing the selected boundary node (\emph{$N_1$} or \emph{$N_2$}).
+A path between two arbitrary nodes, $v_1$ and $v_2$, refers to the shortest possible path on the entire graph $G$. It is important to stress, that this path can potentially include passing even a required edge. By definition, the passing of required edges without servicing them is permitted. This allows for more flexibility in finding the shortest path between the specified nodes.
+
+Note, that it is possible that no other node in the entire graph with its corresponding component satifies the vehicle capacity constraint. That situation would result in continuing to (\emph{i}+1)-th step right away, without extending any component. The procedure ends after all \emph{n} required edges from priority list have been processed. At the end, we are left with a certain number of components \emph{$\mathcal{|C|}$} $\leq$ \emph{n}, i.e. multiple separate routes, where each route is served by a single vehicle. \emph{$\mathcal{|C|}$} might be greater than the maximum number of vehicles allowed \emph{K}, which would make the constructed set of routes an invalid solution, this drawback is discussed in further detail in section \ref{sec:feasibility}.
+
+To sum up the differences between the original constructive procedure for TSP and this modifed version for CARP, most notably we have to check each candidate whether is satisfies the constraint imposed by the CARP definition. The rest of the procedure is very similar, we are just dealing with edges instead of individual nodes.
+
+
+
+	
+\begin{figure}
+\begin{algorithmic}[1]
+	\State Initialize \emph{n} single edge components \emph{$ start_i, end_i $} are the boundary nodes of each required edge \emph{i} for \emph{$ i = 1, ..., n $}
+	\State $i \gets 1$
+	\While{$i \leq n$}
+	\State Take \emph{i}-th edge, \emph{P}[\emph{i}], from the priority list \emph{P}
+	\State Identify component \emph{$ C_i $} to which edge \emph{P}[\emph{i}] belongs
+	\State (\emph{$N_1$}, \emph{$C_{N1}$}) $\gets$  {\tt nearestNeighbor}(\emph{$ start_i $}) where sum of \emph{$ C_i $}, \emph{$C_{N1}$} satisfies \emph{Q} constraint
+	\State (\emph{$N_2$}, \emph{$C_{N2}$}) $\gets$  {\tt nearestNeighbor}(\emph{$ end_i $}) where sum of \emph{$ C_i $}, \emph{$C_{N2}$} satisfies \emph{Q} constraint
+	
+	\If{{\tt dist}(\emph{$ N_1, start_i $}) $\leq$ {\tt dist}(\emph{$ N_1, end_i $})}
+		\State add path(\emph{$ start_i, N_1 $})
+		\State merge components(\emph{$C_i, C_{N1}$})
+	\Else
+		\State add path(\emph{$ end_k, N_2 $})
+		\State merge components(\emph{$C_i, C_{N2}$})
+	\EndIf
+	
+	\State \emph{i}++
+	\EndWhile
+	
+	
+\end{algorithmic}
+	\caption{Extended nearest neighbor constructive procedure modified for CARP}
+\label{fig:cnnpcarp}
+\end{figure}
+
+
+ 
+
+\subsection{Solution feasibility}
+\label{sec:feasibility}
+Because of the nature of the capacitated arc routing problem, the challenge of solution feasibility arises. After the evaluation of given individual using the nearest neighbor constructive procedure, it is possible the resulting set of routes violates the constraint of maximum vehicle used. Such problem would not come up if the goal was to solve the Travelling salesman problem using similar heuristic to CNNP, but for the CARP which defines the maximum vehicle contraint, solutions violating this constraint are not acceptable. 
+
+Another constraint is the maximum capacity of each vehicle, meaning that the sum of demands of each required edge in a single route must not exceed the defined limit \emph{Q}, which is same for the whole fleet. The solutions however can not possibly violate this constraint thanks to the way the routes are constructed via the CNNP. (See section \ref{sec:CNNPCARP}) CNNP does not allow a route to be extended with another one which would result in such violation. That results in only the maximum vehicle count constraint being vulnerable to violation, not the maximum capacity one which is always satisfied by the innate design of this approach.
+
+To deal with the infeasibility obstacle, one idea would be to leave every infeasible solution out of the population of candidate solutions and not consider them at all. However, this approach would cause a lot of trouble, because in order to create the initial population, chromosomes of individuals in the first generation are set arbitrarily. Those chromosomes with randomly ordered genes are very unlikely to generate a valid solution in terms of the number of vehicles used, which would make it almost impossible to generate an initial generation of only individuals with feasible solutions.
+
+Instead, individuals representing infeasible solutions are allowed to exist in the population, but we need a way of telling which infeasible solutions are better than others in order to guide the computation in the correct direction and thus converge to a state where there is a population with feasible individuals. 
+
+That is where the fitness evaluation of each individuals comes into play.
+
+\subsection{Individual Fitness}
+\label{sec:fitness}
+Using the terminology introduced in table \ref{tab:key-concepts}, in the evaluation process the individual's genotype is taken as input. It is then converted to its corresponding phenotype, which serves as the basis for computing the final fitness, which is the output of this procedure.
+
+To make it clear, in the case of our implementation of extended IREANN algorithm for the CARP, genotype is the priority list of required edges, which is what mainly defines each individual. However, because of the indirect representation aspect (see section \ref{sec:indirectcarp}), this priority list (genotype) is converted into the actual set of routes (phenotype) the fleet of vehicle has to travel through via the means of CNNP (see section \ref{fig:cnnpcarp}). It is this set of routes upon which the fitness is computed, not the priority list. Because of the reasons stated in sections \ref{sec:feasibility}, we can not simply define the fitness of an individual by a single number representing the cumulative cost of its set of routes. We also need to capture the count of such set of routes, in order to be able to tell whether the individual violates the maximum vehicle constrained (as discussed in section \ref{sec:feasibility}). 
+
+As a result, the fitness is represented by the pair of values being \emph{$(1)$} the total cumulative cost of the set of routes computed by the CNNP, and \emph{$(2)$} the number of routes in such a set of routes. 
+
+Formally, we define the fitness of an individual as a value pair \{\emph{cost}, \emph{vehicle count}\}, where
+
+
+Further clarification on why the evaluation of an individual involves a pair of values, rather than just one, is provided in section \ref{sec:feasibility}.
+
+
+\subsection{Comparison of Individuals}
+\label{sec:sorting}
+For the reasons stated in section \ref{sec:feasibility}, we have to come up with a mechanism which incentivizes the population to converge to a state where there are only individuals with valid number of vehicles.
+
+Ultimately, the desired functionality is to be able to tell which individuals are the fittest with respect to each other. That enables us to create hierarchy within given population of individuals, giving the more fit individuals higher chance of ``survival'' through the selection operator, which is the main driving force behind the evolutionary process towards finding optimal solutions.
+
+We are not able to establish such a hierarchy just by sorting the population by the measure of the cumulative cost of all the routes in an individual's solution. Although that is the end goal of the whole computation, to find a solution that minimizes this attribute, we can not neglect the number of vehicles used during this process. The reason behind that is the possibility of a situation where a solution with lower cumulative cost and a number of vehicles over the limit \emph{K} would be considered more fit than a solution with satisfactory number of vehicles and a greater cost. Put simply, a solution that violates the constraints defined by CARP (i.e., one with $|\emph{C}| > $ \emph{K}) would be considered more fit than a valid one, which is obviously an undesirable behaviour which would disable the evolutionary process from achieving any progress.
+
+Optimization of two variables at the same time is not possible, so the fitness evaluation will prioritize driving the vehicle count down first, and after that optimize the total routes cost when a satisfactory vehicle count has been reached.
+This desired functionality is achieved by designing a custom comparator, that decides which one of two individuals is ``more'' fit. This comparator is utilized to sort the population, which results in having an ordered sequence of individuals with the fittest ones at the beginning. In the end, that is what the fitness function is for, to tell how good the solutions are with respect to each other so that during the selection phase (details in section \ref{sec:selectioncarp}), the right individuals in population are picked to be mated with each other, according to the selection rules. 
+
+Comparator is a method which takes two individuals as input and decides which one of them is more fit according to criteria mentioned above. Several options might occur:
+\begin{itemize}
+	\item Vehicle count of both individuals is greater than the limit, then the one with lower vehicle count is deemed more fit. The cost is the deciding factor only when the vehicle counts are equal.
+	\item First individual has satisfactory vehicle count, the other has not. In this case, the first individual is preferred no matter the cost of their solution.
+	\item Both vehicle counts are less or equal than the limit, then the individual with lower cost is preferred.
+\end{itemize}
+
+\subsection{Selection}
+\label{sec:selectioncarp}
+It is through effective selection that promising individuals are identified and retained, contributing to the improvement of solutions over time. It is the iterative process of selecting and evaluating individuals which guides the evolutionary algorithm towards better performing solutions.
+
+In our implementation, the tournament selection method is utilized as the primary selection mechanism. This method involves selecting a fixed number of individuals, known as the tournament size, from the population \cite{miller1995genetic}. The tournament size is an arbitrary hyperparameter that can be adjusted based on the desired selection pressure. The individual with the best fitness score is the winner of that tournament.
+
+By choosing a larger tournament size, more individuals participate in each tournament, increasing the competition and favoring the selection of fitter individuals. This intensifies the selection pressure and promotes exploitation of promising solutions. Conversely, a smaller tournament size allows weaker individuals to have a better chance of being selected, facilitating exploration and diversifying the population.
+
+In our case, we need to run the tournament selection twice in order to obtain the parent individuals needed to produce an offspring. Our tournament selection procedure has two paramenters \emph{$t_1$} and \emph{$t_2$}, which represent the tournament sizes for both selected parents. Both group of individuals in each tournament are sorted according to our comparator described in section \ref{sec:fitnesscarp}, and the first element, considered the winner of a tournament is selected to be one of the parents for the offspring, which is about to generated through means of recombination from the two parent individuals.
+
+\subsection{Crossover}
+After performing the tournament selection process on the current population, a pair of parent individuals is selected. For each pair of parents, two offspring are created using crossover and mutation operators. 
+
+We used an \emph{order-based crossover}, defined by Syswerda in \cite{syswerda1991schedule}. The crossover constructs an offspring so that first several cities randomly chosen from the priority list of the first parent are copied to the offspring into the same positions as they appear in the parent. The remaining positions are filled in with the remaining cities, in the same relative order as in the second parent.
+
+\subsection{Mutation}
+Mutation operator is very simple, it randomly changes the position of a single edge in the priority list. While some argue that memetic algorithms may not require a mutation operator due to the local search component, we have chosen to retain it in our algorithm. The mutation operator provides an additional source of exploration and helps maintain genetic diversity within the population.
+
+\subsection{Local search optimization}
+\label{sec:localsearchcarp}
+Local search procedures, introduced in \ref{sec:localsearch} play a crucial role in yielding competitive results \cite{marte2018handbook}.
+
+We implemented several local search procedures, which operate on the phenotype level of solutions. That means, we try to tweak the inner solution representation ever so slightly (i.e., modify the set of routes in one of many ways), while seeking improvement in the objective function. If we come across such an improvement, we incorporate it into the representation of given individual.
+
+Our implementation of local search operators was heavily inspired by the work \cite{tang2009memetic} by Tang, Mei and Yao. They presented one of the most famous algorithms for solving the capacitated arc routing problem, abbreviated the "MAENS". Several local search heuristics utilized in MAENS were in some form adopted for this implementation.
+
+Firstly, we list three traditional move operators, namely the single insertion, reversal and 2-opt moves. All of the moves mentioned operate in a deterministic manner, trying out every possible combination looking for improvement in the fitness score. A greedy approach is favored, which means that if an improvement is found, it is applied right away.
+
+\subsubsection{Single insertion}
+In single insert move, an edge is removed from its current position and reinserted into another position in the sequence of edges. Edge might be reinserted either to the route, in which it originally was, or to any other route is the whole set that given individual possesses.
+
+\subsubsection{Reversal moves}
+Reversal move simply reverses the direction of an edge. 
+
+\subsubsection{2-opt moves}
+We differentiate between two types of 2-opt moves, one for a single route and the other for double routes.
+2-opt for single route reverses the direction of its whole subroute, and reconnects it accordingly.
+2-opt for double routes disconnects two routes, which results in four different subroutes, which are then optimally reconnected.
+
+
+\subsubsection{Merge-Split operator}
+As the authors of \cite{tang2009memetic} argue, all of the traditional move operators mentioned above adopt a rather simple schemes to generate new solutions, which results in new solutions that are very similar to the original ones. They describe them as having a "small" step size, thus being capable of searching only a "small" neighborhood.
+It is further discussed, that it would be neat to have a move operator with larger step size. That could be theoretically achieved by extending the traditional move operators, but would be too computationally demanding. For that purpose, the Merge-Split (MS) operator is devised by the authors of \cite{tang2009memetic}.
+
+Our implementation takes inspiration from MS operator and uses a simplified version, the improvements it yields are vastly superior to traditional move operators.
+It basically selects \emph{p}(\emph{p}>1) routes of a given individual, merges them together and tries to reconnect them in a way that leads to a decrease in the total cost. When reconnecting this subset of individual's set of routes, the same constructive procedure to the one used during evaluation of offsprings is employed. Which basically means, that we are trying to reconnect all the edges in the selected subset again via the CNNP, but this time, all the edges which are part of routes that were not selected by the MS operator, are not visible at all. That heavily influences the workings of CNNP, which thanks to this functionality is very likely to discover new possible connections, which would be unattainable if the CNNP considered every single edge in the graph as it is the case during standard offspring evaluation. 
+
+
+\subsection{Dealing with duplicate solutions}
+\label{sec:duplicates}
+Maintaining a diverse population is crucial in evolutionary algorithms to ensure effective exploration of the search space and avoid premature convergence to suboptimal solutions. One aspect of diversity is the absence of duplicate individuals within the population. Duplicates can limit the exploration capability of the algorithm by occupying multiple slots with identical solutions, reducing the diversity of available genetic material. By preventing duplicates, the algorithm is encouraged to explore a wider range of solutions, increasing the chances of finding better and more diverse solutions. Additionally, a diverse population facilitates the exploration of different regions of the search space, enhancing the algorithm's ability to converge to high-quality solutions.
+
+It would be easy to ensure that there are no two individuals with the same genotype, i.e. priority list. But if two individuals have exactly the same priority lists, they might still be different on the phenotype level. Their inner representation might differ thanks to the local search procedures applied. That is why we came up with a way of checking for duplicity on a deeper level, where the inner representation of each individual is considered. Basically, two individuals are deemed identical, if the set of routes each of them possesses, is exactly the same.
+
+There still may be cases where allowing a certain degree of duplicity can be advantageous. To address this, we introduce a parameter called \emph{maxDuplicates}, which specifies the maximum number of identical individuals with the same set of routes that are allowed to proceed to the next generation. This parameter offers a level of control over the tolerance for duplicity within the population. The effects of this tweaking this paramaters are demonstrates in experimental study chapter of this thesis.
+
+\begin{figure}
+	\begin{algorithmic}[1]
+		\small
+		\Function{extendedIREANN}{\emph{popSize, maxGenerations, probCross, probMutation, tournament1, tournament2, maxDuplicates, M, k}}
+		\State \emph{j} $\gets$ 0
+		\State \emph{period} $\gets$ 0
+		\State \emph{journal} $\gets$ deriveFrom(distanceTable)
+		\State population $\gets$ createInitialPopulation(\emph{popSize})
+		\State \emph{\text{BSF\_solution}} $\gets$ population[0]
+		\For{$i = 0$ to $maxGenerations$}
+		
+		\If{$i \geq$ \emph{M} $\land$ \emph{j} mod \emph{k} == 0}
+		
+		\If{population[0] is better than \emph{BSF}}
+		\State \emph{BSF\_solution} $\gets$ population[0]
+		\State \emph{journal} $\gets$ \Call{Analysis}{population}
+		\State \emph{BSF\_journal} $\gets$ \emph{journal}
+		\State \emph{period} $\gets$ 0
+		\ElsIf{\emph{period} < \emph{maxEpochSize}}
+		\State \emph{period}++	
+		\State \emph{journal} = \Call{Analysis}{population}
+		\Else
+		\State \emph{period} = 0
+		\State \emph{journal} = \emph{BSF\_journal}
+		\EndIf
+		\State perturb(population)
+		\State evaluate(population, \emph{journal})
+		\EndIf
+		\State j++
+		
+		
+		\State $\text{interPop} \gets \text{empty list}$
+	%	\State $\text{interPopSize} \gets 0$
+		\While{$\text{|interPop|} < \text{popSize}$}
+		\State $\text{parent1, parent2} \gets \text{tournamentSelection}(\text{population, tournament1, tournament2})$
+	%	\State $\text{parent2} \gets \text{tournamentSelection}(\text{population})$
+		
+		\If{$\text{rand()} < \text{probCross}$}
+		\State $\text{child1, child2} \gets \text{crossover(parent1, parent2)}$
+	%	\State $\text{child1} \gets \text{parent1.crossover(parent2)}$
+	%	\State $\text{child2} \gets \text{parent2.crossover(parent1)}$
+		\If{$\text{rand()} < \text{probMutation}$}
+		\State mutate(child1, child2)
+	%	\State $\text{child1.mutate()}$
+	%	\State $\text{child2.mutate()}$
+		\EndIf
+		\Else
+		\State $\text{child1} \gets \text{parent1.mutate()}$
+		\State $\text{child2} \gets \text{parent2.mutate()}$
+		\EndIf
+		
+		\State evaluate(child1, child2, \emph{journal})
+		
+		\State localOptimization(child1, child2)
+	%	\State $\text{child1.evaluate(\emph{journal})}$
+	%	\State $\text{child2.evaluate(\emph{journal})}$
+		
+	%	\State $\text{child1.localOptimisation()}$
+	%	\State $\text{child2.localOptimisation()}$
+		
+		\State $\text{interPop.add(child1, child2)}$
+	%	\State $\text{interPopSize} \gets \text{interPopSize} + 2$
+		\EndWhile
+		\State population = population $\cup$ interPop
+		\State $\text{population = sortPopulation(population)}$
+		
+		\State $\text{population} \gets \text{deleteDuplicates(population, \emph{maxDuplicates})}$
+		\EndFor
+		\EndFunction
+		
+		
+	\end{algorithmic}
+	\caption{Pseudocode of the Extended IREANN}
+	\label{fig:evoalg}
+	
+\end{figure}
+
+\subsection{Extended IREANN algorithm}
+\label{sec:evolution}
+All the components discussed in this chapter are combined to form an extended IREANN algorithm, which addresses the capacitated arc routing problem. The proposed algorithm falls under the category of memetic algorithms and builds upon the IREANN algorithm \cite{kubalik2014novel}, incorporating modifications specific to the CARP, as well as a mechanism, which during computation identifies high-quality features and propagates that information across the entire population (described in detail in chapter \ref{sec:extension}).
+
+Figure \ref{fig:evoalg} gives an overview of the extended IREANN in pseudocode. As we can see, the computation consists of \emph{maxGenerations} number of total generations. Firstly, an initial population of candidate solutions is created by means of random perturbation of a list of all required edges. All of these individuals in the initial population are expected to be a very poor quality.
+
+During each iteration of the evolutionary process, a new population of offspring individuals, referred to as the "interPopulation," is created. This interPopulation is the same size as the original population. Depending on the value of parameters \emph{probCross} and \emph{probMutation}, a different way of generating an offspring might be employed. \emph{probCross} represent the probability, that offsprings will be, in given iteration, generated via the means of crossover operator. \emph{ProbMutation} represents the probability those offspring are further mutated to achieve more genetic variety. With probability $1 -$ \emph{probCross}, the offspring in that single generation will have the same priority lists as their parent, except they are just mutated. It is reasonable to keep the value of parameter \emph{probCross} close to 1.
+
+The fitness of each new offspring created in the interPopulation is then evaluated through a process described in section \ref{sec:fitness}. This fitness score is then further improved by numerous local search procedures introduced in \ref{sec:localsearchcarp}.
+
+The two populations are then merged into a single one, which is twice the size. This large population is then sorted according to criteria described in section \ref{sec:sorting}, favoring the "more fit" individuals to be listed closer to the beginning of this sequence. Only the first half this sorted large population survives and ``makes it'' to the next generation (becoming the new resulting population the same size as in the beginning of this process), the second half of individuals is considered to be of lesser a quality and is tossed away. A mechanism that filteres out duplicate candidates, i.e. identical individuals is incorporated as well, explanation is provided in section \ref{sec:duplicates}.
+
+Is important to mention, that all of the terms \emph{popSize, maxGenerations, probCross, probMutation, tournamentSize, M} and \emph{k} are all parameters of the main evolutionary method, whose values need to be carefully chosen as they have a significant influence on the performance of the algorithm. As hyperparameters, there is not one universally optimal set of values for them that will work best for every problem. Instead, their optimal values need to be determined through a process of experimentation, observation, and adjustment. Parameters \emph{M} and \emph{k} are specific to the IREANN extension and their effect is dicussed in section \ref{sec:extension}.
+
+
+\section{IREANN extensions}
+\label{sec:extension}
+We have proposed an extension to the IREANN algorithm, specifically adapted for the CARP. 
+
+Firstly, a motivation behind this extension is described. Local search operators have the potential to substantially improve the fitness of an individual. They are applied during the evolution process to every newly generated offspring (see line 36 of \ref{fig:evoalg}). Local search procedures operate on the inner representation of individual's routes, constructed by the CNNP from the priority list. They improve the fitness of an individual by reconnecting required edges within the set of existing routes.
+Hence, it is impossible to mirror back the information about local improvements into the individual's priority list and benefit from that information later on. In other words,  there is no way to share the local improvements applied in one individual to other individuals in the current and subsequent populations.
+
+Each time a new offspring is evaluated, the construction of a new set of routes through the CNNP is implied. 
+The extension we introduce incorporates a process we've named ``Analysis'' of a population. This mechanism periodically computes and retains data regarding the characteristics contributing to high-quality solutions. This information is then incorporated into the inner workings of CNNP, acting as an intermediary to the information about actual distance between two nodes. In essence, this extension provides the CNNP algorithm with a more focused information, enabling it to construct better solutions by utilizing insights gained from well-performing individuals produced in the past generations.
+	
+The proposed extension is incorporated into the pseudocode provided in figure \ref{fig:evoalg}. The core of the extension is on lines 8 to 22. It relies on the analysis procedure that is conducted with a certain frequency, see lines 11 and 16.
+It scans the population for high-quality features among the fittest individuals. Using that information, it then alters the data in a data structure we have nicknamed the ``journal''. Journal serves as an augmented version of the distance table used in the CNNP. It adds a layer of additional information on top of the actual distances between nodes. This information isn't about physical distances between nodes in the graph \emph{G}, but rather about the ``value'' of connecting two nodes based on previous successful solutions. For every node, journal keeps track of an ordered list of nearest neighbors. The metric for a ``nearest'' neighbor has shifted from the original distance to a more insightful measure. This measure takes into account not only the spatial proximity of the two nodes, but also the success ratio of the link between the two nodes as justified by the evolutionary process so far.
+
+For every two boundary nodes on the graph \emph{G}, the journal incorporates the information about the average fitness of a solution that realizes the connection between these two nodes. The order of nearest neighbors for a particular node \emph{u} is thus determined by the average quality of the solutions in which the neighbors are linked to the node \emph{u}, rather than only by the actual distance. This shift in metric combines both spatial and solution-quality information, making it a composite indicator.
+
+The main idea behind using the journal derived from analysis, is that final routes present only in elite individuals are very likely to carry important information. This information, if harnessed effectively, holds significant potential in constructing high-quality solutions in subsequent generations.
+That is why we introduce a new parameter \emph{N}, which determines the number of best individuals, which will be analyzed.
+
+
+After assembling the journal from the best \emph{N} individuals in population, it is then passed to the CNNP, where it substitutes the original distance table during the route construction process. In other words, the journal acts as an augmented distance table that not only includes the original distance information but also represents the accumulated wisdom from previous generations' successful solutions. It should be noted that the journal doesn't replace the original distance table completely. 
+If a connection to a given node is not present in any of the elite individuals (i.e., it was not observed in their routes), priority of such nodes is derived from the distance table. But while keeping the priority of all the nodes, to which the connections were observed in elite individuals, higher. 
+
+The CNNP than uses the journal in the following fashion. When CNNP evaluates the nearest neighbor of a given boundary node \emph{u} (lines 6 and 7 of \ref{fig:cnnpcarp}), it returns the first element of the priority-ordered sequence of all the other nodes, provided by journal.
+
+This way, the algorithm does not lose the original structural information about the problem while benefiting from the additional insights gained through the analysis of past solutions. 
+
+
+
+
+Journal derived from analysis is not immediately used from the first generation of the population. Instead, we introduce a \emph{warm-up} phase, during which the journal derived from the original distance table is used. We define a new parameter \emph{M}, which tells how many generations from beginning this warm-up phase spans over.
+The motivation behind this decision is to allow the evolution enough time to manifest the original distance information at first, and use the journal later when it gets harder to make any improvements.
+
+After the \emph{warm-up} phase, journal derived from analysis is employed in subsequent generations and is rederived periodically every \emph{k} generations. This \emph{k} number of generation is called a \emph{period}. In each generation of one period, the same journal is used to evaluate individuals. Separating the evolution process into periods serves two main purposes: it mitigates the risk of oscillation of the computation and provides a sufficient number of generations so that the evolutionary process is able to converge toward increasingly better solutions.
+
+
+Therefore, the journal not only collects the wisdom of the past generations but also adapts to new knowledge that is continuously being generated as the algorithm evolves the population. By doing so, newly emerging patterns in the elite portion of population are recognized and incorporated into the journal's understanding of beneficial connections between nodes. 
+
+However, if the information in the journal becomes too dominant, the algorithm runs into the risk of becoming overly exploitative, potentially converging prematurely to sub-optimal solutions and losing its explorative capabilities. 
+
+Moreover, in the worst-case scenario, the dominance of analysis derived information in journal could potentially lead to a diverging loop. This could occur if the algorithm is not able to find a new best solution within a single period. That would imply a new journal being derived from increasingly worse solutions. Using such a journal, we are not likely to discover a new best solution. If this cycles repeats, it inevitably leads to a downward spiral of performance.
+
+To counter this, a mechanism allowing to get the computation back on track is incorporated into the algorithm. The algorithm stores the best individual found so far in \emph{BSF\_solution} (see lines 6 and 10 of \ref{fig:evoalg}), along with the journal \emph{BSF\_journal}, using which this \emph{BSF\_solution} was constructed. Whenever a new \emph{BSF\_solution} is discovered, \emph{BSF\_journal} gets updated accordingly (see lines 9-13 of \ref{fig:evoalg})
+
+Furthermore, the whole process runs in \emph{epochs}. An epoch is a sequence of periods during which the algorithm is permitted to continue without finding a new best solution. The parameter \emph{maxEpochSize} is introduced to set the maximum size of the epoch. This value is essentially a patience parameter that dictates how long the algorithm will persist with the current journal before considering it unproductive. As a result, after these \emph{maxEpochSize} periods have taken place, the journal is reset to \emph{BSF\_journal} and a new epoch starts, see lines 18-19 of \ref{fig:evoalg}.
+
+At the start of each new period, a new journal is derived from the analysis of elite individuals. Hence, the whole population is reevaluated using this new journal. Additionally, the whole population is perturbed (see line 21), meaning that the priority lists of every individual in population are randomly shuffled. The reason behind, is that at the end of each period, the population is not diverse (i.e., priority lists of individuals are similar), due to the effects of the evolutionary process. By shuffling the whole population, we aim to incentivize more exploration.
+
+In this work, we implemented two variants of the analysis procedure that will be described below.
+The first version of analysis only considers individual nodes on the graph \emph{G} and is referred to as ``node analysis''. As mentioned above, when analyzing a set of routes of a given individual, the average fitness of every connection is used as new metric for the nearest neighbor heuristic. A single connection is understood as a link between two required edges. 
+In this version, such a connection is defined by a pair of the boundary nodes, which are linked. This implies that during the CNNP, the nearest neighbor heuristic used only the boundary node as a key, upon which the journal returns the sequence of ordered nearest neighbors, ordered based on the new metric.
+
+This version, as shown in chapter \ref{sec:experiments} yields better performance, but only to a limited degree. The reason is that the node analysis only considers the boundary nodes when assembling the journal and when constructing a new route in CNNP. It does not consider the corresponding boundary edges at all. However, by the design of CARP, a single node might be part of multiple edges. This approach implies that CNNP does not differentiate between two candidate components, which have the same boundary node, but a different boundary edge. That inevitably leads to the loss of precision.
+
+The second version, referred to as ``edge analysis'', corrects this behaviour by changing what defines a single connection. In the case of edge analysis, it is the combination of boundary node and boundary edge, which defines each of the endpoints of a single connection.
+ This approach aligns more closely with the specific structure of the CARP. It does not neglect to which boundary edge does the boundary node belong to, as it is the case with node analysis.
+
+As a result, the journal captures much more precise information. It contains far more entries, because now the keys to the table provided by journal, are the pairs of nodes and edges, instead of solely nodes. 
+This enables the CNNP to make better decisions when it comes to selecting the nearest neighbor of a component's boundary node.
+Performance of both version of analyses is displayed in chapter \ref{sec:experiments}.
+
+
+%
+%...tenhle odstavec je nejspis zbytecny...
+%Let's illustrate on an example. Let \emph{r} = (\emph{$e_1, e_2$}) be a single route \emph{r} consisting of only two required edges in this order \emph{$e_1, e_2$}. Let's look at the connection between edges \emph{$e_1$} and \emph{$e_2$}. Each edge \emph{e} is further described by its two boundary nodes \emph{$u_e$} and \emph{$v_e$}, rewriting the sequence of (\emph{$e_1, e_2$}) to (\emph{$(u_{\substack{e_1}}, v_{\substack{e_1}}), (u_{\substack{e_2}}, v_{\substack{e_2}}) $}). This notation implies, that edges \emph{$e_1$} and \emph{$e_2$} are connected through nodes \emph{$v_{\substack{e_1}}$} and \emph{$u_{\substack{e_2}}$}. ....
+
+
+
+
+
+
+\newcommand{\nnsrvanilla} {\texttt{VANILLA}}
+\newcommand{\nnsrbasic} {\texttt{BASIC}}
+\newcommand{\nnsrnode} {\texttt{NODE}}
+\newcommand{\nnsredge} {\texttt{EDGE}}
+
+
+
+\chapter{Experiments}
+\label{sec:experiments}
+
+\section{Compared algorithms}
+The primary goal of this chapter is to validate the effectiveness of proposed extension to the IREANN algorithm. This will be done by comparing the performance of the original IREANN and the extended one on standard CARP datasets. 
+Versions of the algorithms that will be compared in this experimental study:
+\begin{enumerate}
+	\item \nnsrnode\  - version of the extended IREANN that employs the ``node'' analysis, introduced in \ref{sec:extension}
+	\item \nnsredge\ - extended IREANN which uses the ``edge'' analysis
+	\item \nnsrvanilla\ - original IREANN version, one which does not incorporate any analysis functionality, thus its journal relies solely on the information provided by the distance table
+	\item \nnsrbasic\  - slighty modified vanilla version, which has the functionality of population perturbation at the start of each period, just as it is the case in versions node and edge. The motivation behind the creation of this basic version is that we wanted to show, that the superiority of solution quality of versions node and edge over version vanilla was not achieved just because the vanilla does not implement perturbation functionality.
+\end{enumerate}
+
+\section{Configuration of algorithms}
+
+The goal of this thesis was to propose an extension to the original IREANN algorithm and compare its performance with the original IREANN. Hence, hyperparameter values were not tuned to achieve optimal performance. Instead, we aimed for a common set of hyperparameters that are consistently applied across all versions of the algorithm, to ensure a fair comparison. 
+
+All the common hyperparameters to every version are displayed in Table \ref{tab:params}. 
+Most of the hyperparameters are necessary for all four versions, except for \emph{N, M, k} and \emph{maxEpoch}, which are specific to versions \nnsrnode\ and \nnsredge. \nnsrnode\ version also uses the parameters \emph{M} and \emph{k}.
+The number of generations and periods size vary in each experiment, more details are provided in section \ref{sec:expdesc}
+
+Different paramater configurations for each version of algorithm are needed throughout testing. All the used combinations are listed in Table \ref{tab:algorithm-versions}
+
+\begin{table}[htbp]
+	\centering
+	\caption{Hyperarameter Configuration}
+	\label{tab:params}
+	\begin{tabular}{cc}
+		\hline
+		\textbf{Hyperparameter} & \textbf{Value} \\
+		\hline
+		Population Size (\emph{popSize}) & 300 \\
+		Number of Generations (\emph{maxGen}) & 300, 1000 \\
+		Number of Duplicate Solutions (\emph{duplicates}) & 1 \\
+		Probability of Mutation (\emph{pMutation}) & 0.2 \\
+		Probability of Crossover (\emph{pCross}) & 0.9 \\
+		Tournament Size for Child 1 (\emph{tournament1}) & 7 \\
+		Tournament Size for Child 2 (\emph{tournament2}) & 1 \\
+		Number of Elite Individuals (\emph{N}) & 10 \\
+		Warm-up Phase Length (\emph{M}) & 100 \\
+		Period Size (\emph{k}) & 20, 100, 200 \\
+		Maximum Number of Epochs (\emph{maxEpoch}) & 2 \\
+		\hline
+	\end{tabular}
+\end{table}
+
+\begin{table}[htbp]
+	\centering
+	\caption{Algorithm configurations used in experiments}
+	\label{tab:algorithm-versions}
+	\begin{tabular}{|l|c|c|c|}
+		\hline
+		\textbf{Version} & \textbf{\emph{M}} & \textbf{\emph{k}} & \textbf{\emph{maxGenerations}} \\
+		\hline
+		\nnsrvanilla\ & - & - & 1000 \\
+		\nnsrnode 100 & 100 & 100 & 1000 \\
+		\nnsredge & 100 & 20 & 300 \\
+		\nnsrbasic20 & 100 & 20 & 300 \\
+		\nnsrnode20 & 100 & 20 & 300 \\
+		\nnsrbasic200 & 200 & 200 & 1000 \\
+		\nnsrnode200 & 200 & 200 & 1000 \\
+		\hline
+	\end{tabular}
+\end{table}
+
+
+\section{Datasets}
+All the experiments were carried out on a single renowned benchmark test set of CARP instances, called the \emph{egl} set, introduced in \cite{EGLESE1994231}. We chose this dataset because of its reasonable size and variety of its characteric properties, which enables us to showcase various aspects of the proposed extended IREANN. There are total of 24 instances. These instances are derived from two graphs, each characterized by unique sets of required edges and capacity constraints. For our testing purposes, a subset of 8 of these instance was selected. Properties of each of them are presented in table \ref{tab:dataset}. It includes the total number of nodes on the graph \emph{G}, number of required and unrequired edges and the constrained maximum number of vehicles a the capacity of single vehicle.
+
+\begin{table}[htbp]
+	\centering
+	\caption{Dataset Information}
+	\label{tab:dataset}
+	\begin{tabular}{cccccc}
+		\textbf{Name} & \textbf{Nodes} & \textbf{Required edges} & \textbf{Unrequired edges} & \textbf{Vehicles} & \textbf{Capacity} \\
+		\hline
+		egl-e1-A & 77 & 51 & 47 & 5 & 305 \\
+		egl-e1-C & 77 & 51 & 47 & 10 & 160 \\
+		egl-e4-A & 77 & 98 & 0 & 9 & 280 \\
+		egl-e4-C & 77 & 98 & 0 & 19 & 130 \\
+		egl-s1-A & 140 & 75 & 115 & 7 & 210 \\
+		egl-s1-C & 140 & 75 & 115 & 14 & 103 \\
+		egl-s4-A & 140 & 190 & 0 & 19 & 230 \\
+		egl-s4-C & 140 & 190 & 0 & 35 & 120 \\
+		% Add more rows if necessary
+		\hline
+	\end{tabular}
+\end{table}
+
+
+\section{Experiments}
+\label{sec:expdesc}
+Three experiment settings were created. Every experiment ran on each of 8 selected data instances.
+In order to ensure statistical reliability, each individual experiment for given data instance was executed 30 times with different seed configuration.
+
+\subsection{Experiment A}
+\label{sec:expadesc}
+In the first experiment setting, we want to validate the effects of the extended IREANN (represented by \nnsrnode\ and \nnsredge) against the \nnsrvanilla, implements neither the analysis nor the population perturbances. Parameters common to all algorithms are listed in table \ref{tab:params}.
+
+Number of generations was set to 1000 for \nnsrvanilla\ and \nnsrnode\, \nnsredge\ only runs for 300. \emph{M} is the same for node and edge versions, but different \emph{k} was selected. Parameter \emph{k} for \nnsrnode\ is at 100, while it is only 20 for the \nnsredge\. Reason behind opting for \emph{k} of only 20 and \emph{maxGenerations} of only 300, is the empirical observation, that the \nnsredge\ converges much faster than other versions.
+That puts the \nnsredge\ into a disadvantage against the node version, because it is given less generations to find new optima before reassembling the journal and perturbing the whole population. And secondly, its computation runs only for 300 generation as opposed to 1000. But still, its perfomance is superior the the rest of the versions.
+
+
+\subsection{Experiment B}
+\label{sec:expbdesc}
+
+The objective of the second experiment setting is to find out whether the \nnsrbasic\ (\nnsrvanilla\ version with population perturbation) can outperform the \nnsrvanilla, or even achieve similar results to \nnsrnode\ and \nnsredge.
+
+All three versions share the same parameters, they run for 300 generations, \emph{M} is set to 100 and \emph{k} is 20.
+
+\subsection{Experiment C}
+\label{sec:expcdesc}
+
+In this experiment, versions \nnsrbasic, \nnsrnode\ and \nnsredge\ are compared again. But this time, with different values of parameters \emph{M} and \emph{k} for \nnsrbasic and \nnsrnode. \nnsredge\ has the same configuration as in experiment \ref{sec:expbdesc}. We set both \emph{M} and \emph{k} of versions \nnsrbasic\ and \nnsrnode\ to 200. Raising the values of these parameters has two implications. Firstly, the warm-up phase is longer. Secondly, more generations within a single period are provided to the computation. We want to find out, giving the algorithm more ``space'', potentially leads to discovering new better solutions, which would not be discovered otherwise.
+
+
+
+\section{Results}
+\label{sec:results}
+
+Results of all experiments are included in table \ref{tab:tablebig}. Detailed description of the algorithm versions used for each experiment is provided in section \ref{sec:expdesc}.
+Thirty independent runs were executed for each instance. Presented quality measures in table \ref{tab:tablebig} are:
+\begin{itemize}
+	\item median - The median value of the cost of the best solution over 30 runs 
+	\item best - The overall best solution over 30 runs
+	\item vehicles - The median value of the vehicles used for the best solution over 30 runs. This found value is the same for each data instance over all algorithm version, that is why it is shown in only single column. This constraint was for every instance and for every version of algorithm satisfied in the very first generation of computation. Except for instances egl-e4-C and egl-s4-C, where a satisfactory solution was not found at all during any run of any version of algorithm.
+\end{itemize}
+The last column of the results table \ref{tab:tablebig} includes the best known solutions to each data instance taken from literature. The data was obtained from \url{https://logistik.bwl.uni-mainz.de/forschung/benchmarks/}. If a particular value of median of best solution reaches that best known value, it is in bold.
+
+
+
+
+Further, the convergence of all the algorithm versions for every instance is captured in graphs, available in appendix of this thesis. Only a few notable ones are displayed separately in this chapter.
+
+Data captured in graphs are the convergences of values:
+\begin{itemize}
+	\item BSF\_solution - median value of the cost of best-so-far solution over 30 runs, drawn by full lines
+	\item BOP\_solution - median value of the cost of best solution in current population over 30 lines, drawn by thinner dashed lines
+\end{itemize}
+
+
+\begin{table}[htbp]
+	\centering
+	\caption{Experiment results}
+	\label{tab:tablebig}
+	\begin{tabular}{|c|c|cc|cc|cc|c|}
+		\hline
+		\multicolumn{9}{|c|}{\textbf{Experiment A}}\\ 
+		\multicolumn{1}{|c}{\textbf{Dataset}}&\multicolumn{1}{c}{}&\multicolumn{2}{c}{\textbf{\nnsrvanilla}}&\multicolumn{2}{c}{\textbf{\nnsrnode100}}&\multicolumn{2}{c}{\textbf{\nnsredge}}&\textbf{Best known} \\ \hline
+		&vehicles&median&best&median&best&median&best& \\ \hline
+		egl-e1-A &5&3561&\textbf{3548}&\textbf{3548}&\textbf{3548}&\textbf{3548}&\textbf{3548}&3548 \\ \hline
+		egl-e1-C &10& 5760&5668&5687&5603&5680&5613&5595\\ \hline
+		egl-e4-A &9& 6726&6578&6721&6617&6611&6507&6395\\ \hline
+		egl-e4-C &20& 11956&11764&11966&11790&11853&11649&11529 \\ \hline
+		egl-s1-A &7& 5143&5035&5019&\textbf{5018}&\textbf{5018}&\textbf{5018}&5018 \\ \hline
+		egl-s1-C &14& 8690&8545&8605&8519&8593&\textbf{8518}&8518\\ \hline
+		egl-s4-A &19& 13192&12951&13272&12982&12678&12561&12140 \\ \hline
+		egl-s4-C &36& 21720&21245&21909&21626&21210&21071&20380\\ \hhline{|=========|}
+		\multicolumn{9}{|c|}{\textbf{Experiment B}}\\ 
+		\multicolumn{1}{|c}{\textbf{Dataset}}&\multicolumn{1}{c}{}&\multicolumn{2}{c}{\textbf{\nnsrbasic20}}&\multicolumn{2}{c}{\textbf{\nnsrnode20}}&\multicolumn{2}{c}{\textbf{\nnsredge}}&\textbf{Best known} \\ \hline
+		&vehicles&median&best&median&best&median&best&\\ \hline
+		egl-e1-A &5&3610&\textbf{3548}&3561&\textbf{3548}&\textbf{3548}&\textbf{3548}&3548\\ \hline
+		egl-e1-C &10&5791&5703&5719&5639&5680&5613&5595\\ \hline
+		egl-e4-A &9&6793&6644&6808&6644&6611&6507&6395\\ \hline
+		egl-e4-C &20&12008&11841&12022&11841&11853&11649&11529\\ \hline
+		egl-s1-A &7&5183&5066&5074&5038&\textbf{5018}&\textbf{5018}&5018\\ \hline
+		egl-s1-C &14&8766&8634&8748&8562&8593&\textbf{8518}&8518\\ \hline
+		egl-s4-A &19&13354&13221&13336&13221&12678&12561&12140\\ \hline
+		egl-s4-C &36&22000&21646&22000&21646&21210&21071&20380\\ \hhline{|=========|}
+		\multicolumn{9}{|c|}{\textbf{Experiment C}}\\ 
+		\multicolumn{1}{|c}{\textbf{Dataset}}&\multicolumn{1}{c}{}&\multicolumn{2}{c}{\textbf{\nnsrbasic200}}&\multicolumn{2}{c}{\textbf{\nnsrnode200}}&\multicolumn{2}{c}{\textbf{\nnsredge}}&\textbf{Best known} \\ \hline
+		&vehicles&median&best&median&best&median&best&\\ \hline
+		egl-e1-A&5&3561&\textbf{3548}&\textbf{3548}&\textbf{3548}&\textbf{3548}&\textbf{3548}&3548\\ \hline
+		egl-e1-C&10&5728&5677&5687&5634&5680&5613&5595\\ \hline
+		egl-e4-A&9&6689&6598&6732&6594&6611&6507&6395\\ \hline
+		egl-e4-C&20&11941&11783&11960&11783&11853&11649&11529\\ \hline
+		egl-s1-A&7&5128&5054&5027&\textbf{5018}&\textbf{5018}&\textbf{5018}&5018\\ \hline
+		egl-s1-C&14&8660&8587&8652&\textbf{8518}&8593&\textbf{8518}&8518\\ \hline
+		egl-s4-A&19&13123&12924&13232&12989&12678&12561&12140\\ \hline
+		egl-s4-C&36&21712&21334&21752&21549&21210&21071&20380\\ \hline
+	\end{tabular}
+\end{table}
+
+\subsection{Experiment A}
+\label{exp:expA}
+
+\begin{figure}[htbp]
+	\label{fig:expasub}
+	\centering
+	\begin{subfigure}{0.49\textwidth}
+		\centering
+		\includegraphics[width=\linewidth]{expA/egl-e1-C.png}
+		\caption{egl-e1-C}
+		\label{fig:subfig1}
+	\end{subfigure}
+	\hfill
+	\begin{subfigure}{0.49\textwidth}
+		\centering
+		\includegraphics[width=\linewidth]{expA/egl-s4-C.png}
+		\caption{egl-s4-C}
+		\label{fig:subfig2}
+	\end{subfigure}
+	\caption{Experiment A comparison}
+\end{figure}
+Results of this experiment are presented in subtable ``Experiment A'' of table \ref{tab:tablebig}. 
+
+We can see, that \nnsredge\ always achieves better results than the \nnsrvanilla. \nnsredge\ reaches the best knows values for 3 of the data instances, while the \nnsrvanilla\ does so only for the first instance.
+
+
+The overall perfomance of the \nnsrnode\ is not as convincing as the \nnsredge. To a great extent, the \nnsrnode's perfomance is influenced by the nature of data instances is solves. It performs reasonably well on instances, which with larger number of unrequired edges. On the other hand, its performance is very poor on instances which have little to no unrequired edges. On the data instances egl-s4-A and egl-s4-C, the \nnsrnode\ yield even worse results than the \nnsrvanilla.
+
+The absence of unrequired edges in a data instance does not seem to be a problem for the \nnsredge.
+
+Two data instances egl-e1-C and egl-s4-C have been picked as an illustrative example in figure 6.1. In the left picture, \nnsrnode\ (blue) performs almost as well as the \nnsredge, because this instance has lot of unrequired edges, as shown in table \ref{tab:dataset}. Data instance on the right does not have any unrequired edges, which results in the \nnsrnode\ performing worse than the vanilla (magenta). 
+
+From the two figures, we can see the superiority of convergence speed of the \nnsredge (green), despite having only 300 generations and \emph{k} of 20.
+
+
+
+%\hhline{|=|===|===|===|=|}
+
+
+\begin{table}[htbp]
+	\centering
+	\caption{Experiment A}
+	\label{tab:tablea}
+	\begin{tabular}{|c|c|cc|cc|cc|c|}
+		\hline
+		\textbf{Dataset}&&\multicolumn{2}{c|}{\textbf{\nnsrvanilla}}&\multicolumn{2}{c|}{\textbf{\nnsrnode100}}&\multicolumn{2}{c|}{\textbf{\nnsredge}}&\textbf{Best known} \\ \hline
+		&vehicles&median&best&median&best&median&best& \\
+		&&(p-value)&&(p-value)&&(p-value)&&\\
+		\hline
+		egl-e1-A &5& 3561&3548&3548&3548&3548&3548&3548 \\
+		&&(7.32e-7)&& (7.48e-6)&& (0.487)&& \\ \hline
+		egl-e1-C &10& 5760&5668&5687&5603&5680&5613&5595\\
+		&&(1.38e-5)&& (2.23e-6)&& (0.877)&& \\ \hline
+		egl-e4-A &9& 6726&6578&6721&6617&6611&6507&6395\\
+		&&(2.40e-6)&& (0.657)&& (6.53e-7)&& \\ \hline
+		egl-e4-C &20& 11956&11764&11966&11790&11853&11649&11529 \\
+		&&(1.77e-8)&& (0.473)&& (1.15e-8)&& \\ \hline
+		egl-s1-A &7& 5143&5035&5019&5018&5018&5018&5018 \\
+		&&(6.37e-11)&& (4.29e-11)&& (0.0006)&& \\ \hline
+		egl-s1-C &14& 8690&8545&8605&8519&8593&8518&8518\\
+		&&(1.01e-4)&& (2.01e-4)&& (0.745)&& \\ \hline
+		egl-s4-A &19& 13192&12951&13272&12982&12678&12561&12140 \\
+		&&(2.87e-11)&& (0.196)&& (2.87e-11)&& \\ \hline
+		egl-s4-C &36& 21720&21245&21909&21626&21210&21071&20380\\
+		&&(2.05e-10)&& (0.01)&& (2.87e-11)&& \\ \hline
+	\end{tabular}
+\end{table}
+
+
+
+
+%\subsection{Experiment B}
+%\begin{table}[htbp]
+%	\centering
+%	\caption{Experiment B}
+%	\label{tab:experimentBb}
+%	\begin{tabular}{|c|c|cc|cc|cc|c|}
+%		\hline
+%		\textbf{Dataset}&&\multicolumn{2}{c|}{\textbf{\nnsrbasic20}}&\multicolumn{2}{c|}{\textbf{\nnsrnode20}}&\multicolumn{2}{c|}{\textbf{\nnsredge}}&\textbf{Best known} \\ \hline
+%		&vehicles&median&best&median&best&median&best&\\
+%		&&(p-value)&&(p-value)&&(p-value)&&\\
+%		\hline
+%		egl-e1-A &5&3610&3548&3561&3548&3548&3548&3548\\ \hline
+%		egl-e1-C &10&5791&5703&5719&5639&5680&5613&5595\\ \hline
+%		egl-e4-A &9&6793&6644&6808&6644&6611&6507&6395\\ \hline
+%		egl-e4-C &20&12008&11841&12022&11841&11853&11649&11529\\ \hline
+%		egl-s1-A &7&5183&5066&5074&5038&5018&5018&5018\\ \hline
+%		egl-s1-C &14&8766&8634&8748&8562&8593&8518&8518\\ \hline
+%		egl-s4-A &19&13354&13221&13336&13221&12678&12561&12140\\ \hline
+%		egl-s4-C &36&22000&21646&22000&21646&21210&21071&20380\\ \hline
+%	\end{tabular}
+%\end{table}
+
+
+
+\begin{table}[htbp]
+	\centering
+	\caption{Experiment B}
+	\label{tab:tableb}
+	\begin{tabular}{|c|c|cc|cc|cc|c|}
+		\hline
+		\textbf{Dataset}&&\multicolumn{2}{c|}{\textbf{\nnsrbasic20}}&\multicolumn{2}{c|}{\textbf{\nnsrnode20}}&\multicolumn{2}{c|}{\textbf{\nnsredge}}&\textbf{Best known} \\ \hline
+		&v&median&best&median&best&median&best&\\
+		&&(p-value)&&(p-value)&&(p-value)&&\\
+		\hline
+		egl-e1-A &5&3610&3548&3561&3548&3548&3548&3548\\
+		&&(3.06e-9)&& (4.64e-5)&& (7.32e-7)&&\\ \hline
+		egl-e1-C &10&5791&5703&5719&5639&5680&5613&5595\\
+		&&(5.00e-9)&& (2.03e-7)&& (0.0135)&&\\ \hline
+		egl-e4-A &9&6793&6644&6808&6644&6611&6507&6395\\
+		&&(2.05e-10)&& (0.107)&& (1.86e-10)&&\\ \hline
+		egl-e4-C &20&12008&11841&12022&11841&11853&11649&11529\\
+		&&(2.26e-10)&& (0.438)&& (2.26e-10)&&\\ \hline
+		egl-s1-A &7&5183&5066&5074&5038&5018&5018&5018\\
+		&&(3.51e-11)&& (4.44e-7)&& (2.05e-10)&&\\ \hline
+		egl-s1-C &14&8766&8634&8748&8562&8593&8518&8518\\
+		&&(2.79e-9)&& (0.246)&& (2.03e-7)&&\\ \hline
+		egl-s4-A &19&13354&13221&13336&13221&12678&12561&12140\\
+		&&(2.87e-11)&& (0.684)&& (2.87e-11)&&\\ \hline
+		egl-s4-C &36&22000&21646&22000&21646&21210&21071&20380\\
+		&&(2.87e-11)&& (0.511)&& (2.87e-11)&&\\ \hline
+	\end{tabular}
+\end{table}
+
+In the second experiment B, from the table \ref{tab:tablebig}, we observe similar pattern as in the previous experiment. \nnsredge\ dominates both of the two remaining versions. With \nnsrbasic\ being even worse than \nnsrvanilla\ from previous experiment with given parameter configuration.
+
+Examining the convergence graphs for each data instance in this experiment reveals that the \nnsredge\ effectively utilizes the information from the analysis. This results in continuous improvement of solution cost throughout the computation.
+
+As illustrated in figure 6.2, \nnsredge\ does not seem to be bothered by instances, that \nnsrnode\ fails at. As discussed in previous experiment \ref{exp:expA}. Although we can speculate, that by looking at the graph of egl-e4-C, the convergence speed of \nnsredge seems to be slower than in egl-e1-C.
+
+By looking at convergence graphs of the \nnsrbasic BOP\_solution (red dashed line), we also hypothesize, that better solutions might be found by raising the value of \emph{k}, which is examined in the next experiment.
+
+\begin{figure}[htbp]
+\label{f:fff}
+	\centering
+	\begin{subfigure}{0.49\textwidth}
+		\centering
+		\includegraphics[width=\linewidth]{expB/egl-e1-C.png}
+		\caption{egl-e1-C}
+	\end{subfigure}
+	\hfill
+	\begin{subfigure}{0.49\textwidth}
+		
+		\centering
+		\includegraphics[width=\linewidth]{expB/egl-s4-C.png}
+		\caption{egl-s4-C}
+	\end{subfigure}
+	\caption{Experiment B comparison}
+\end{figure}
+
+\subsection{Experiment C}
+
+By raising the parameters \emph{M} and \emph{k} \nnsrbasic\ and \nnsrnode, a minor improvement of the corresponding median values was achieved. Both versions were able to benefit from longer periods, which results in \nnsrbasic\ outperforming the \nnsrvanilla\ by a little margin, as the differences in median cost between these version suggest. \nnsrnode\ notices a slight boost in performance too, however its results on instances with no unrequired edges are still very poor.
+
+This implies, that by having too small size of period, as it was the case in experiment B, we potentially lose out on discoveries of good solutions.
+Raising the parameters \emph{M} and \emph{k} of \nnsredge\ would most likely have little no effect, because the convergence is so fast even with low values of \emph{k}.
+
+Summarized, the \nnsredge\ provides constantly the best performance over all data instances. Raising the \emph{k} of \nnsrnode\ improves this version, but present no match for \nnsredge\ over all the data instances.
+
+\begin{figure}[htbp]
+	\label{f:fff}
+	\centering
+	\begin{subfigure}{0.49\textwidth}
+		\centering
+		\includegraphics[width=\linewidth]{expC/egl-e1-C.png}
+		\caption{egl-e1-C}
+	\end{subfigure}
+	\hfill
+	\begin{subfigure}{0.49\textwidth}
+		
+		\centering
+		\includegraphics[width=\linewidth]{expC/egl-s4-C.png}
+		\caption{egl-s4-C}
+	\end{subfigure}
+	\caption{Experiment C comparison}
+\end{figure}
+
+
+\begin{table}[htbp]
+	\centering
+	\caption{Experiment C}
+	\label{tab:tablec}
+	\begin{tabular}{|c|c|cc|cc|cc|c|}
+		\hline
+		\textbf{Dataset}&&\multicolumn{2}{c|}{\textbf{\nnsrbasic200}}&\multicolumn{2}{c|}{\textbf{\nnsrnode200}}&\multicolumn{2}{c|}{\textbf{\nnsredge}}&\textbf{Best known} \\ \hline
+		&v&median&best&median&best&median&best&\\
+		&&(p-value)&&(p-value)&&(p-value)&&\\
+		\hline
+		egl-e1-A&5&3561&3548&3548&3548&3548&3548&3548\\
+		&&(6.28e-7)&& (1.49e-6)&& (0.813)&&\\ \hline
+		egl-e1-C&10&5728&5677&5687&5634&5680&5613&5595\\
+		&&(5.72e-4)&& (3.26e-5)&& (0.549)&&\\ \hline
+		egl-e4-A&9&6689&6598&6732&6594&6611&6507&6395\\
+		&&(3.09e-6)&& (0.174)&& (9.18e-7)&&\\ \hline
+		egl-e4-C&20&11941&11783&11960&11783&11853&11649&11529\\
+		&&(3.13e-7)&& (0.074)&& (7.44e-9)&&\\ \hline
+		egl-s1-A&7&5128&5054&5027&5018&5018&5018&5018\\
+		&&(6.37e-11)&& (5.84e-10)&& (2.32e-6)&&\\ \hline
+		egl-s1-C&14&8660&8587&8652&8518&8593&8518&8518\\
+		&&(4.58e-4)&& (0.079)&& (0.089)&&\\ \hline
+		egl-s4-A&19&13123&12924&13232&12989&12678&12561&12140\\
+		&&(2.87e-11)&& (0.0031)&& (2.87e-11)&&\\ \hline
+		egl-s4-C&36&21712&21334&21752&21549&21210&21071&20380\\
+		&&(8.56e-11)&& (0.0042)&& (2.87e-11)&&\\ \hline
+	\end{tabular}
+\end{table}
+
+
+\chapter{Conclusion}
+
+This thesis proposes an extended version of the IREANN algorithm specifically adapted for the Capacitated Arc Routing Problem (CARP). The extension builds upon the established IREANN algorithm, mainly utilizing its indirect representation and nearest neighbor heuristic functionality. It incorporates modifications tailored to the CARP, in addition to a mechanism that identifies high-quality features during computation and propagates this information across the entire population.
+
+This mechanism is called the ``analysis''. It periodically computes characteristics contributing to high-quality solutions. This mechanism, combined with the original distance table, gives rise to a modified data structure, named as the ``journal.'' This journal, which maintains an ordered list of nearest neighbors for each node, uses a composite measure incorporating both spatial proximity and solution-quality information to enhance the process of constructing routes of the final solutions.
+
+Two variants of this analysis procedure were developed: node analysis and edge analysis, with the latter demonstrating improved precision in the context of CARP. By taking into consideration both boundary nodes and edges, the edge analysis approach effectively utilized the problem's structure, leading to better decision-making during the route construction process.
+
+The goal of this thesis was not to reach state-of-the-art performance or to perfectly fine-tune the algorithm's hyperparameters. Instead, the primary focus was to investigate and demonstrate the impact of the proposed analysis. Series of experiments were carried out on standard CARP benchmark datasets to illustrate its potential benefits and limitations. The results of experiments show that the proposed extension is superior to its original version. 
+However, for some data instances neither of the algorithm versions was able to generate valid solutions, which could be solved by designing custom heuristics. In general, it generates better solutions and converges to them faster. Statistical tests were conducted to evaluate the significance of these results, confirming the superiority of the extended IREANN algorithm over the original version in the studied scenarios.
+
+The proposed extended IREANN is not limited to the domain of CARP. It can be applied in similar fashion to other routing problems. Or any other permutation-based combinatorial optimization problem in general, which is able leverage the information about distance between solution's components.
+
+Potential for further improvements of the proposed extension lies in fine-tuning the hyperparameters of both the underlying original IREANN algorithm, as well as those introduced by the extension itself. This could be achieved for example by utilizing the techniques of Automated Algorithm Configuration and Parameter Tuning.
+
+
+
+
+\bibliographystyle{amsalpha}
+\bibliography{references}
+
+
+\appendix
+\chapter{Experiment graphs}
+\label{sec:appendix}
+
+%\begin{figure}
+%	\begin{subfigure}[b]{0.9\textwidth}
+%	\centering
+%	\includegraphics[width=\textwidth]{expA/egl-e1-A.png}
+%	\caption{Caption for Image 1}
+%	\label{fig:image1f}
+%	\end{subfigure}
+%	\begin{subfigure}[b]{0.9\textwidth}
+%	\centering
+%	\includegraphics[width=\textwidth]{expA/egl-e1-C.png}
+%	\caption{Caption for Image 1}
+%	\label{fig:image1f}
+%\end{subfigure}
+%
+%	
+%\end{figure}
+
+\begin{figure}[htbp]
+	\centering
+	
+	\begin{subfigure}{0.45\textwidth}
+		\includegraphics[width=\textwidth]{expA/egl-e1-A.png}
+		\caption{egl-e1-A}
+		\label{fig:expA-e1-A}
+	\end{subfigure}
+	\hfill
+	\begin{subfigure}{0.45\textwidth}
+		\includegraphics[width=\textwidth]{expA/egl-e1-C.png}
+		\caption{egl-e1-C}
+		\label{fig:expA-e1-C}
+	\end{subfigure}
+	
+	\begin{subfigure}{0.45\textwidth}
+		\includegraphics[width=\textwidth]{expA/egl-e4-A.png}
+		\caption{egl-e4-A}
+		\label{fig:expA-e4-A}
+	\end{subfigure}
+	\hfill
+	\begin{subfigure}{0.45\textwidth}
+		\includegraphics[width=\textwidth]{expA/egl-e4-C.png}
+		\caption{egl-e4-C}
+		\label{fig:expA-e4-C}
+	\end{subfigure}
+	
+	\begin{subfigure}{0.45\textwidth}
+		\includegraphics[width=\textwidth]{expA/egl-s1-A.png}
+		\caption{egl-s1-A}
+		\label{fig:expA-s1-A}
+	\end{subfigure}
+	\hfill
+	\begin{subfigure}{0.45\textwidth}
+		\includegraphics[width=\textwidth]{expA/egl-s1-C.png}
+		\caption{egl-s1-C}
+		\label{fig:expA-s1-C}
+	\end{subfigure}
+	
+	\begin{subfigure}{0.45\textwidth}
+		\includegraphics[width=\textwidth]{expA/egl-s4-A.png}
+		\caption{egl-s4-A}
+		\label{fig:expA-s4-A}
+	\end{subfigure}
+	\hfill
+	\begin{subfigure}{0.45\textwidth}
+		\includegraphics[width=\textwidth]{expA/egl-s4-C.png}
+		\caption{egl-s4-C}
+		\label{fig:expA-s4-C}
+	\end{subfigure}
+	
+	\caption{Experiment A comparison}
+	\label{fig:expA-comparison}
+\end{figure}
+
+
+\begin{figure}[htbp]
+	\centering
+	
+	\begin{subfigure}{0.45\textwidth}
+		\includegraphics[width=\textwidth]{expB/egl-e1-A.png}
+		\caption{egl-e1-A}
+		\label{fig:expB-e1-A}
+	\end{subfigure}
+	\hfill
+	\begin{subfigure}{0.45\textwidth}
+		\includegraphics[width=\textwidth]{expB/egl-e1-C.png}
+		\caption{egl-e1-C}
+		\label{fig:expB-e1-C}
+	\end{subfigure}
+	
+	\begin{subfigure}{0.45\textwidth}
+		\includegraphics[width=\textwidth]{expB/egl-e4-A.png}
+		\caption{egl-e4-A}
+		\label{fig:expB-e4-A}
+	\end{subfigure}
+	\hfill
+	\begin{subfigure}{0.45\textwidth}
+		\includegraphics[width=\textwidth]{expB/egl-e4-C.png}
+		\caption{egl-e4-C}
+		\label{fig:expB-e4-C}
+	\end{subfigure}
+	
+	\begin{subfigure}{0.45\textwidth}
+		\includegraphics[width=\textwidth]{expB/egl-s1-A.png}
+		\caption{egl-s1-A}
+		\label{fig:expB-s1-A}
+	\end{subfigure}
+	\hfill
+	\begin{subfigure}{0.45\textwidth}
+		\includegraphics[width=\textwidth]{expB/egl-s1-C.png}
+		\caption{egl-s1-C}
+		\label{fig:expB-s1-C}
+	\end{subfigure}
+	
+	\begin{subfigure}{0.45\textwidth}
+		\includegraphics[width=\textwidth]{expB/egl-s4-A.png}
+		\caption{egl-s4-A}
+		\label{fig:expB-s4-A}
+	\end{subfigure}
+	\hfill
+	\begin{subfigure}{0.45\textwidth}
+		\includegraphics[width=\textwidth]{expB/egl-s4-C.png}
+		\caption{egl-s4-C}
+		\label{fig:expB-s4-C}
+	\end{subfigure}
+	
+	\caption{Experiment B comparison}
+	\label{fig:expB-comparison}
+\end{figure}
+
+
+\begin{figure}[htbp]
+	\centering
+	
+	\begin{subfigure}{0.45\textwidth}
+		\includegraphics[width=\textwidth]{expC/egl-e1-A.png}
+		\caption{egl-e1-A}
+		\label{fig:expC-e1-A}
+	\end{subfigure}
+	\hfill
+	\begin{subfigure}{0.45\textwidth}
+		\includegraphics[width=\textwidth]{expC/egl-e1-C.png}
+		\caption{egl-e1-C}
+		\label{fig:expC-e1-C}
+	\end{subfigure}
+	
+	\begin{subfigure}{0.45\textwidth}
+		\includegraphics[width=\textwidth]{expC/egl-e4-A.png}
+		\caption{egl-e4-A}
+		\label{fig:expC-e4-A}
+	\end{subfigure}
+	\hfill
+	\begin{subfigure}{0.45\textwidth}
+		\includegraphics[width=\textwidth]{expC/egl-e4-C.png}
+		\caption{egl-e4-C}
+		\label{fig:expC-e4-C}
+	\end{subfigure}
+	
+	\begin{subfigure}{0.45\textwidth}
+		\includegraphics[width=\textwidth]{expC/egl-s1-A.png}
+		\caption{egl-s1-A}
+		\label{fig:expC-s1-A}
+	\end{subfigure}
+	\hfill
+	\begin{subfigure}{0.45\textwidth}
+		\includegraphics[width=\textwidth]{expC/egl-s1-C.png}
+		\caption{egl-s1-C}
+		\label{fig:expC-s1-C}
+	\end{subfigure}
+	
+	\begin{subfigure}{0.45\textwidth}
+		\includegraphics[width=\textwidth]{expC/egl-s4-A.png}
+		\caption{egl-s4-A}
+		\label{fig:expC-s4-A}
+	\end{subfigure}
+	\hfill
+	\begin{subfigure}{0.45\textwidth}
+		\includegraphics[width=\textwidth]{expC/egl-s4-C.png}
+		\caption{egl-s4-C}
+		\label{fig:expC-s4-C}
+	\end{subfigure}
+	
+	\caption{Experiment C comparison}
+	\label{fig:expC-comparison}
+\end{figure}
+
+
+
+
+
+
+\end{document}

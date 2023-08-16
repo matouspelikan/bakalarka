@@ -1,6 +1,8 @@
+import java.io.Serializable;
 import java.util.*;
 
-public class Node {
+public class Node implements Serializable{
+
 
     public int number;
     public List<Integer> neighbors;
@@ -12,6 +14,7 @@ public class Node {
 
     Map<Node, Boolean> required = new HashMap<>();
 
+
     public Node(int number, int neighbor){
         this.number = number;
         this.neighbors = new ArrayList<>();
@@ -21,6 +24,12 @@ public class Node {
     public Node(int number){
         this.number = number;
         this.neighbors = new ArrayList<>();
+    }
+
+    public Node(Node node){
+        this.number = node.number;
+        this.hasRequired = node.hasRequired;
+        this.neighbors = node.neighbors;
     }
 
     public void add(int neighbor){
@@ -37,12 +46,34 @@ public class Node {
         }
     }
 
+    public int getNumber(){
+        return number;
+    }
 
     @Override
     public String toString() {
-        return "Node{" +
-                "number=" + number +
-                ", nodes=" + nodes.size() +
-                '}';
+//        return "Node{" +
+//                "number=" + number +
+//                ", nodes=" + nodes.size() +
+//                '}';
+        return "" + number;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Node node = (Node) o;
+        return number == node.number;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(number);
+//        return hash();
+    }
+
+    public int hash(){
+        return new Random(number).nextInt();
     }
 }
